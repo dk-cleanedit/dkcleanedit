@@ -59,6 +59,8 @@ completed orders, cancelled orders, service popularity and order
 locations. Connected analytics to Firebase so charts update based
 on stored booking data.
 
+march the 11 - updated the css,js and home and booking page
+
 
 
 -------------------------------------------------------
