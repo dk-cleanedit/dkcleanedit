@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Register | DKCleanEdit</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <nav class="navbar" aria-label="Primary">
+    <ul class="nav-links">
+      <li><a href="home.html" id="navHome">Home</a></li>
+
+      <li><a href="booking.html" id="navBooking" data-requires-auth="true">Booking</a></li>
+      <li><a href="track.html" id="navTracking" data-requires-auth="true">Tracking</a></li>
+      <li><a href="customer.html" id="navAccount" data-requires-auth="true">My Account</a></li>
+      <li><a href="admin.html" id="navAdmin" data-requires-auth="true">Admin</a></li>
+
+      <li><a href="login.html" id="navLogin">Login</a></li>
+      <li><a href="register.html" id="navRegister" aria-current="page">Register</a></li>
+
+      <li><a href="#" id="navLogout" hidden>Logout</a></li>
+      <li><span id="navPointsBadge" class="badge" hidden>Points: 0</span></li>
+    </ul>
+  </nav>
+
+  <main class="container">
+    <section class="card" aria-label="Register form">
+      <h1>Create account</h1>
+
+      <label class="sub" for="regName">Name</label>
+      <input id="regName" type="text" autocomplete="name" placeholder="Your full name" />
+
+      <label class="sub" for="regEmail">Email</label>
+      <input id="regEmail" type="email" autocomplete="email" placeholder="name@example.com" />
+
+      <label class="sub" for="regPhone">Phone number</label>
+      <input id="regPhone" type="tel" placeholder="+447123456789" autocomplete="tel" />
+
+      <label class="sub" for="regPass">Password</label>
+      <input id="regPass" type="password" autocomplete="new-password" placeholder="Create a strong password" />
+
+      <p class="sub">You agree to receive booking/order notifications by email/SMS.</p>
+
+      <button id="btnRegister" class="btn primary full" type="button">Register</button>
+      <p id="msg" class="sub"></p>
+    </section>
+  </main>
+
+  <!-- Keep EmailJS for later -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>
+    emailjs.init("VUzWxUmzFlF9zCMUY");
+  </script>
+
+  <script type="module" src="./app.js" defer></script>
+</body>
+</html>

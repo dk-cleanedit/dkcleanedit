@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tracking | DKCleanEdit</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <nav class="navbar" aria-label="Primary">
+    <ul class="nav-links">
+       <img src="videos/logo.png" class="logo"/>
+      <li><a href="home.html" id="navHome">Home</a></li>
+
+      <li><a href="booking.html" id="navBooking" data-requires-auth="true">Booking</a></li>
+      <li><a href="track.html" id="navTracking" data-requires-auth="true" aria-current="page">Tracking</a></li>
+      <li><a href="customer.html" id="navAccount" data-requires-auth="true">My Account</a></li>
+      <li><a href="admin.html" id="navAdmin" data-requires-auth="true">Admin</a></li>
+
+      <li><a href="login.html" id="navLogin">Login</a></li>
+      <li><a href="register.html" id="navRegister">Register</a></li>
+
+      <li><a href="#" id="navLogout" hidden>Logout</a></li>
+      <li><span id="navPointsBadge" class="badge" hidden>Points: 0</span></li>
+    </ul>
+  </nav>
+
+  <div id="signupOverlay" class="overlay" hidden>
+    <div class="popup" role="dialog" aria-modal="true" aria-labelledby="signupTitle">
+      <h2 id="signupTitle">Please sign up</h2>
+      <p>Create an account to book services and track orders.</p>
+      <div class="popup-actions">
+        <a class="btn primary" href="login.html">Log in</a>
+        <a class="btn secondary" href="register.html">Register</a>
+        <a class="btn secondary" href="home.html">Home</a>
+        <button id="closePopupBtn" class="btn secondary" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <main class="container tracking-layout">
+    <section class="card">
+      <h1>Order Tracking</h1>
+      <p class="sub">Orders update live when admin changes the stage.</p>
+
+      <div class="timeline" aria-label="Tracking stages">
+        <div class="step"><span class="dot"></span><div><h3>Booked</h3><p class="sub">Order created.</p></div></div>
+        <div class="step"><span class="dot"></span><div><h3>Received</h3><p class="sub">Pair received.</p></div></div>
+        <div class="step"><span class="dot"></span><div><h3>Cleaning</h3><p class="sub">Deep clean in progress.</p></div></div>
+        <div class="step"><span class="dot"></span><div><h3>Drying & Finish</h3><p class="sub">Finishing touches.</p></div></div>
+        <div class="step"><span class="dot"></span><div><h3>Ready</h3><p class="sub">Ready for pickup/delivery.</p></div></div>
+        <div class="step"><span class="dot"></span><div><h3>Completed</h3><p class="sub">Points applied.</p></div></div>
+        <div class="step"><span class="dot"></span><div><h3>Cancelled</h3><p class="sub">your order has been cancelled.</p></div></div>
+
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <h2>My Orders</h2>
+          <p class="sub">Loaded from Firebase: service, location, date/time, status.</p>
+        </div>
+        <button class="btn secondary" type="button" id="btnRefresh">Refresh</button>
+      </div>
+
+      <div id="orders" class="orders-grid" aria-live="polite"></div>
+      <p id="msg"></p>
+    </section>
+  </main>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

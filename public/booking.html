@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Book | DKCleanEdit</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <nav class="navbar" aria-label="Primary">
+    <ul class="nav-links">
+      <li class="nav-logo">
+        <a href="home.html" aria-label="DKcleanedit home">
+          <img src="videos/logo.png" class="logo" alt="DKcleanedit logo" />
+        </a>
+      </li>
+
+      <li><a href="home.html" id="navHome">Home</a></li>
+      <li><a href="booking.html" id="navBooking" data-requires-auth="true" aria-current="page">Booking</a></li>
+      <li><a href="track.html" id="navTracking" data-requires-auth="true">Tracking</a></li>
+      <li><a href="customer.html" id="navAccount" data-requires-auth="true">My Account</a></li>
+      <li><a href="admin.html" id="navAdmin" data-requires-auth="true">Admin</a></li>
+      <li><a href="login.html" id="navLogin">Login</a></li>
+      <li><a href="register.html" id="navRegister">Register</a></li>
+      <li><a href="#" id="navLogout" hidden>Logout</a></li>
+      <li><span id="navPointsBadge" class="badge" hidden>Points: 0</span></li>
+    </ul>
+  </nav>
+
+  <div id="signupOverlay" class="overlay" hidden>
+    <div class="popup" role="dialog" aria-modal="true" aria-labelledby="signupTitle">
+      <h2 id="signupTitle">Please sign up</h2>
+      <p>Create an account to book services and track orders.</p>
+      <div class="popup-actions">
+        <a class="btn primary" href="login.html">Log in</a>
+        <a class="btn secondary" href="register.html">Register</a>
+        <a class="btn secondary" href="home.html">Home</a>
+        <button id="closePopupBtn" class="btn secondary" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <main class="container">
+    <section class="service1">
+      <h1>Standard cleaning</h1>
+      <p>Deep exterior clean, midsole scrub, lace clean, deodorising, drying &amp; finish.</p>
+    </section>
+
+    <section class="service2">
+      <h2>Express service</h2>
+      <p>Multi-pair service with consistent care and professional finish.</p>
+    </section>
+
+    <section class="service3">
+      <h3>Next day</h3>
+      <p>Bulk cleaning with careful material-safe processes for every pair.</p>
+    </section>
+
+    <section class="card">
+      <h1>Book a service</h1>
+
+      <label class="sub" for="service">Service</label>
+      <select id="service">
+        <option value="standard_clean">Standard Cleaning</option>
+        <option value="express">Express Service</option>
+        <option value="next_day">Next day</option>
+      </select>
+
+      <label class="sub" for="location">Location</label>
+      <select id="location">
+        <option value="London">London</option>
+        <option value="Leicester">Leicester</option>
+      </select>
+
+      <label class="sub" for="date">Date</label>
+      <input id="date" type="date" />
+
+      <label class="sub" for="timeSlot">Time slot</label>
+      <select id="timeSlot">
+        <option value="10:00">10:00</option>
+        <option value="12:00">12:00</option>
+        <option value="14:00">14:00</option>
+        <option value="16:00">16:00</option>
+        <option value="18:00">18:00</option>
+      </select>
+
+      <button id="btnBook" class="btn primary full" type="button">Confirm booking</button>
+
+      <hr />
+
+      <button id="btnGoTrack" class="btn secondary full" type="button">Track my order</button>
+      <button id="btnGoAdmin" class="btn secondary full" type="button">Admin (if allowed)</button>
+
+      <p id="msg"></p>
+    </section>
+  </main>
+
+  <script type="module" src="./app.js" defer></script>
+</body>
+</html>
+</html>

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin | DKCleanEdit</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body class="admin-body">
+  <nav class="navbar" aria-label="Primary">
+    <ul class="nav-links">
+       <img src="videos/logo.png" class="logo"/>
+      <li><a href="home.html" id="navHome">Home</a></li>
+
+      <li><a href="booking.html" id="navBooking" data-requires-auth="true">Booking</a></li>
+      <li><a href="track.html" id="navTracking" data-requires-auth="true">Tracking</a></li>
+      <li><a href="customer.html" id="navAccount" data-requires-auth="true">My Account</a></li>
+      <li><a href="admin.html" id="navAdmin" aria-current="page" data-requires-auth="true">Admin</a></li>
+
+
+      <li><a href="login.html" id="navLogin">Login</a></li>
+      <li><a href="register.html" id="navRegister">Register</a></li>
+      <li><a class="admin-link" href="analytics.html">Analytics</a></li>
+
+      <li><a href="#" id="navLogout" hidden>Logout</a></li>
+      <li><span id="navPointsBadge" class="badge" hidden>Points: 0</span></li>
+    </ul>
+  </nav>
+
+  <main class="container admin-layout">
+    <aside class="card admin-sidebar">
+      <div class="admin-brand">
+        <div class="brand-title">DKCleanEdit</div>
+        <div class="sub">Admin dashboard</div>
+      </div>
+
+      <nav class="admin-nav">
+        <a class="admin-link active" href="admin.html">Orders</a>
+        <a class="admin-link" href="booking.html">Booking</a>
+        <a class="admin-link" href="track.html">Tracking</a>
+        <a class="admin-link" href="home.html">Home</a>
+      </nav>
+
+      <hr />
+      <div class="sub">UID: <span id="debugUid">-</span></div>
+      <div class="sub">Role: <span id="debugRole">-</span></div>
+    </aside>
+
+    <section class="card admin-main">
+      <header class="admin-header">
+        <div>
+          <h1>Orders</h1>
+          <p class="sub">Edit stage and award points when completed.</p>
+        </div>
+
+        <div class="admin-actions">
+          <input id="adminSearch" type="text" placeholder="Search email/name/order id…" />
+          <select id="adminFilter">
+            <option value="All">All stages</option>
+            <option>Booked</option>
+            <option>Received</option>
+            <option>Cleaning</option>
+            <option>Drying & Finish</option>
+            <option>Ready</option>
+            <option>Completed</option>
+            <option>Cancelled</option>
+          </select>
+          <button class="btn secondary" type="button" id="btnAdminRefresh">Refresh</button>
+        </div>
+      </header>
+
+      <div id="adminOrders" class="admin-orders"></div>
+      <p id="msg" class="admin-msg"></p>
+    </section>
+  </main>
+
+  <script type="module" src="./app.js" defer></script>
+</body>
+</html>

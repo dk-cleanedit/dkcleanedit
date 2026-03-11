@@ -1,0 +1,14 @@
+{
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "engines": {
+    "node": "18"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "firebase-admin": "^11.11.1",
+    "firebase-functions": "^4.4.1",
+    "twilio": "^5.12.1"
+  },
+  "private": true
+}

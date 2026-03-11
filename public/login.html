@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+ <meta charset="utf-8" />
+ <meta name="viewport" content="width=device-width, initial-scale=1" />
+ <title>Login | DKCleanEdit</title>
+ <link rel="stylesheet" href="styles.css" />
+</head>
+
+
+<body>
+ <nav class="navbar" aria-label="Primary">
+   <ul class="nav-links">
+     <li><a href="home.html" id="navHome">Home</a></li>
+
+
+     <li><a href="booking.html" id="navBooking" data-requires-auth="true">Booking</a></li>
+     <li><a href="track.html" id="navTracking" data-requires-auth="true">Tracking</a></li>
+     <li><a href="customer.html" id="navAccount" data-requires-auth="true">My Account</a></li>
+     <li><a href="admin.html" id="navAdmin" data-requires-auth="true">Admin</a></li>
+
+
+     <li><a href="login.html" id="navLogin" aria-current="page">Login</a></li>
+     <li><a href="register.html" id="navRegister">Register</a></li>
+
+
+     <li><a href="#" id="navLogout" hidden>Logout</a></li>
+     <li><span id="navPointsBadge" class="badge" hidden>Points: 0</span></li>
+   </ul>
+ </nav>
+
+
+ <main class="container">
+   <section class="card">
+     <h1>Login</h1>
+
+
+     <label class="sub" for="logEmail">Email</label>
+     <input id="logEmail" type="email" autocomplete="email" />
+
+
+     <label class="sub" for="logPass">Password</label>
+     <input id="logPass" type="password" autocomplete="current-password" />
+
+
+     <button id="btnLogin" class="btn primary full" type="button">Login</button>
+
+
+     <p id="msg" class="sub"></p>
+   </section>
+ </main>
+
+
+ <script type="module" src="./app.js" defer></script>
+</body>

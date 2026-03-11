@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<script>
+  const functions = require("firebase-functions");
+const twilio = require("twilio");
+
+function cors(req, res) {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Headers", "Content-Type");
+  res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+  if (req.method === "OPTIONS") return res.status(204).send("");
+  if (req.method !== "POST") return res.status(405).send("Use POST");
+  return null;
+}
+
+function getTwilioClient() {
+  const sid = functions.config().twilio.sid;
+  const token = functions.config().twilio.token;
+  const from = functions.config().twilio.from;
+  if (!sid || !token || !from) throw new Error("Twilio config missing");
+  return { client: twilio(sid, token), from };
+}
+
+exports.sendSmsWelcome = functions.https.onRequest(async (req, res) => {
+  const early = cors(req, res);
+  if (early) return early;
+
+  const { phone, name } = req.body || {};
+  if (!phone) return res.status(400).send("Missing phone");
+
+  try {
+    const { client, from } = getTwilioClient();
+    await client.messages.create({
+      to: phone,
+      from,
+      body: `Welcome to DKcleanedit ${name || ""}! 👟 Your account is ready.`
+    });
+    return res.status(200).send("Welcome SMS sent");
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send(err.message || "SMS failed");
+  }
+});
+
+exports.sendSmsBooking = functions.https.onRequest(async (req, res) => {
+  const early = cors(req, res);
+  if (early) return early;
+
+  const { phone, name, bookingId, date, timeSlot, location } = req.body || {};
+  if (!phone || !bookingId) return res.status(400).send("Missing phone or bookingId");
+
+  try {
+    const { client, from } = getTwilioClient();
+    await client.messages.create({
+      to: phone,
+      from,
+      body:
+        `DKcleanedit booking confirmed ✅\n` +
+        `Name: ${name || ""}\n` +
+        `Ref: ${bookingId}\n` +
+        `${date || ""} ${timeSlot || ""} • ${location || ""}\n` +
+        `Track: https://fir-eef36.web.app/tracking.html`
+    });
+    return res.status(200).send("Booking SMS sent");
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send(err.message || "SMS failed");
+  }
+});
+
+exports.sendSmsStage = functions.https.onRequest(async (req, res) => {
+  const early = cors(req, res);
+  if (early) return early;
+
+  const { phone, bookingId, stage } = req.body || {};
+  if (!phone || !bookingId || !stage) return res.status(400).send("Missing phone/bookingId/stage");
+
+  try {
+    const { client, from } = getTwilioClient();
+    await client.messages.create({
+      to: phone,
+      from,
+      body:
+        `DKcleanedit update 📦\n` +
+        `Ref: ${bookingId}\n` +
+        `New stage: ${stage}\n` +
+        `Track: https://fir-eef36.web.app/tracking.html`
+    });
+    return res.status(200).send("Stage SMS sent");
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send(err.message || "SMS failed");
+  }
+});
+
+(() => {
+  const overlay = document.getElementById("signupOverlay");
+  const closeBtn = document.getElementById("closePopupBtn");
+  if (!overlay) return;
+
+  const hide = () => { overlay.hidden = true; };
+
+  // Close button
+  if (closeBtn) closeBtn.addEventListener("click", hide);
+
+  // Click outside popup closes
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) hide();
+  });
+
+  // ESC closes
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") hide();
+  });
+})();
+</script>
+
+<body>
+
+<script type="module" src="firebase.js"></script>
+<script type="module" src="app.js"></script>
+
+</body>
+</html>
