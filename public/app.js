@@ -29,10 +29,27 @@ import {
 /* =========================
    BASIC HELPERS
 ========================= */
-const $ = (s) => document.querySelector(s);
+const $ = (selector) => document.querySelector(selector);
 
-const STATUS = ["Booked", "Received", "Cleaning", "Drying & Finish", "Ready", "Completed", "Cancelled"];
-const TRACKABLE_STATUS = ["Booked", "Received", "Cleaning", "Drying & Finish", "Ready", "Completed"];
+const STATUS = [
+  "Booked",
+  "Received",
+  "Cleaning",
+  "Drying & Finish",
+  "Ready",
+  "Completed",
+  "Cancelled"
+];
+
+const TRACKABLE_STATUS = [
+  "Booked",
+  "Received",
+  "Cleaning",
+  "Drying & Finish",
+  "Ready",
+  "Completed"
+];
+
 const CUSTOMER_EDITABLE_STATUS = ["Booked", "Received"];
 const ADMIN_EMAIL = "danielasouzu2@gmail.com";
 
@@ -64,35 +81,35 @@ function toast(text) {
   }, 2200);
 }
 
-function esc(s) {
-  return String(s ?? "").replace(/[&<>"']/g, (c) => ({
+function esc(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
     "&": "&amp;",
     "<": "&lt;",
     ">": "&gt;",
     '"': "&quot;",
     "'": "&#039;"
-  }[c]));
+  }[char]));
 }
 
 /* =========================
-   PROGRESS BAR HELPERS
+   PROGRESS / TRACKER HELPERS
 ========================= */
 function progressPercent(status) {
   if (status === "Cancelled") return 0;
-  const i = Math.max(0, TRACKABLE_STATUS.indexOf(status));
-  return Math.round((i / (TRACKABLE_STATUS.length - 1)) * 100);
+  const index = Math.max(0, TRACKABLE_STATUS.indexOf(status));
+  return Math.round((index / (TRACKABLE_STATUS.length - 1)) * 100);
 }
 
 function renderStepProgress(status) {
   if (status === "Cancelled") {
     return `
-      <div class="progress-wrap">
-        <div class="progress-bar">
-          ${TRACKABLE_STATUS.map(() => `<div class="block cancelled"></div>`).join("")}
-        </div>
-        <div class="progress-labels">
-          ${TRACKABLE_STATUS.map((s) => `<span>${esc(s)}</span>`).join("")}
-        </div>
+      <div class="order-tracker">
+        ${TRACKABLE_STATUS.map((stage) => `
+          <div class="step cancelled">
+            <span class="circle"></span>
+            <span class="label">${esc(stage)}</span>
+          </div>
+        `).join("")}
       </div>
     `;
   }
@@ -101,15 +118,13 @@ function renderStepProgress(status) {
   const safeIndex = currentIndex < 0 ? 0 : currentIndex;
 
   return `
-    <div class="progress-wrap">
-      <div class="progress-bar">
-        ${TRACKABLE_STATUS.map((_, i) => `
-          <div class="block ${i <= safeIndex ? "active" : ""}"></div>
-        `).join("")}
-      </div>
-      <div class="progress-labels">
-        ${TRACKABLE_STATUS.map((s) => `<span>${esc(s)}</span>`).join("")}
-      </div>
+    <div class="order-tracker">
+      ${TRACKABLE_STATUS.map((stage, i) => `
+        <div class="step ${i <= safeIndex ? "active" : ""}">
+          <span class="circle"></span>
+          <span class="label">${esc(stage)}</span>
+        </div>
+      `).join("")}
     </div>
   `;
 }
@@ -118,8 +133,8 @@ function renderStepProgress(status) {
    URL / LOGIN HELPERS
 ========================= */
 function getNextFromUrl() {
-  const u = new URL(location.href);
-  const next = u.searchParams.get("next");
+  const url = new URL(location.href);
+  const next = url.searchParams.get("next");
   return next ? decodeURIComponent(next) : null;
 }
 
@@ -181,6 +196,7 @@ function wireOverlayExitButtonsSafe() {
   overlay.dataset.bound = "1";
 
   const closeBtn = $("#closePopupBtn");
+
   const hide = () => {
     overlay.hidden = true;
   };
@@ -200,7 +216,7 @@ function wireOverlayExitButtonsSafe() {
 }
 
 /* =========================
-   AUTH-REQUIRED LINKS
+   AUTH REQUIRED LINKS
 ========================= */
 function wireAuthRequiredLinks() {
   if (document.body.dataset.authLinksBound === "1") return;
@@ -209,12 +225,12 @@ function wireAuthRequiredLinks() {
   document.addEventListener(
     "click",
     (e) => {
-      const a = e.target?.closest?.("a[data-requires-auth='true']");
-      if (!a) return;
+      const link = e.target?.closest?.("a[data-requires-auth='true']");
+      if (!link) return;
       if (auth.currentUser) return;
 
       e.preventDefault();
-      const href = a.getAttribute("href") || "home.html";
+      const href = link.getAttribute("href") || "home.html";
       goLogin(href);
     },
     true
@@ -267,8 +283,8 @@ async function updatePointsBadge(user) {
   }
 
   try {
-    const pts = await getPoints(user.uid);
-    badge.textContent = `Points: ${pts}`;
+    const points = await getPoints(user.uid);
+    badge.textContent = `Points: ${points}`;
     badge.hidden = false;
   } catch {
     badge.hidden = true;
@@ -439,13 +455,13 @@ function initBooking() {
 
     try {
       const userSnap = await getDoc(doc(db, "users", user.uid));
-      const u = userSnap.exists() ? userSnap.data() : {};
+      const userData = userSnap.exists() ? userSnap.data() : {};
 
       const order = {
         uid: user.uid,
-        customerName: u.name || user.displayName || "",
-        customerEmail: u.email || user.email || "",
-        customerPhone: u.phone || "",
+        customerName: userData.name || user.displayName || "",
+        customerEmail: userData.email || user.email || "",
+        customerPhone: userData.phone || "",
         service,
         location: locationVal,
         date,
@@ -476,12 +492,13 @@ function initBooking() {
 /* =========================
    ORDER ACTIONS
 ========================= */
-function renderOrderActions(o) {
-  if (!isCustomerEditableStatus(o.status)) return "";
+function renderOrderActions(order) {
+  if (!isCustomerEditableStatus(order.status)) return "";
+
   return `
     <div class="order-actions">
-      <button class="btn" type="button" data-action="reschedule" data-id="${esc(o.id)}">Reschedule</button>
-      <button class="btn danger" type="button" data-action="cancel" data-id="${esc(o.id)}">Cancel</button>
+      <button class="btn" type="button" data-action="reschedule" data-id="${esc(order.id)}">Reschedule</button>
+      <button class="btn danger" type="button" data-action="cancel" data-id="${esc(order.id)}">Cancel</button>
     </div>
   `;
 }
@@ -489,27 +506,27 @@ function renderOrderActions(o) {
 /* =========================
    CUSTOMER ORDER CARD
 ========================= */
-function renderOrderCard(o) {
-  const pct = progressPercent(o.status || "Booked");
+function renderOrderCard(order) {
+  const pct = progressPercent(order.status || "Booked");
 
   return `
-    <div class="order-card" data-id="${esc(o.id)}">
+    <div class="order-card" data-id="${esc(order.id)}">
       <div class="order-top">
         <div>
-          <div class="order-title">${esc(o.service)} • ${esc(o.location)}</div>
-          <div class="sub">${esc(o.date)} • ${esc(o.timeSlot)}</div>
+          <div class="order-title">${esc(order.service)} • ${esc(order.location)}</div>
+          <div class="sub">${esc(order.date)} • ${esc(order.timeSlot)}</div>
         </div>
-        <span class="${badgeClass(o.status || "Booked")}">${esc(o.status || "Booked")}</span>
+        <span class="${badgeClass(order.status || "Booked")}">${esc(order.status || "Booked")}</span>
       </div>
 
-      ${renderStepProgress(o.status || "Booked")}
+      ${renderStepProgress(order.status || "Booked")}
 
       <div class="order-meta">
-        <span class="sub">Order ID: ${esc(o.id)}</span>
+        <span class="sub">Order ID: ${esc(order.id)}</span>
         <span class="sub">${pct}%</span>
       </div>
 
-      ${renderOrderActions(o)}
+      ${renderOrderActions(order)}
     </div>
   `;
 }
@@ -546,7 +563,7 @@ async function cancelOrderByCustomer(orderId, user) {
     updatedAt: serverTimestamp()
   });
 
-  toast("Booking cancelled ✅");
+  toast("Booking cancelled");
 }
 
 /* =========================
@@ -593,7 +610,7 @@ async function rescheduleOrderByCustomer(orderId, user) {
     updatedAt: serverTimestamp()
   });
 
-  toast("Booking rescheduled ✅");
+  toast("Booking rescheduled");
 }
 
 /* =========================
@@ -739,14 +756,15 @@ function initCustomer() {
     }
 
     const snap = await getDoc(doc(db, "users", user.uid));
-    const u = snap.exists() ? snap.data() : {};
+    const userData = snap.exists() ? snap.data() : {};
 
-    if (nameEl) nameEl.textContent = u.name || user.displayName || "-";
-    if (emailEl) emailEl.textContent = u.email || user.email || "-";
-    if (ptsEl) ptsEl.textContent = String(u.points || 0);
+    if (nameEl) nameEl.textContent = userData.name || user.displayName || "-";
+    if (emailEl) emailEl.textContent = userData.email || user.email || "-";
+    if (ptsEl) ptsEl.textContent = String(userData.points || 0);
 
     if (listEl) {
       const q = query(collection(db, "orders"), where("uid", "==", user.uid));
+
       unsub = onSnapshot(q, (snap2) => {
         const items = [];
         snap2.forEach((d) => items.push({ id: d.id, ...d.data() }));
@@ -777,8 +795,8 @@ function initCustomer() {
         }
 
         try {
-          const cred = EmailAuthProvider.credential(user.email, curPass);
-          await reauthenticateWithCredential(user, cred);
+          const credential = EmailAuthProvider.credential(user.email, curPass);
+          await reauthenticateWithCredential(user, credential);
           await updatePassword(user, newPass);
 
           setMsg("Password updated ✅", "passMsg");
@@ -800,38 +818,40 @@ function initCustomer() {
    ADMIN HELPERS
 ========================= */
 function statusOptions(current) {
-  return STATUS.map((s) => `<option value="${esc(s)}" ${s === current ? "selected" : ""}>${esc(s)}</option>`).join("");
+  return STATUS.map(
+    (status) => `<option value="${esc(status)}" ${status === current ? "selected" : ""}>${esc(status)}</option>`
+  ).join("");
 }
 
-function renderAdminCard(o) {
-  const pct = progressPercent(o.status || "Booked");
+function renderAdminCard(order) {
+  const pct = progressPercent(order.status || "Booked");
 
   return `
-    <div class="order-card" data-id="${esc(o.id)}">
+    <div class="order-card" data-id="${esc(order.id)}">
       <div class="order-top">
         <div>
-          <div class="order-title">${esc(o.customerEmail || o.customerName || "Customer")}</div>
-          <div class="sub">${esc(o.service)} • ${esc(o.location)} • ${esc(o.date)} ${esc(o.timeSlot)}</div>
+          <div class="order-title">${esc(order.customerEmail || order.customerName || "Customer")}</div>
+          <div class="sub">${esc(order.service)} • ${esc(order.location)} • ${esc(order.date)} ${esc(order.timeSlot)}</div>
         </div>
-        <span class="${badgeClass(o.status || "Booked")}">${esc(o.status || "Booked")}</span>
+        <span class="${badgeClass(order.status || "Booked")}">${esc(order.status || "Booked")}</span>
       </div>
 
-      ${renderStepProgress(o.status || "Booked")}
+      ${renderStepProgress(order.status || "Booked")}
 
       <div class="order-meta">
-        <span class="sub">Order ID: ${esc(o.id)}</span>
+        <span class="sub">Order ID: ${esc(order.id)}</span>
         <span class="sub">${pct}%</span>
       </div>
 
       <div class="admin-row">
         <div class="admin-field">
           <label class="sub">Stage</label>
-          <select class="admin-status">${statusOptions(o.status || "Booked")}</select>
+          <select class="admin-status">${statusOptions(order.status || "Booked")}</select>
         </div>
 
         <div class="admin-field">
           <label class="sub">Points (award on completion)</label>
-          <input class="admin-points" type="number" min="0" value="${esc(o.pointsAwarded ?? 10)}" />
+          <input class="admin-points" type="number" min="0" value="${esc(order.pointsAwarded ?? 10)}" />
         </div>
 
         <div class="admin-field admin-field-btn">
@@ -865,14 +885,14 @@ function initAdmin() {
     let items = [...all];
 
     if (stage !== "All") {
-      items = items.filter((o) => (o.status || "Booked") === stage);
+      items = items.filter((order) => (order.status || "Booked") === stage);
     }
 
     if (term) {
-      items = items.filter((o) =>
-        String(o.customerEmail || "").toLowerCase().includes(term) ||
-        String(o.customerName || "").toLowerCase().includes(term) ||
-        String(o.id || "").toLowerCase().includes(term)
+      items = items.filter((order) =>
+        String(order.customerEmail || "").toLowerCase().includes(term) ||
+        String(order.customerName || "").toLowerCase().includes(term) ||
+        String(order.id || "").toLowerCase().includes(term)
       );
     }
 
@@ -969,7 +989,7 @@ function initAdmin() {
 }
 
 /* =========================
-   PAGE BOOT
+   the boot of the page
 ========================= */
 function bootByElements() {
   wireAuthRequiredLinks();

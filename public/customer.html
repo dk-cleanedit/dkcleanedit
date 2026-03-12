@@ -10,17 +10,14 @@
 <body>
   <nav class="navbar" aria-label="Primary">
     <ul class="nav-links">
-       <img src="videos/logo.png" class="logo"/>
+      <img src="videos/logo.png" class="logo" alt="DKCleanEdit Logo" />
       <li><a href="home.html" id="navHome">Home</a></li>
-
       <li><a href="booking.html" id="navBooking" data-requires-auth="true">Booking</a></li>
       <li><a href="track.html" id="navTracking" data-requires-auth="true">Tracking</a></li>
       <li><a href="customer.html" id="navAccount" aria-current="page" data-requires-auth="true">My Account</a></li>
       <li><a href="admin.html" id="navAdmin" data-requires-auth="true">Admin</a></li>
-
       <li><a href="login.html" id="navLogin">Login</a></li>
       <li><a href="register.html" id="navRegister">Register</a></li>
-
       <li><a href="#" id="navLogout" hidden>Logout</a></li>
       <li><span id="navPointsBadge" class="badge" hidden>Points: 0</span></li>
     </ul>
@@ -36,10 +33,12 @@
           <div class="stat-title">Name</div>
           <div class="stat-value" id="custName">-</div>
         </div>
+
         <div class="stat">
           <div class="stat-title">Email</div>
           <div class="stat-value" id="custEmail">-</div>
         </div>
+
         <div class="stat">
           <div class="stat-title">Loyalty Points</div>
           <div class="stat-value" id="custPoints">0</div>
@@ -75,12 +74,6 @@
           <p class="sub">Your most recent bookings.</p>
         </div>
 
-        <div class="progress bar">
-  <div class="block"></div>
-  <div class="block"></div>
-  <div class="block"></div>
-  <div class="block"></div>
-</div>
         <button class="btn secondary" type="button" id="btnCustRefresh">Refresh</button>
       </div>
 
@@ -88,6 +81,6 @@
     </section>
   </main>
 
-  <script type="module" src="./app.js" defer></script>
+  <script type="module" src="./app.js"></script>
 </body>
 </html>
