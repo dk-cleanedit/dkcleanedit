@@ -26,6 +26,9 @@ import {
   increment
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
+/* =========================
+   BASIC HELPERS
+========================= */
 const $ = (s) => document.querySelector(s);
 
 const STATUS = ["Booked", "Received", "Cleaning", "Drying & Finish", "Ready", "Completed", "Cancelled"];
@@ -71,12 +74,49 @@ function esc(s) {
   }[c]));
 }
 
+/* =========================
+   PROGRESS BAR HELPERS
+========================= */
 function progressPercent(status) {
   if (status === "Cancelled") return 0;
   const i = Math.max(0, TRACKABLE_STATUS.indexOf(status));
   return Math.round((i / (TRACKABLE_STATUS.length - 1)) * 100);
 }
 
+function renderStepProgress(status) {
+  if (status === "Cancelled") {
+    return `
+      <div class="progress-wrap">
+        <div class="progress-bar">
+          ${TRACKABLE_STATUS.map(() => `<div class="block cancelled"></div>`).join("")}
+        </div>
+        <div class="progress-labels">
+          ${TRACKABLE_STATUS.map((s) => `<span>${esc(s)}</span>`).join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  const currentIndex = TRACKABLE_STATUS.indexOf(status);
+  const safeIndex = currentIndex < 0 ? 0 : currentIndex;
+
+  return `
+    <div class="progress-wrap">
+      <div class="progress-bar">
+        ${TRACKABLE_STATUS.map((_, i) => `
+          <div class="block ${i <= safeIndex ? "active" : ""}"></div>
+        `).join("")}
+      </div>
+      <div class="progress-labels">
+        ${TRACKABLE_STATUS.map((s) => `<span>${esc(s)}</span>`).join("")}
+      </div>
+    </div>
+  `;
+}
+
+/* =========================
+   URL / LOGIN HELPERS
+========================= */
 function getNextFromUrl() {
   const u = new URL(location.href);
   const next = u.searchParams.get("next");
@@ -87,6 +127,9 @@ function goLogin(nextFile = "home.html") {
   location.href = `login.html?next=${encodeURIComponent(nextFile)}`;
 }
 
+/* =========================
+   USER / POINTS HELPERS
+========================= */
 async function getPoints(uid) {
   const snap = await getDoc(doc(db, "users", uid));
   return snap.exists() ? Number(snap.data().points || 0) : 0;
@@ -108,6 +151,9 @@ function isValidTimeInput(value) {
   return /^([01]\d|2[0-3]):([0-5]\d)$/.test(String(value || ""));
 }
 
+/* =========================
+   STATUS / BADGE HELPERS
+========================= */
 function badgeClass(status) {
   if (status === "Completed") return "badge success";
   if (status === "Cancelled") return "badge danger";
@@ -116,6 +162,9 @@ function badgeClass(status) {
   return "badge";
 }
 
+/* =========================
+   OVERLAY HELPERS
+========================= */
 function hideSignupOverlay() {
   const overlay = $("#signupOverlay");
   if (overlay) overlay.hidden = true;
@@ -150,6 +199,9 @@ function wireOverlayExitButtonsSafe() {
   });
 }
 
+/* =========================
+   AUTH-REQUIRED LINKS
+========================= */
 function wireAuthRequiredLinks() {
   if (document.body.dataset.authLinksBound === "1") return;
   document.body.dataset.authLinksBound = "1";
@@ -169,6 +221,9 @@ function wireAuthRequiredLinks() {
   );
 }
 
+/* =========================
+   NAVBAR SETUP
+========================= */
 async function setupNav(user) {
   const navAdmin = $("#navAdmin");
   const navLogin = $("#navLogin");
@@ -220,6 +275,9 @@ async function updatePointsBadge(user) {
   }
 }
 
+/* =========================
+   LOGIN PAGE
+========================= */
 function initLoginPage() {
   const btnLogin = $("#btnLogin");
   if (!btnLogin || btnLogin.dataset.bound === "1") return;
@@ -282,6 +340,9 @@ function initLoginPage() {
   }
 }
 
+/* =========================
+   REGISTER PAGE
+========================= */
 function initRegisterPage() {
   const btnRegister = $("#btnRegister");
   if (!btnRegister || btnRegister.dataset.bound === "1") return;
@@ -325,6 +386,9 @@ function initRegisterPage() {
   });
 }
 
+/* =========================
+   BOOKING PAGE
+========================= */
 function initBooking() {
   const btnBook = $("#btnBook");
   if (!btnBook || btnBook.dataset.bound === "1") return;
@@ -409,6 +473,9 @@ function initBooking() {
   });
 }
 
+/* =========================
+   ORDER ACTIONS
+========================= */
 function renderOrderActions(o) {
   if (!isCustomerEditableStatus(o.status)) return "";
   return `
@@ -419,6 +486,9 @@ function renderOrderActions(o) {
   `;
 }
 
+/* =========================
+   CUSTOMER ORDER CARD
+========================= */
 function renderOrderCard(o) {
   const pct = progressPercent(o.status || "Booked");
 
@@ -432,9 +502,7 @@ function renderOrderCard(o) {
         <span class="${badgeClass(o.status || "Booked")}">${esc(o.status || "Booked")}</span>
       </div>
 
-      <div class="progress">
-        <div class="bar" style="width:${pct}%"></div>
-      </div>
+      ${renderStepProgress(o.status || "Booked")}
 
       <div class="order-meta">
         <span class="sub">Order ID: ${esc(o.id)}</span>
@@ -446,6 +514,9 @@ function renderOrderCard(o) {
   `;
 }
 
+/* =========================
+   CANCEL ORDER
+========================= */
 async function cancelOrderByCustomer(orderId, user) {
   const ref = doc(db, "orders", orderId);
   const snap = await getDoc(ref);
@@ -478,6 +549,9 @@ async function cancelOrderByCustomer(orderId, user) {
   toast("Booking cancelled ✅");
 }
 
+/* =========================
+   RESCHEDULE ORDER
+========================= */
 async function rescheduleOrderByCustomer(orderId, user) {
   const ref = doc(db, "orders", orderId);
   const snap = await getDoc(ref);
@@ -522,6 +596,9 @@ async function rescheduleOrderByCustomer(orderId, user) {
   toast("Booking rescheduled ✅");
 }
 
+/* =========================
+   CUSTOMER ORDER ACTION EVENTS
+========================= */
 function wireCustomerOrderActions(listEl) {
   if (!listEl || listEl.dataset.orderActionsBound === "1") return;
   listEl.dataset.orderActionsBound = "1";
@@ -552,6 +629,9 @@ function wireCustomerOrderActions(listEl) {
   });
 }
 
+/* =========================
+   TRACKING PAGE
+========================= */
 function initTracking() {
   const ordersEl = $("#orders");
   if (!ordersEl || ordersEl.dataset.bound === "1") return;
@@ -623,6 +703,9 @@ function initTracking() {
   }
 }
 
+/* =========================
+   CUSTOMER PAGE
+========================= */
 function initCustomer() {
   const page = $("#custOrders") || $("#btnChangePass") || $("#custName");
   if (!page || page.dataset.customerInit === "1") return;
@@ -713,6 +796,9 @@ function initCustomer() {
   });
 }
 
+/* =========================
+   ADMIN HELPERS
+========================= */
 function statusOptions(current) {
   return STATUS.map((s) => `<option value="${esc(s)}" ${s === current ? "selected" : ""}>${esc(s)}</option>`).join("");
 }
@@ -730,8 +816,11 @@ function renderAdminCard(o) {
         <span class="${badgeClass(o.status || "Booked")}">${esc(o.status || "Booked")}</span>
       </div>
 
-      <div class="progress">
-        <div class="bar" style="width:${pct}%"></div>
+      ${renderStepProgress(o.status || "Booked")}
+
+      <div class="order-meta">
+        <span class="sub">Order ID: ${esc(o.id)}</span>
+        <span class="sub">${pct}%</span>
       </div>
 
       <div class="admin-row">
@@ -750,15 +839,13 @@ function renderAdminCard(o) {
           <button class="btn primary full admin-save" type="button">Save</button>
         </div>
       </div>
-
-      <div class="order-meta">
-        <span class="sub">Order ID: ${esc(o.id)}</span>
-        <span class="sub">UID: ${esc(o.uid)}</span>
-      </div>
     </div>
   `;
 }
 
+/* =========================
+   ADMIN PAGE
+========================= */
 function initAdmin() {
   const listEl = $("#adminOrders");
   if (!listEl || listEl.dataset.bound === "1") return;
@@ -881,6 +968,9 @@ function initAdmin() {
   });
 }
 
+/* =========================
+   PAGE BOOT
+========================= */
 function bootByElements() {
   wireAuthRequiredLinks();
   wireOverlayExitButtonsSafe();
@@ -900,6 +990,9 @@ if (document.readyState === "loading") {
   bootByElements();
 }
 
+/* =========================
+   GLOBAL AUTH WATCHER
+========================= */
 onAuthStateChanged(auth, async (user) => {
   await setupNav(user);
   await updatePointsBadge(user);

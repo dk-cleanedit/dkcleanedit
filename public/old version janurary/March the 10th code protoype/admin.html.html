@@ -1,0 +1,97 @@
+<html>
+<head>
+<title>admin.html</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #d5b778;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bababa;}
+.s3 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#191a1c">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+admin.html</font>
+</center></td></tr></table>
+<pre><span class="s0">&lt;!doctype </span><span class="s2">html</span><span class="s0">&gt;</span>
+<span class="s0">&lt;html </span><span class="s2">lang</span><span class="s3">=&quot;en&quot;</span><span class="s0">&gt;</span>
+<span class="s0">&lt;head&gt;</span>
+  <span class="s0">&lt;meta </span><span class="s2">charset</span><span class="s3">=&quot;utf-8&quot; </span><span class="s0">/&gt;</span>
+  <span class="s0">&lt;meta </span><span class="s2">name</span><span class="s3">=&quot;viewport&quot; </span><span class="s2">content</span><span class="s3">=&quot;width=device-width, initial-scale=1&quot; </span><span class="s0">/&gt;</span>
+  <span class="s0">&lt;title&gt;</span><span class="s1">Admin | DKCleanEdit</span><span class="s0">&lt;/title&gt;</span>
+  <span class="s0">&lt;link </span><span class="s2">rel</span><span class="s3">=&quot;stylesheet&quot; </span><span class="s2">href</span><span class="s3">=&quot;styles.css&quot; </span><span class="s0">/&gt;</span>
+<span class="s0">&lt;/head&gt;</span>
+
+<span class="s0">&lt;body </span><span class="s2">class</span><span class="s3">=&quot;admin-body&quot;</span><span class="s0">&gt;</span>
+  <span class="s0">&lt;nav </span><span class="s2">class</span><span class="s3">=&quot;navbar&quot; </span><span class="s2">aria-label</span><span class="s3">=&quot;Primary&quot;</span><span class="s0">&gt;</span>
+    <span class="s0">&lt;ul </span><span class="s2">class</span><span class="s3">=&quot;nav-links&quot;</span><span class="s0">&gt;</span>
+       <span class="s0">&lt;img </span><span class="s2">src</span><span class="s3">=&quot;videos/logo.png&quot; </span><span class="s2">class</span><span class="s3">=&quot;logo&quot;</span><span class="s0">/&gt;</span>
+      <span class="s0">&lt;li&gt;&lt;a </span><span class="s2">href</span><span class="s3">=&quot;home.html&quot; </span><span class="s2">id</span><span class="s3">=&quot;navHome&quot;</span><span class="s0">&gt;</span><span class="s1">Home</span><span class="s0">&lt;/a&gt;&lt;/li&gt;</span>
+
+      <span class="s0">&lt;li&gt;&lt;a </span><span class="s2">href</span><span class="s3">=&quot;booking.html&quot; </span><span class="s2">id</span><span class="s3">=&quot;navBooking&quot; </span><span class="s2">data-requires-auth</span><span class="s3">=&quot;true&quot;</span><span class="s0">&gt;</span><span class="s1">Booking</span><span class="s0">&lt;/a&gt;&lt;/li&gt;</span>
+      <span class="s0">&lt;li&gt;&lt;a </span><span class="s2">href</span><span class="s3">=&quot;track.html&quot; </span><span class="s2">id</span><span class="s3">=&quot;navTracking&quot; </span><span class="s2">data-requires-auth</span><span class="s3">=&quot;true&quot;</span><span class="s0">&gt;</span><span class="s1">Tracking</span><span class="s0">&lt;/a&gt;&lt;/li&gt;</span>
+      <span class="s0">&lt;li&gt;&lt;a </span><span class="s2">href</span><span class="s3">=&quot;customer.html&quot; </span><span class="s2">id</span><span class="s3">=&quot;navAccount&quot; </span><span class="s2">data-requires-auth</span><span class="s3">=&quot;true&quot;</span><span class="s0">&gt;</span><span class="s1">My Account</span><span class="s0">&lt;/a&gt;&lt;/li&gt;</span>
+      <span class="s0">&lt;li&gt;&lt;a </span><span class="s2">href</span><span class="s3">=&quot;admin.html&quot; </span><span class="s2">id</span><span class="s3">=&quot;navAdmin&quot; </span><span class="s2">aria-current</span><span class="s3">=&quot;page&quot; </span><span class="s2">data-requires-auth</span><span class="s3">=&quot;true&quot;</span><span class="s0">&gt;</span><span class="s1">Admin</span><span class="s0">&lt;/a&gt;&lt;/li&gt;</span>
+
+      <span class="s0">&lt;li&gt;&lt;a </span><span class="s2">href</span><span class="s3">=&quot;login.html&quot; </span><span class="s2">id</span><span class="s3">=&quot;navLogin&quot;</span><span class="s0">&gt;</span><span class="s1">Login</span><span class="s0">&lt;/a&gt;&lt;/li&gt;</span>
+      <span class="s0">&lt;li&gt;&lt;a </span><span class="s2">href</span><span class="s3">=&quot;register.html&quot; </span><span class="s2">id</span><span class="s3">=&quot;navRegister&quot;</span><span class="s0">&gt;</span><span class="s1">Register</span><span class="s0">&lt;/a&gt;&lt;/li&gt;</span>
+
+      <span class="s0">&lt;li&gt;&lt;a </span><span class="s2">href</span><span class="s3">=&quot;#&quot; </span><span class="s2">id</span><span class="s3">=&quot;navLogout&quot; </span><span class="s2">hidden</span><span class="s0">&gt;</span><span class="s1">Logout</span><span class="s0">&lt;/a&gt;&lt;/li&gt;</span>
+      <span class="s0">&lt;li&gt;&lt;span </span><span class="s2">id</span><span class="s3">=&quot;navPointsBadge&quot; </span><span class="s2">class</span><span class="s3">=&quot;badge&quot; </span><span class="s2">hidden</span><span class="s0">&gt;</span><span class="s1">Points: 0</span><span class="s0">&lt;/span&gt;&lt;/li&gt;</span>
+    <span class="s0">&lt;/ul&gt;</span>
+  <span class="s0">&lt;/nav&gt;</span>
+
+  <span class="s0">&lt;main </span><span class="s2">class</span><span class="s3">=&quot;container admin-layout&quot;</span><span class="s0">&gt;</span>
+    <span class="s0">&lt;aside </span><span class="s2">class</span><span class="s3">=&quot;card admin-sidebar&quot;</span><span class="s0">&gt;</span>
+      <span class="s0">&lt;div </span><span class="s2">class</span><span class="s3">=&quot;admin-brand&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;div </span><span class="s2">class</span><span class="s3">=&quot;brand-title&quot;</span><span class="s0">&gt;</span><span class="s1">DKCleanEdit</span><span class="s0">&lt;/div&gt;</span>
+        <span class="s0">&lt;div </span><span class="s2">class</span><span class="s3">=&quot;sub&quot;</span><span class="s0">&gt;</span><span class="s1">Admin dashboard</span><span class="s0">&lt;/div&gt;</span>
+      <span class="s0">&lt;/div&gt;</span>
+
+      <span class="s0">&lt;nav </span><span class="s2">class</span><span class="s3">=&quot;admin-nav&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;a </span><span class="s2">class</span><span class="s3">=&quot;admin-link active&quot; </span><span class="s2">href</span><span class="s3">=&quot;admin.html&quot;</span><span class="s0">&gt;</span><span class="s1">Orders</span><span class="s0">&lt;/a&gt;</span>
+        <span class="s0">&lt;a </span><span class="s2">class</span><span class="s3">=&quot;admin-link&quot; </span><span class="s2">href</span><span class="s3">=&quot;booking.html&quot;</span><span class="s0">&gt;</span><span class="s1">Booking</span><span class="s0">&lt;/a&gt;</span>
+        <span class="s0">&lt;a </span><span class="s2">class</span><span class="s3">=&quot;admin-link&quot; </span><span class="s2">href</span><span class="s3">=&quot;track.html&quot;</span><span class="s0">&gt;</span><span class="s1">Tracking</span><span class="s0">&lt;/a&gt;</span>
+        <span class="s0">&lt;a </span><span class="s2">class</span><span class="s3">=&quot;admin-link&quot; </span><span class="s2">href</span><span class="s3">=&quot;home.html&quot;</span><span class="s0">&gt;</span><span class="s1">Home</span><span class="s0">&lt;/a&gt;</span>
+      <span class="s0">&lt;/nav&gt;</span>
+
+      <span class="s0">&lt;hr /&gt;</span>
+      <span class="s0">&lt;div </span><span class="s2">class</span><span class="s3">=&quot;sub&quot;</span><span class="s0">&gt;</span><span class="s1">UID: </span><span class="s0">&lt;span </span><span class="s2">id</span><span class="s3">=&quot;debugUid&quot;</span><span class="s0">&gt;</span><span class="s1">-</span><span class="s0">&lt;/span&gt;&lt;/div&gt;</span>
+      <span class="s0">&lt;div </span><span class="s2">class</span><span class="s3">=&quot;sub&quot;</span><span class="s0">&gt;</span><span class="s1">Role: </span><span class="s0">&lt;span </span><span class="s2">id</span><span class="s3">=&quot;debugRole&quot;</span><span class="s0">&gt;</span><span class="s1">-</span><span class="s0">&lt;/span&gt;&lt;/div&gt;</span>
+    <span class="s0">&lt;/aside&gt;</span>
+
+    <span class="s0">&lt;section </span><span class="s2">class</span><span class="s3">=&quot;card admin-main&quot;</span><span class="s0">&gt;</span>
+      <span class="s0">&lt;header </span><span class="s2">class</span><span class="s3">=&quot;admin-header&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;div&gt;</span>
+          <span class="s0">&lt;h1&gt;</span><span class="s1">Orders</span><span class="s0">&lt;/h1&gt;</span>
+          <span class="s0">&lt;p </span><span class="s2">class</span><span class="s3">=&quot;sub&quot;</span><span class="s0">&gt;</span><span class="s1">Edit stage and award points when completed.</span><span class="s0">&lt;/p&gt;</span>
+        <span class="s0">&lt;/div&gt;</span>
+
+        <span class="s0">&lt;div </span><span class="s2">class</span><span class="s3">=&quot;admin-actions&quot;</span><span class="s0">&gt;</span>
+          <span class="s0">&lt;input </span><span class="s2">id</span><span class="s3">=&quot;adminSearch&quot; </span><span class="s2">type</span><span class="s3">=&quot;text&quot; </span><span class="s2">placeholder</span><span class="s3">=&quot;Search email/name/order id…&quot; </span><span class="s0">/&gt;</span>
+          <span class="s0">&lt;select </span><span class="s2">id</span><span class="s3">=&quot;adminFilter&quot;</span><span class="s0">&gt;</span>
+            <span class="s0">&lt;option </span><span class="s2">value</span><span class="s3">=&quot;All&quot;</span><span class="s0">&gt;</span><span class="s1">All stages</span><span class="s0">&lt;/option&gt;</span>
+            <span class="s0">&lt;option&gt;</span><span class="s1">Booked</span><span class="s0">&lt;/option&gt;</span>
+            <span class="s0">&lt;option&gt;</span><span class="s1">Received</span><span class="s0">&lt;/option&gt;</span>
+            <span class="s0">&lt;option&gt;</span><span class="s1">Cleaning</span><span class="s0">&lt;/option&gt;</span>
+            <span class="s0">&lt;option&gt;</span><span class="s1">Drying &amp; Finish</span><span class="s0">&lt;/option&gt;</span>
+            <span class="s0">&lt;option&gt;</span><span class="s1">Ready</span><span class="s0">&lt;/option&gt;</span>
+            <span class="s0">&lt;option&gt;</span><span class="s1">Completed</span><span class="s0">&lt;/option&gt;</span>
+          <span class="s0">&lt;/select&gt;</span>
+          <span class="s0">&lt;button </span><span class="s2">class</span><span class="s3">=&quot;btn secondary&quot; </span><span class="s2">type</span><span class="s3">=&quot;button&quot; </span><span class="s2">id</span><span class="s3">=&quot;btnAdminRefresh&quot;</span><span class="s0">&gt;</span><span class="s1">Refresh</span><span class="s0">&lt;/button&gt;</span>
+        <span class="s0">&lt;/div&gt;</span>
+      <span class="s0">&lt;/header&gt;</span>
+
+      <span class="s0">&lt;div </span><span class="s2">id</span><span class="s3">=&quot;adminOrders&quot; </span><span class="s2">class</span><span class="s3">=&quot;admin-orders&quot;</span><span class="s0">&gt;&lt;/div&gt;</span>
+      <span class="s0">&lt;p </span><span class="s2">id</span><span class="s3">=&quot;msg&quot; </span><span class="s2">class</span><span class="s3">=&quot;admin-msg&quot;</span><span class="s0">&gt;&lt;/p&gt;</span>
+    <span class="s0">&lt;/section&gt;</span>
+  <span class="s0">&lt;/main&gt;</span>
+
+  <span class="s0">&lt;script </span><span class="s2">type</span><span class="s3">=&quot;module&quot; </span><span class="s2">src</span><span class="s3">=&quot;./app.js&quot; </span><span class="s2">defer</span><span class="s0">&gt;&lt;/script&gt;</span>
+<span class="s0">&lt;/body&gt;</span>
+<span class="s0">&lt;/html&gt;</span>
+</pre>
+</body>
+</html>
