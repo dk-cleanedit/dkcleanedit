@@ -1,3 +1,8 @@
+/*
+   Global design tokens
+   These are the main colours, spacing sizes, shadows and radius values
+   used across the whole website
+*/
 :root{
   --primary: #006ce4;
   --primary-700: #0057b8;
@@ -69,6 +74,10 @@
   --focus-line: #82b9ff;
 }
 
+/*
+   Basic reset and shared rules
+   Keeps spacing and sizing predictable across the site
+*/
 [hidden],
 .overlay[hidden]{
   display: none !important;
@@ -141,6 +150,10 @@ button{
   background: rgba(0,108,228,0.14);
 }
 
+/*
+   Typography
+   Shared heading and paragraph styles
+ */
 h1,h2,h3,h4,p{
   margin-top: 0;
 }
@@ -197,6 +210,10 @@ p{
   letter-spacing: 0.01em;
 }
 
+/* =========================
+   Layout helpers
+   Useful shared layout classes for sections and grids
+========================= */
 .section-head{
   display: flex;
   align-items: end;
@@ -238,6 +255,10 @@ p{
 .stack-md > * + *{ margin-top: var(--s-5); }
 .stack-lg > * + *{ margin-top: var(--s-7); }
 
+/*
+   Navigation
+   Top navbar used across pages
+ */
 .navbar{
   position: sticky;
   top: 0;
@@ -298,6 +319,10 @@ p{
   box-shadow: inset 0 0 0 1px rgba(0,108,228,0.04);
 }
 
+/* =========================
+   Buttons
+   Main button styles used on forms and actions
+ */
 .btn{
   display: inline-flex;
   align-items: center;
@@ -363,6 +388,14 @@ p{
   box-shadow: none;
 }
 
+.full{
+  width: 100%;
+}
+
+/*
+   Cards
+   Shared card component used on booking, account and admin sections
+ */
 .card{
   position: relative;
   padding: var(--s-5);
@@ -418,7 +451,10 @@ p{
   margin-top: 4px;
 }
 
-/* homepage */
+/*
+   Home page
+   Hero, steps, carousel and testimonials
+ */
 .hero{
   display: grid;
   grid-template-columns: 1.15fr 0.85fr;
@@ -656,6 +692,10 @@ p{
   margin: 0 auto;
 }
 
+/*
+   Footer
+   Contact area and socials
+ */
 .footer1{
   width: min(var(--max), calc(100% - 32px));
   margin: 0 auto 40px;
@@ -703,6 +743,9 @@ p{
   object-fit: contain;
 }
 
+/*
+   Small shared badges and text helpers
+*/
 .badge{
   display: inline-flex;
   align-items: center;
@@ -728,6 +771,341 @@ p{
 .text-warning{ color: var(--warning) !important; }
 .text-danger{ color: var(--danger) !important; }
 
+/*
+   Booking page
+   Service intro cards, booking form and price area
+*/
+.service1,
+.service2,
+.service3{
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 20px 0;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.service1:hover,
+.service2:hover,
+.service3:hover{
+  transform: translateY(-5px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.service1 h1,
+.service2 h2,
+.service3 h3{
+  margin-bottom: 10px;
+}
+
+.service1 p,
+.service2 p,
+.service3 p{
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.5;
+}
+
+.price-group{
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.price-group label{
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+#service,
+#location,
+#date,
+#timeSlot,
+.service-price,
+input[type="date"],
+select,
+textarea{
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-sm);
+  background: #fff;
+  color: var(--text);
+  transition: border-color var(--ease), box-shadow var(--ease), background-color var(--ease);
+}
+
+#service:focus,
+#location:focus,
+#date:focus,
+#timeSlot:focus,
+.service-price:focus,
+input[type="date"]:focus,
+select:focus,
+textarea:focus{
+  border-color: var(--focus-line);
+  box-shadow: var(--focus);
+}
+
+#selectedPriceText{
+  margin-top: 10px;
+  font-weight: 700;
+  color: var(--primary-700);
+}
+
+hr{
+  border: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #d6deea, transparent);
+  margin: 20px 0;
+}
+
+/*
+   Overlay and popup
+   Used when a user needs to log in before booking or tracking
+ */
+.overlay{
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.popup{
+  width: min(520px, 100%);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-3);
+  text-align: center;
+}
+
+.popup h2{
+  margin-bottom: 10px;
+}
+
+.popup p{
+  margin-bottom: 18px;
+}
+
+.popup-actions{
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/*
+   Toast messages
+   Small floating feedback messages for actions like login or booking
+ */
+#toastHost{
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 500;
+  display: grid;
+  gap: 10px;
+}
+
+.toast{
+  min-width: 220px;
+  max-width: 320px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #d7e4f7;
+  background: #ffffff;
+  color: #163059;
+  box-shadow: var(--shadow-2);
+  transform: translateY(10px);
+  opacity: 0;
+  transition: transform 220ms ease, opacity 220ms ease;
+}
+
+.toast.show{
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/*
+   Orders, tracking and account cards
+   Used on tracking, customer account and admin pages
+*/
+.order-card{
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: #fff;
+  box-shadow: var(--shadow-1);
+  margin-bottom: 16px;
+}
+
+.order-top{
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.order-title{
+  font-size: 1rem;
+  font-weight: 760;
+  color: #163059;
+}
+
+.order-meta{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.order-actions{
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.badge.success{
+  color: var(--success);
+  background: var(--success-100);
+  border-color: #ccecdf;
+}
+
+.badge.warning{
+  color: var(--warning);
+  background: var(--warning-100);
+  border-color: #f0d6a3;
+}
+
+.badge.danger{
+  color: var(--danger);
+  background: var(--danger-100);
+  border-color: #f2c3c3;
+}
+
+/*
+   Order tracker
+   Progress steps shown for each order status
+ */
+.order-tracker{
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative;
+  margin: 18px 0 12px;
+  padding-top: 2px;
+  gap: 0;
+}
+
+.order-tracker::before{
+  content: "";
+  position: absolute;
+  top: 9px;
+  left: 8%;
+  right: 8%;
+  height: 3px;
+  background: #dbe2ea;
+  border-radius: 999px;
+  z-index: 0;
+}
+
+.step{
+  position: relative;
+  flex: 1;
+  text-align: center;
+  z-index: 1;
+}
+
+.circle{
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #dbe2ea;
+  display: block;
+  margin: 0 auto;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 2px #dbe2ea;
+}
+
+.step.active .circle{
+  background: #2563eb;
+  box-shadow: 0 0 0 2px #2563eb;
+}
+
+.step.cancelled .circle{
+  background: #dc2626;
+  box-shadow: 0 0 0 2px #dc2626;
+}
+
+.label{
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.25;
+  color: #6b7280;
+  text-align: center;
+}
+
+.step.active .label{
+  color: #111827;
+  font-weight: 600;
+}
+
+.step.cancelled .label{
+  color: #991b1b;
+  font-weight: 600;
+}
+
+/*
+   Admin page
+   Controls for updating order status and points
+ */
+.admin-row{
+  display: grid;
+  grid-template-columns: 1.2fr 1fr auto;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.admin-field{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-field-btn{
+  justify-content: end;
+}
+
+.admin-status,
+.admin-points,
+#adminSearch,
+#adminFilter{
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-sm);
+  background: #fff;
+}
+
+/*
+   Responsive tweaks
+   Keeps the layout cleaner on smaller screens
+ */
 @media (max-width: 1080px){
   .hero{
     grid-template-columns: 1fr;
@@ -750,13 +1128,40 @@ p{
   }
 
   .section-head,
-  .card-header{
+  .card-header,
+  .order-top,
+  .order-meta{
     flex-direction: column;
     align-items: flex-start;
   }
 
   .carousel-track img{
     height: 300px;
+  }
+
+  .admin-row{
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px){
+  .order-tracker{
+    overflow-x: auto;
+    gap: 14px;
+    padding-bottom: 6px;
+  }
+
+  .order-tracker::before{
+    left: 24px;
+    right: 24px;
+  }
+
+  .step{
+    min-width: 90px;
+  }
+
+  .label{
+    font-size: 11px;
   }
 }
 
@@ -787,7 +1192,9 @@ p{
     padding: 16px;
   }
 
-  .hero-actions{
+  .hero-actions,
+  .popup-actions,
+  .order-actions{
     flex-direction: column;
   }
 
@@ -798,6 +1205,17 @@ p{
   .carousel-btn{
     width: 40px;
     height: 40px;
+  }
+
+  #toastHost{
+    right: 10px;
+    left: 10px;
+    bottom: 10px;
+  }
+
+  .toast{
+    max-width: none;
+    width: 100%;
   }
 }
 
@@ -825,92 +1243,4 @@ p{
     scroll-behavior: auto !important;
   }
 }
-.order-tracker {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  position: relative;
-  margin: 18px 0 12px;
-  padding-top: 2px;
-  gap: 0;
-}
-
-.order-tracker::before {
-  content: "";
-  position: absolute;
-  top: 9px;
-  left: 8%;
-  right: 8%;
-  height: 3px;
-  background: #dbe2ea;
-  border-radius: 999px;
-  z-index: 0;
-}
-
-.step {
-  position: relative;
-  flex: 1;
-  text-align: center;
-  z-index: 1;
-}
-
-.circle {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #dbe2ea;
-  display: block;
-  margin: 0 auto;
-  border: 3px solid #fff;
-  box-shadow: 0 0 0 2px #dbe2ea;
-}
-
-.step.active .circle {
-  background: #2563eb;
-  box-shadow: 0 0 0 2px #2563eb;
-}
-
-.step.cancelled .circle {
-  background: #dc2626;
-  box-shadow: 0 0 0 2px #dc2626;
-}
-
-.label {
-  display: block;
-  margin-top: 8px;
-  font-size: 12px;
-  line-height: 1.25;
-  color: #6b7280;
-  text-align: center;
-}
-
-.step.active .label {
-  color: #111827;
-  font-weight: 600;
-}
-
-.step.cancelled .label {
-  color: #991b1b;
-  font-weight: 600;
-}
-
-@media (max-width: 700px) {
-  .order-tracker {
-    overflow-x: auto;
-    gap: 14px;
-    padding-bottom: 6px;
-  }
-
-  .order-tracker::before {
-    left: 24px;
-    right: 24px;
-  }
-
-  .step {
-    min-width: 90px;
-  }
-
-  .label {
-    font-size: 11px;
-  }
-}
+}}
