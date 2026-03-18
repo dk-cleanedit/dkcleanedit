@@ -775,91 +775,159 @@ p{
    Booking page
    Service intro cards, booking form and price area
 */
-.service1,
-.service2,
-.service3{
-  background: #ffffff;
-  border: 1px solid #e5e5e5;
-  border-radius: 12px;
-  padding: 24px;
-  margin: 20px 0;
-  text-align: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+.booking-layout{
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.78fr);
+  gap: var(--s-6);
+  align-items: start;
 }
 
-.service1:hover,
-.service2:hover,
-.service3:hover{
-  transform: translateY(-5px);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+.booking-form,
+.booking-summary{
+  height: fit-content;
 }
 
-.service1 h1,
-.service2 h2,
-.service3 h3{
-  margin-bottom: 10px;
+.booking-summary{
+  position: sticky;
+  top: calc(var(--nav-h) + 20px);
 }
 
-.service1 p,
-.service2 p,
-.service3 p{
-  font-size: 0.95rem;
-  color: #555;
-  line-height: 1.5;
+.form-section{
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
 }
 
-.price-group{
-  margin-top: 12px;
-  margin-bottom: 12px;
+.form-section:first-of-type{
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
 }
 
-.price-group label{
-  display: inline-block;
-  margin-bottom: 8px;
+.form-grid{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 20px;
 }
 
-#service,
-#location,
-#date,
-#timeSlot,
-.service-price,
-input[type="date"],
-select,
-textarea{
-  width: 100%;
-  min-height: 48px;
-  padding: 12px 14px;
-  border: 1px solid var(--line-2);
-  border-radius: var(--r-sm);
-  background: #fff;
-  color: var(--text);
-  transition: border-color var(--ease), box-shadow var(--ease), background-color var(--ease);
+.form-field{
+  display: grid;
+  gap: 8px;
 }
 
-#service:focus,
-#location:focus,
-#date:focus,
-#timeSlot:focus,
-.service-price:focus,
-input[type="date"]:focus,
-select:focus,
-textarea:focus{
-  border-color: var(--focus-line);
-  box-shadow: var(--focus);
-}
-
-#selectedPriceText{
-  margin-top: 10px;
+.form-field label{
   font-weight: 700;
+  color: #173156;
+}
+
+.form-field small{
+  color: var(--text-3);
+  font-size: 0.88rem;
+}
+
+.service-options{
+  display: grid;
+  gap: 14px;
+}
+
+.service-option{
+  display: block;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: #fff;
+  cursor: pointer;
+  transition:
+    border-color var(--ease),
+    box-shadow var(--ease),
+    transform var(--ease),
+    background-color var(--ease);
+}
+
+.service-option:hover{
+  border-color: #bfd3eb;
+  box-shadow: var(--shadow-1);
+  transform: translateY(-1px);
+}
+
+.service-option.active{
+  border-color: #9fc4f5;
+  background: var(--primary-050);
+  box-shadow: 0 0 0 3px rgba(11,99,206,0.08);
+}
+
+.service-option-top{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.service-option p{
+  margin: 0;
+  color: var(--text-3);
+}
+
+.booking-actions{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.form-message{
+  margin-top: 14px;
+  color: var(--text-3);
+}
+
+.summary-list{
+  display: grid;
+  gap: 12px;
+}
+
+.summary-row{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.summary-row span{
+  color: var(--text-3);
+}
+
+.summary-row strong{
+  color: #163059;
+  text-align: right;
+}
+
+.summary-row.total{
+  border-bottom: 0;
+  padding-top: 18px;
+}
+
+.summary-row.total strong{
+  font-size: 1.2rem;
   color: var(--primary-700);
 }
 
-hr{
-  border: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #d6deea, transparent);
-  margin: 20px 0;
+.summary-note{
+  margin-top: 8px;
+}
+
+.summary-features{
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: var(--text-2);
+}
+
+.summary-features li + li{
+  margin-top: 8px;
 }
 
 /*

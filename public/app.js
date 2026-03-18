@@ -403,12 +403,58 @@ function getSelectedPrice() {
   return getActivePriceSelect()?.value || "";
 }
 
+function formatBookingDate(value) {
+  if (!value) return "Not selected";
+  const d = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
+  });
+}
+
+function updateBookingSummary() {
+  const summaryService = $("#summaryService");
+  const summaryLocation = $("#summaryLocation");
+  const summaryDate = $("#summaryDate");
+  const summaryTime = $("#summaryTime");
+  const summaryPrice = $("#selectedPriceText");
+
+  if (summaryService) {
+    summaryService.textContent = serviceLabel($("#service")?.value || "");
+  }
+
+  if (summaryLocation) {
+    summaryLocation.textContent = $("#location")?.value || "-";
+  }
+
+  if (summaryDate) {
+    summaryDate.textContent = formatBookingDate($("#date")?.value || "");
+  }
+
+  if (summaryTime) {
+    summaryTime.textContent = $("#timeSlot")?.value || "-";
+  }
+
+  if (summaryPrice && summaryPrice.closest(".summary-row")) {
+    summaryPrice.textContent = getSelectedPrice() || "£0";
+  }
+}
+
 function updateSelectedPriceText() {
   const priceText = $("#selectedPriceText");
   if (!priceText) return;
 
   const price = getSelectedPrice();
-  priceText.textContent = price ? `Selected price: ${price}` : "Selected price:";
+
+  if (priceText.closest(".summary-row")) {
+    priceText.textContent = price || "£0";
+  } else {
+    priceText.textContent = price ? `Selected price: ${price}` : "Selected price:";
+  }
+
+  updateBookingSummary();
 }
 
 function syncServicePriceUI() {
@@ -425,6 +471,7 @@ function syncServicePriceUI() {
   nextdayGroup.hidden = service !== "next_day";
 
   updateSelectedPriceText();
+  updateBookingSummary();
 }
 
 function initServicePriceSync() {
@@ -438,10 +485,103 @@ function initServicePriceSync() {
     const el = $(selector);
     if (!el || el.dataset.boundPrice === "1") return;
     el.dataset.boundPrice = "1";
-    el.addEventListener("change", updateSelectedPriceText);
+    el.addEventListener("change", () => {
+      updateSelectedPriceText();
+      updateBookingSummary();
+    });
   });
 
   syncServicePriceUI();
+}
+
+function initProfessionalBookingUI() {
+  const serviceSelect = $("#service");
+  const timeSlotSelect = $("#timeSlot");
+  const locationSelect = $("#location");
+  const dateInput = $("#date");
+
+  const serviceCards = document.querySelectorAll("[data-service-card]");
+  const timeButtons = document.querySelectorAll(".time-slot");
+
+  if (serviceCards.length) {
+    serviceCards.forEach((card) => {
+      if (card.dataset.bound === "1") return;
+      card.dataset.bound = "1";
+
+      card.addEventListener("click", () => {
+        const value = card.getAttribute("data-service-card");
+        if (!value || !serviceSelect) return;
+
+        serviceCards.forEach((c) => c.classList.remove("active"));
+        card.classList.add("active");
+
+        const radio = card.querySelector('input[type="radio"]');
+        if (radio) radio.checked = true;
+
+        serviceSelect.value = value;
+        serviceSelect.dispatchEvent(new Event("change", { bubbles: true }));
+
+        updateBookingSummary();
+      });
+    });
+  }
+
+  if (timeButtons.length) {
+    timeButtons.forEach((btn) => {
+      if (btn.dataset.bound === "1") return;
+      btn.dataset.bound = "1";
+
+      btn.addEventListener("click", () => {
+        const value = btn.getAttribute("data-time");
+        if (!value || !timeSlotSelect) return;
+
+        timeButtons.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        timeSlotSelect.value = value;
+        timeSlotSelect.dispatchEvent(new Event("change", { bubbles: true }));
+
+        updateBookingSummary();
+      });
+    });
+  }
+
+  if (serviceSelect && serviceSelect.dataset.summaryBound !== "1") {
+    serviceSelect.dataset.summaryBound = "1";
+    serviceSelect.addEventListener("change", () => {
+      const current = serviceSelect.value;
+      serviceCards.forEach((card) => {
+        const isActive = card.getAttribute("data-service-card") === current;
+        card.classList.toggle("active", isActive);
+        const radio = card.querySelector('input[type="radio"]');
+        if (radio) radio.checked = isActive;
+      });
+      updateBookingSummary();
+    });
+  }
+
+  if (timeSlotSelect && timeSlotSelect.dataset.summaryBound !== "1") {
+    timeSlotSelect.dataset.summaryBound = "1";
+    timeSlotSelect.addEventListener("change", () => {
+      const current = timeSlotSelect.value;
+      timeButtons.forEach((btn) => {
+        btn.classList.toggle("active", btn.getAttribute("data-time") === current);
+      });
+      updateBookingSummary();
+    });
+  }
+
+  if (locationSelect && locationSelect.dataset.summaryBound !== "1") {
+    locationSelect.dataset.summaryBound = "1";
+    locationSelect.addEventListener("change", updateBookingSummary);
+  }
+
+  if (dateInput && dateInput.dataset.summaryBound !== "1") {
+    dateInput.dataset.summaryBound = "1";
+    dateInput.addEventListener("change", updateBookingSummary);
+  }
+
+  updateBookingSummary();
 }
 
 /* the booking page  */
@@ -452,6 +592,8 @@ function initBooking() {
 
   wireOverlayExitButtonsSafe();
   initServicePriceSync();
+  initProfessionalBookingUI();
+  updateBookingSummary();
 
   const btnGoTrack = $("#btnGoTrack");
   if (btnGoTrack && btnGoTrack.dataset.bound !== "1") {
@@ -521,6 +663,7 @@ function initBooking() {
 
       toast("Booking confirmed ✅");
       setMsg(`Order ID: ${ref.id}`);
+      updateBookingSummary();
 
       setTimeout(() => {
         location.href = "track.html";
@@ -846,152 +989,186 @@ function initCustomer() {
   });
 }
 
-/* =========================
-   ADMIN HELPERS
-========================= */
-function statusOptions(current) {
-  return STATUS.map(
-    (status) => `<option value="${esc(status)}" ${status === current ? "selected" : ""}>${esc(status)}</option>`
-  ).join("");
-}
-
-function renderAdminCard(order) {
-  const pct = progressPercent(order.status || "Booked");
+/* admin page */
+function renderAdminOrderCard(order, currentUser) {
+  const isAdmin = isAdminEmail(currentUser?.email);
 
   return `
     <div class="order-card" data-id="${esc(order.id)}">
       <div class="order-top">
         <div>
-          <div class="order-title">${esc(order.customerEmail || order.customerName || "Customer")}</div>
-          <div class="sub">${esc(serviceLabel(order.service))} • ${esc(order.location)} • ${esc(order.date)} ${esc(order.timeSlot)} • ${esc(order.price || "")}</div>
+          <div class="order-title">${esc(order.customerName || "Customer")} • ${esc(serviceLabel(order.service))}</div>
+          <div class="sub">${esc(order.customerEmail || "")} • ${esc(order.location || "")}</div>
+          <div class="sub">${esc(order.date || "")} • ${esc(order.timeSlot || "")} • ${esc(order.price || "")}</div>
         </div>
         <span class="${badgeClass(order.status || "Booked")}">${esc(order.status || "Booked")}</span>
       </div>
 
       ${renderStepProgress(order.status || "Booked")}
 
-      <div class="order-meta">
-        <span class="sub">Order ID: ${esc(order.id)}</span>
-        <span class="sub">${pct}%</span>
-      </div>
+      ${
+        isAdmin
+          ? `
+          <div class="admin-row">
+            <div class="admin-field">
+              <label class="sub" for="status-${esc(order.id)}">Status</label>
+              <select id="status-${esc(order.id)}" class="admin-status" data-id="${esc(order.id)}">
+                ${STATUS.map((status) => `
+                  <option value="${esc(status)}" ${order.status === status ? "selected" : ""}>${esc(status)}</option>
+                `).join("")}
+              </select>
+            </div>
 
-      <div class="admin-row">
-        <div class="admin-field">
-          <label class="sub">Stage</label>
-          <select class="admin-status">${statusOptions(order.status || "Booked")}</select>
-        </div>
+            <div class="admin-field">
+              <label class="sub" for="points-${esc(order.id)}">Points to award</label>
+              <input
+                id="points-${esc(order.id)}"
+                class="admin-points"
+                data-id="${esc(order.id)}"
+                type="number"
+                min="0"
+                step="1"
+                value="${esc(order.pointsAwarded ?? 10)}"
+              />
+            </div>
 
-        <div class="admin-field">
-          <label class="sub">Points (award on completion)</label>
-          <input class="admin-points" type="number" min="0" value="${esc(order.pointsAwarded ?? 10)}" />
-        </div>
-
-        <div class="admin-field admin-field-btn">
-          <label class="sub">&nbsp;</label>
-          <button class="btn primary full admin-save" type="button">Save</button>
-        </div>
-      </div>
+            <div class="admin-field admin-field-btn">
+              <button class="btn primary" type="button" data-admin-save="${esc(order.id)}">Save</button>
+            </div>
+          </div>
+        `
+          : ""
+      }
     </div>
   `;
 }
 
-/* the admin page  */
+async function saveAdminOrder(orderId) {
+  const statusEl = document.querySelector(`.admin-status[data-id="${orderId}"]`);
+  const pointsEl = document.querySelector(`.admin-points[data-id="${orderId}"]`);
+
+  if (!statusEl || !pointsEl) {
+    toast("Missing admin fields");
+    return;
+  }
+
+  const status = statusEl.value;
+  const pointsAwarded = Math.max(0, Number(pointsEl.value || 0));
+
+  const ref = doc(db, "orders", orderId);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) {
+    toast("Order not found");
+    return;
+  }
+
+  const prev = snap.data();
+  const updates = {
+    status,
+    pointsAwarded,
+    updatedAt: serverTimestamp()
+  };
+
+  await updateDoc(ref, updates);
+
+  if (
+    status === "Completed" &&
+    !prev.pointsGranted &&
+    prev.uid &&
+    Number(pointsAwarded) > 0
+  ) {
+    await updateDoc(doc(db, "users", prev.uid), {
+      points: increment(pointsAwarded)
+    });
+
+    await updateDoc(ref, {
+      pointsGranted: true,
+      updatedAt: serverTimestamp()
+    });
+  }
+
+  toast("Order updated ✅");
+}
+
 function initAdmin() {
-  const listEl = $("#adminOrders");
-  if (!listEl || listEl.dataset.bound === "1") return;
-  listEl.dataset.bound = "1";
+  const adminOrders = $("#adminOrders");
+  if (!adminOrders || adminOrders.dataset.bound === "1") return;
+  adminOrders.dataset.bound = "1";
 
-  const searchEl = $("#adminSearch");
-  const filterEl = $("#adminFilter");
-  const btnAdminRefresh = $("#btnAdminRefresh");
+  const adminSearch = $("#adminSearch");
+  const adminFilter = $("#adminFilter");
 
-  let all = [];
+  let allOrders = [];
+  let currentUser = null;
   let unsub = null;
 
   function render() {
-    const term = (searchEl?.value || "").toLowerCase().trim();
-    const stage = filterEl?.value || "All";
+    const search = String(adminSearch?.value || "").trim().toLowerCase();
+    const filter = String(adminFilter?.value || "").trim();
 
-    let items = [...all];
+    const items = allOrders.filter((order) => {
+      const matchesFilter = !filter || order.status === filter;
 
-    if (stage !== "All") {
-      items = items.filter((order) => (order.status || "Booked") === stage);
-    }
+      const haystack = [
+        order.customerName,
+        order.customerEmail,
+        order.location,
+        order.service,
+        order.serviceLabel,
+        order.date,
+        order.timeSlot,
+        order.id
+      ]
+        .join(" ")
+        .toLowerCase();
 
-    if (term) {
-      items = items.filter((order) =>
-        String(order.customerEmail || "").toLowerCase().includes(term) ||
-        String(order.customerName || "").toLowerCase().includes(term) ||
-        String(order.id || "").toLowerCase().includes(term)
-      );
-    }
+      const matchesSearch = !search || haystack.includes(search);
 
-    listEl.innerHTML = items.length
-      ? items.map(renderAdminCard).join("")
-      : `<div class="order-card"><div class="order-title">No matching orders</div><p class="sub">Change search or filter.</p></div>`;
+      return matchesFilter && matchesSearch;
+    });
+
+    adminOrders.innerHTML = items.length
+      ? items.map((order) => renderAdminOrderCard(order, currentUser)).join("")
+      : `
+        <div class="order-card">
+          <div class="order-title">No matching orders</div>
+          <p class="sub">Try changing the search or filter.</p>
+        </div>
+      `;
   }
 
-  if (searchEl && searchEl.dataset.bound !== "1") {
-    searchEl.dataset.bound = "1";
-    searchEl.addEventListener("input", render);
+  if (adminSearch && adminSearch.dataset.bound !== "1") {
+    adminSearch.dataset.bound = "1";
+    adminSearch.addEventListener("input", render);
   }
 
-  if (filterEl && filterEl.dataset.bound !== "1") {
-    filterEl.dataset.bound = "1";
-    filterEl.addEventListener("change", render);
+  if (adminFilter && adminFilter.dataset.bound !== "1") {
+    adminFilter.dataset.bound = "1";
+    adminFilter.addEventListener("change", render);
   }
 
-  if (btnAdminRefresh && btnAdminRefresh.dataset.bound !== "1") {
-    btnAdminRefresh.dataset.bound = "1";
-    btnAdminRefresh.addEventListener("click", () => toast("Admin is live ✅"));
-  }
-
-  listEl.addEventListener("click", async (e) => {
-    const btn = e.target.closest(".admin-save");
+  adminOrders.addEventListener("click", async (e) => {
+    const btn = e.target.closest("[data-admin-save]");
     if (!btn) return;
 
-    const card = e.target.closest("[data-id]");
-    const id = card?.getAttribute("data-id");
-    if (!id) return;
+    if (!currentUser || !isAdminEmail(currentUser.email)) {
+      toast("Admin only");
+      return;
+    }
 
-    const newStatus = card.querySelector(".admin-status")?.value || "Booked";
-    const pts = Number(card.querySelector(".admin-points")?.value || 0);
-
+    const orderId = btn.getAttribute("data-admin-save");
     try {
-      const ref = doc(db, "orders", id);
-      const snap = await getDoc(ref);
-      if (!snap.exists()) return;
-
-      const prev = snap.data();
-      const alreadyGranted = !!prev.pointsGranted;
-      const becomingCompleted = newStatus === "Completed";
-
-      const updatePayload = {
-        status: newStatus,
-        pointsAwarded: pts,
-        updatedAt: serverTimestamp()
-      };
-
-      if (!alreadyGranted && becomingCompleted) {
-        updatePayload.pointsGranted = true;
-      }
-
-      await updateDoc(ref, updatePayload);
-
-      if (!alreadyGranted && becomingCompleted) {
-        await updateDoc(doc(db, "users", prev.uid), {
-          points: increment(pts)
-        });
-      }
-
-      toast("Saved ✅");
+      await saveAdminOrder(orderId);
     } catch (err) {
       console.error(err);
-      toast("Save failed");
+      toast("Admin update failed");
     }
   });
 
   onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+
     if (typeof unsub === "function") {
       unsub();
       unsub = null;
@@ -1003,47 +1180,101 @@ function initAdmin() {
     }
 
     if (!isAdminEmail(user.email)) {
-      toast("Admins only");
-      location.replace("home.html");
+      adminOrders.innerHTML = `
+        <div class="order-card">
+          <div class="order-title">Access denied</div>
+          <p class="sub">You do not have permission to view the admin page.</p>
+        </div>
+      `;
       return;
     }
 
-    unsub = onSnapshot(query(collection(db, "orders")), (snap) => {
-      const items = [];
-      snap.forEach((d) => items.push({ id: d.id, ...d.data() }));
-      items.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-      all = items;
-      render();
-    });
+    const q = query(collection(db, "orders"));
+
+    unsub = onSnapshot(
+      q,
+      (snap) => {
+        allOrders = [];
+        snap.forEach((d) => allOrders.push({ id: d.id, ...d.data() }));
+        allOrders.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        render();
+      },
+      (err) => {
+        console.error(err);
+        toast("Admin load failed");
+      }
+    );
   });
 }
 
-/* the boot  */
-function bootByElements() {
+/* home page */
+function initHomePage() {
+  const track = $(".carousel-track");
+  const dotsWrap = $(".carousel-dots");
+  const prevBtn = $(".carousel-btn.prev");
+  const nextBtn = $(".carousel-btn.next");
+
+  if (!track || !dotsWrap) return;
+
+  const slides = [...track.children];
+  if (!slides.length) return;
+
+  let index = 0;
+
+  function renderCarousel() {
+    track.style.transform = `translateX(-${index * 100}%)`;
+    [...dotsWrap.children].forEach((dot, i) => {
+      dot.classList.toggle("active", i === index);
+      dot.setAttribute("aria-pressed", i === index ? "true" : "false");
+    });
+  }
+
+  if (!dotsWrap.dataset.bound) {
+    dotsWrap.dataset.bound = "1";
+    dotsWrap.innerHTML = slides
+      .map(
+        (_, i) => `<button type="button" aria-label="Go to slide ${i + 1}" ${i === 0 ? 'class="active"' : ""}></button>`
+      )
+      .join("");
+
+    [...dotsWrap.children].forEach((dot, i) => {
+      dot.addEventListener("click", () => {
+        index = i;
+        renderCarousel();
+      });
+    });
+  }
+
+  prevBtn?.addEventListener("click", () => {
+    index = (index - 1 + slides.length) % slides.length;
+    renderCarousel();
+  });
+
+  nextBtn?.addEventListener("click", () => {
+    index = (index + 1) % slides.length;
+    renderCarousel();
+  });
+
+  renderCarousel();
+}
+
+/* app bootstrap */
+function initApp() {
   wireAuthRequiredLinks();
   wireOverlayExitButtonsSafe();
 
+  onAuthStateChanged(auth, async (user) => {
+    await setupNav(user);
+    await updatePointsBadge(user);
+  });
+
   initLoginPage();
   initRegisterPage();
-
-  if ($("#btnBook")) initBooking();
-  if ($("#orders")) initTracking();
-  if ($("#custOrders") || $("#btnChangePass") || $("#custName")) initCustomer();
-  if ($("#adminOrders")) initAdmin();
+  initBooking();
+  initTracking();
+  initCustomer();
+  initAdmin();
+  initHomePage();
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", bootByElements);
-} else {
-  bootByElements();
-}
-
-/* authentiuoctaion  */
-onAuthStateChanged(auth, async (user) => {
-  await setupNav(user);
-  await updatePointsBadge(user);
-
-  if (user) {
-    hideSignupOverlay();
-  }
-});
+initApp();
