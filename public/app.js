@@ -26,9 +26,7 @@ import {
   increment
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
-/* =========================
-   BASIC HELPERS
-========================= */
+/* helpers for the main page, has varivables  */
 const $ = (selector) => document.querySelector(selector);
 
 const STATUS = [
@@ -91,9 +89,14 @@ function esc(value) {
   }[char]));
 }
 
-/* =========================
-   PROGRESS / TRACKER HELPERS
-========================= */
+function serviceLabel(value) {
+  if (value === "standard_clean") return "Standard Cleaning";
+  if (value === "express") return "Express Service";
+  if (value === "next_day") return "Next Day";
+  return value || "";
+}
+
+/* helpers for the progress such as the progress bar */
 function progressPercent(status) {
   if (status === "Cancelled") return 0;
   const index = Math.max(0, TRACKABLE_STATUS.indexOf(status));
@@ -129,9 +132,7 @@ function renderStepProgress(status) {
   `;
 }
 
-/* =========================
-   URL / LOGIN HELPERS
-========================= */
+/* login page,the login in  helpers  */
 function getNextFromUrl() {
   const url = new URL(location.href);
   const next = url.searchParams.get("next");
@@ -142,9 +143,7 @@ function goLogin(nextFile = "home.html") {
   location.href = `login.html?next=${encodeURIComponent(nextFile)}`;
 }
 
-/* =========================
-   USER / POINTS HELPERS
-========================= */
+/* the points and user function  */
 async function getPoints(uid) {
   const snap = await getDoc(doc(db, "users", uid));
   return snap.exists() ? Number(snap.data().points || 0) : 0;
@@ -166,9 +165,6 @@ function isValidTimeInput(value) {
   return /^([01]\d|2[0-3]):([0-5]\d)$/.test(String(value || ""));
 }
 
-/* =========================
-   STATUS / BADGE HELPERS
-========================= */
 function badgeClass(status) {
   if (status === "Completed") return "badge success";
   if (status === "Cancelled") return "badge danger";
@@ -177,9 +173,7 @@ function badgeClass(status) {
   return "badge";
 }
 
-/* =========================
-   OVERLAY HELPERS
-========================= */
+/* the overlay*/
 function hideSignupOverlay() {
   const overlay = $("#signupOverlay");
   if (overlay) overlay.hidden = true;
@@ -215,9 +209,7 @@ function wireOverlayExitButtonsSafe() {
   });
 }
 
-/* =========================
-   AUTH REQUIRED LINKS
-========================= */
+/* the links */
 function wireAuthRequiredLinks() {
   if (document.body.dataset.authLinksBound === "1") return;
   document.body.dataset.authLinksBound = "1";
@@ -237,9 +229,7 @@ function wireAuthRequiredLinks() {
   );
 }
 
-/* =========================
-   NAVBAR SETUP
-========================= */
+/* the navagation section  */
 async function setupNav(user) {
   const navAdmin = $("#navAdmin");
   const navLogin = $("#navLogin");
@@ -291,9 +281,7 @@ async function updatePointsBadge(user) {
   }
 }
 
-/* =========================
-   LOGIN PAGE
-========================= */
+/* the login page */
 function initLoginPage() {
   const btnLogin = $("#btnLogin");
   if (!btnLogin || btnLogin.dataset.bound === "1") return;
@@ -356,9 +344,7 @@ function initLoginPage() {
   }
 }
 
-/* =========================
-   REGISTER PAGE
-========================= */
+/* the register page */
 function initRegisterPage() {
   const btnRegister = $("#btnRegister");
   if (!btnRegister || btnRegister.dataset.bound === "1") return;
@@ -402,15 +388,70 @@ function initRegisterPage() {
   });
 }
 
-/* =========================
-   BOOKING PAGE
-========================= */
+/* price service change */
+function getActivePriceSelect() {
+  const service = $("#service")?.value;
+
+  if (service === "standard_clean") return $("#standardPrice");
+  if (service === "express") return $("#expressPrice");
+  if (service === "next_day") return $("#nextdayPrice");
+
+  return null;
+}
+
+function getSelectedPrice() {
+  return getActivePriceSelect()?.value || "";
+}
+
+function updateSelectedPriceText() {
+  const priceText = $("#selectedPriceText");
+  if (!priceText) return;
+
+  const price = getSelectedPrice();
+  priceText.textContent = price ? `Selected price: ${price}` : "Selected price:";
+}
+
+function syncServicePriceUI() {
+  const service = $("#service")?.value;
+
+  const standardGroup = $("#standardPrices");
+  const expressGroup = $("#expressPrices");
+  const nextdayGroup = $("#nextdayPrices");
+
+  if (!standardGroup || !expressGroup || !nextdayGroup) return;
+
+  standardGroup.hidden = service !== "standard_clean";
+  expressGroup.hidden = service !== "express";
+  nextdayGroup.hidden = service !== "next_day";
+
+  updateSelectedPriceText();
+}
+
+function initServicePriceSync() {
+  const serviceEl = $("#service");
+  if (!serviceEl || serviceEl.dataset.boundPrice === "1") return;
+  serviceEl.dataset.boundPrice = "1";
+
+  serviceEl.addEventListener("change", syncServicePriceUI);
+
+  ["#standardPrice", "#expressPrice", "#nextdayPrice"].forEach((selector) => {
+    const el = $(selector);
+    if (!el || el.dataset.boundPrice === "1") return;
+    el.dataset.boundPrice = "1";
+    el.addEventListener("change", updateSelectedPriceText);
+  });
+
+  syncServicePriceUI();
+}
+
+/* the booking page  */
 function initBooking() {
   const btnBook = $("#btnBook");
   if (!btnBook || btnBook.dataset.bound === "1") return;
   btnBook.dataset.bound = "1";
 
   wireOverlayExitButtonsSafe();
+  initServicePriceSync();
 
   const btnGoTrack = $("#btnGoTrack");
   if (btnGoTrack && btnGoTrack.dataset.bound !== "1") {
@@ -446,10 +487,11 @@ function initBooking() {
     const locationVal = $("#location")?.value;
     const date = $("#date")?.value;
     const timeSlot = $("#timeSlot")?.value;
+    const selectedPrice = getSelectedPrice();
 
-    if (!service || !locationVal || !date || !timeSlot) {
-      setMsg("Select service, location, date and time");
-      toast("Select service, location, date and time");
+    if (!service || !locationVal || !date || !timeSlot || !selectedPrice) {
+      setMsg("Select service, location, date, time and price");
+      toast("Select service, location, date, time and price");
       return;
     }
 
@@ -463,9 +505,11 @@ function initBooking() {
         customerEmail: userData.email || user.email || "",
         customerPhone: userData.phone || "",
         service,
+        serviceLabel: serviceLabel(service),
         location: locationVal,
         date,
         timeSlot,
+        price: selectedPrice,
         status: "Booked",
         pointsAwarded: 10,
         pointsGranted: false,
@@ -503,9 +547,7 @@ function renderOrderActions(order) {
   `;
 }
 
-/* =========================
-   CUSTOMER ORDER CARD
-========================= */
+/* the custpmer order */
 function renderOrderCard(order) {
   const pct = progressPercent(order.status || "Booked");
 
@@ -513,8 +555,8 @@ function renderOrderCard(order) {
     <div class="order-card" data-id="${esc(order.id)}">
       <div class="order-top">
         <div>
-          <div class="order-title">${esc(order.service)} • ${esc(order.location)}</div>
-          <div class="sub">${esc(order.date)} • ${esc(order.timeSlot)}</div>
+          <div class="order-title">${esc(serviceLabel(order.service))} • ${esc(order.location)}</div>
+          <div class="sub">${esc(order.date)} • ${esc(order.timeSlot)} • ${esc(order.price || "")}</div>
         </div>
         <span class="${badgeClass(order.status || "Booked")}">${esc(order.status || "Booked")}</span>
       </div>
@@ -531,9 +573,7 @@ function renderOrderCard(order) {
   `;
 }
 
-/* =========================
-   CANCEL ORDER
-========================= */
+/* canacel the order  */
 async function cancelOrderByCustomer(orderId, user) {
   const ref = doc(db, "orders", orderId);
   const snap = await getDoc(ref);
@@ -566,9 +606,7 @@ async function cancelOrderByCustomer(orderId, user) {
   toast("Booking cancelled");
 }
 
-/* =========================
-   RESCHEDULE ORDER
-========================= */
+/* the recsecule function  */
 async function rescheduleOrderByCustomer(orderId, user) {
   const ref = doc(db, "orders", orderId);
   const snap = await getDoc(ref);
@@ -613,9 +651,7 @@ async function rescheduleOrderByCustomer(orderId, user) {
   toast("Booking rescheduled");
 }
 
-/* =========================
-   CUSTOMER ORDER ACTION EVENTS
-========================= */
+/* customer order  */
 function wireCustomerOrderActions(listEl) {
   if (!listEl || listEl.dataset.orderActionsBound === "1") return;
   listEl.dataset.orderActionsBound = "1";
@@ -646,9 +682,7 @@ function wireCustomerOrderActions(listEl) {
   });
 }
 
-/* =========================
-   TRACKING PAGE
-========================= */
+/* the tracking page  */
 function initTracking() {
   const ordersEl = $("#orders");
   if (!ordersEl || ordersEl.dataset.bound === "1") return;
@@ -720,9 +754,7 @@ function initTracking() {
   }
 }
 
-/* =========================
-   CUSTOMER PAGE
-========================= */
+/* the cutsomer page, my account  */
 function initCustomer() {
   const page = $("#custOrders") || $("#btnChangePass") || $("#custName");
   if (!page || page.dataset.customerInit === "1") return;
@@ -831,7 +863,7 @@ function renderAdminCard(order) {
       <div class="order-top">
         <div>
           <div class="order-title">${esc(order.customerEmail || order.customerName || "Customer")}</div>
-          <div class="sub">${esc(order.service)} • ${esc(order.location)} • ${esc(order.date)} ${esc(order.timeSlot)}</div>
+          <div class="sub">${esc(serviceLabel(order.service))} • ${esc(order.location)} • ${esc(order.date)} ${esc(order.timeSlot)} • ${esc(order.price || "")}</div>
         </div>
         <span class="${badgeClass(order.status || "Booked")}">${esc(order.status || "Booked")}</span>
       </div>
@@ -863,9 +895,7 @@ function renderAdminCard(order) {
   `;
 }
 
-/* =========================
-   ADMIN PAGE
-========================= */
+/* the admin page  */
 function initAdmin() {
   const listEl = $("#adminOrders");
   if (!listEl || listEl.dataset.bound === "1") return;
@@ -988,9 +1018,7 @@ function initAdmin() {
   });
 }
 
-/* =========================
-   the boot of the page
-========================= */
+/* the boot  */
 function bootByElements() {
   wireAuthRequiredLinks();
   wireOverlayExitButtonsSafe();
@@ -1010,11 +1038,12 @@ if (document.readyState === "loading") {
   bootByElements();
 }
 
-/* =========================
-   GLOBAL AUTH WATCHER
-========================= */
+/* authentiuoctaion  */
 onAuthStateChanged(auth, async (user) => {
   await setupNav(user);
   await updatePointsBadge(user);
-  if (user) hideSignupOverlay();
+
+  if (user) {
+    hideSignupOverlay();
+  }
 });

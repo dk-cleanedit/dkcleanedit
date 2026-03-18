@@ -6,7 +6,6 @@
   <title>Book | DKCleanEdit</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
-
 <body>
   <nav class="navbar" aria-label="Primary">
     <ul class="nav-links">
@@ -43,18 +42,18 @@
 
   <main class="container">
     <section class="service1">
-      <h1>Standard cleaning</h1>
+      <h1>Standard Cleaning</h1>
       <p>Deep exterior clean, midsole scrub, lace clean, deodorising, drying &amp; finish.</p>
     </section>
 
     <section class="service2">
-      <h2>Express service</h2>
-      <p>Multi-pair service with consistent care and professional finish.</p>
+      <h2>Express Service</h2>
+      <p>Fast turnaround with consistent care and professional finish.</p>
     </section>
 
     <section class="service3">
-      <h3>Next day</h3>
-      <p>Bulk cleaning with careful material-safe processes for every pair.</p>
+      <h3>Next Day</h3>
+      <p>Priority cleaning with careful material-safe processes for every pair.</p>
     </section>
 
     <section class="card">
@@ -64,7 +63,7 @@
       <select id="service">
         <option value="standard_clean">Standard Cleaning</option>
         <option value="express">Express Service</option>
-        <option value="next_day">Next day</option>
+        <option value="next_day">Next Day</option>
       </select>
 
       <label class="sub" for="location">Location</label>
@@ -85,6 +84,34 @@
         <option value="18:00">18:00</option>
       </select>
 
+      <div id="standardPrices" class="price-group">
+        <label class="sub" for="standardPrice">Standard Price</label>
+        <select id="standardPrice" class="service-price">
+          <option value="£25">1 Pair - £25</option>
+          <option value="£60">3 Pairs - £60</option>
+          <option value="£130">6 Pairs - £130</option>
+        </select>
+      </div>
+
+      <div id="expressPrices" class="price-group" hidden>
+        <label class="sub" for="expressPrice">Express Price</label>
+        <select id="expressPrice" class="service-price">
+          <option value="£30">1 Pair - £30</option>
+          <option value="£70">3 Pairs - £70</option>
+          <option value="£130">6 Pairs - £130</option>
+        </select>
+      </div>
+
+      <div id="nextdayPrices" class="price-group" hidden>
+        <label class="sub" for="nextdayPrice">Next Day Price</label>
+        <select id="nextdayPrice" class="service-price">
+          <option value="£35">1 Pair - £35</option>
+          <option value="£85">3 Pairs - £85</option>
+        </select>
+      </div>
+
+      <p id="selectedPriceText" class="sub">Selected price: £25</p>
+
       <button id="btnBook" class="btn primary full" type="button">Confirm booking</button>
 
       <hr />
@@ -96,7 +123,6 @@
     </section>
   </main>
 
-  <script type="module" src="./app.js" defer></script>
+  <script type="module" src="./app.js"></script>
 </body>
-</html>
 </html>
