@@ -210,10 +210,9 @@ p{
   letter-spacing: 0.01em;
 }
 
-/* =========================
+/*
    Layout helpers
-   Useful shared layout classes for sections and grids
-========================= */
+ */
 .section-head{
   display: flex;
   align-items: end;
@@ -319,7 +318,7 @@ p{
   box-shadow: inset 0 0 0 1px rgba(0,108,228,0.04);
 }
 
-/* =========================
+/*
    Buttons
    Main button styles used on forms and actions
  */
