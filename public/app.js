@@ -284,45 +284,69 @@ async function updatePointsBadge(user) {
 /* the login page */
 function initLoginPage() {
   const btnLogin = $("#btnLogin");
-  if (!btnLogin || btnLogin.dataset.bound === "1") return;
-  btnLogin.dataset.bound = "1";
+  const btnRegisterGo = $("#btnRegisterGo");
 
-  const next = getNextFromUrl() || "customer.html";
+  if (btnLogin && btnLogin.dataset.bound !== "1") {
+    btnLogin.dataset.bound = "1";
 
-  btnLogin.addEventListener("click", async (e) => {
-    e.preventDefault();
+    const next = getNextFromUrl() || "customer.html";
 
-    const email = $("#logEmail")?.value.trim();
-    const pass = $("#logPass")?.value;
+    btnLogin.addEventListener("click", async (e) => {
+      e.preventDefault();
 
-    if (!email || !pass) {
-      setMsg("Enter email and password");
-      toast("Enter email and password");
-      return;
-    }
+      const email = $("#logEmail")?.value.trim();
+      const pass = $("#logPass")?.value;
 
-    try {
-      await signInWithEmailAndPassword(auth, email, pass);
-      toast("Logged in ✅");
-      location.replace(next);
-    } catch (err) {
-      console.error(err);
-
-      if (err?.code === "auth/invalid-credential") {
-        setMsg("Wrong email or password, or account not registered.");
-        toast("Wrong email or password");
-      } else {
-        setMsg(err.message || "Login failed");
-        toast("Login failed");
+      if (!email || !pass) {
+        setMsg("Enter email and password");
+        toast("Enter email and password");
+        return;
       }
-    }
-  });
+
+      try {
+        await signInWithEmailAndPassword(auth, email, pass);
+        setMsg("");
+        toast("Logged in ✅");
+        location.replace(next);
+      } catch (err) {
+        console.error(err);
+
+        if (err?.code === "auth/invalid-credential") {
+          setMsg("Wrong email or password, or account not registered.");
+          toast("Wrong email or password");
+        } else if (err?.code === "auth/invalid-email") {
+          setMsg("Enter a valid email address.");
+          toast("Invalid email");
+        } else if (err?.code === "auth/too-many-requests") {
+          setMsg("Too many attempts. Try again later.");
+          toast("Too many attempts");
+        } else {
+          setMsg(err.message || "Login failed");
+          toast("Login failed");
+        }
+      }
+    });
+  }
+
+  if (btnRegisterGo && btnRegisterGo.dataset.bound !== "1") {
+    btnRegisterGo.dataset.bound = "1";
+
+    btnRegisterGo.addEventListener("click", (e) => {
+      e.preventDefault();
+      const next = getNextFromUrl();
+      location.href = next
+        ? `register.html?next=${encodeURIComponent(next)}`
+        : "register.html";
+    });
+  }
 
   const btnSendReset = $("#btnSendReset");
   if (btnSendReset && btnSendReset.dataset.bound !== "1") {
     btnSendReset.dataset.bound = "1";
 
-    btnSendReset.addEventListener("click", async () => {
+    btnSendReset.addEventListener("click", async (e) => {
+      e.preventDefault();
+
       const email = ($("#resetEmail")?.value || $("#logEmail")?.value || "").trim();
 
       if (!email) {
@@ -337,8 +361,17 @@ function initLoginPage() {
         toast("Reset email sent ✅");
       } catch (err) {
         console.error(err);
-        setMsg(err.message || "Could not send reset email");
-        toast("Reset failed");
+
+        if (err?.code === "auth/invalid-email") {
+          setMsg("Enter a valid email address");
+          toast("Invalid email");
+        } else if (err?.code === "auth/user-not-found") {
+          setMsg("No account found with that email");
+          toast("Email not found");
+        } else {
+          setMsg(err.message || "Could not send reset email");
+          toast("Reset failed");
+        }
       }
     });
   }
@@ -366,6 +399,12 @@ function initRegisterPage() {
       return;
     }
 
+    if (pass.length < 6) {
+      setMsg("Password must be at least 6 characters");
+      toast("Password too short");
+      return;
+    }
+
     try {
       const cred = await createUserWithEmailAndPassword(auth, email, pass);
       await updateProfile(cred.user, { displayName: name });
@@ -378,12 +417,25 @@ function initRegisterPage() {
         createdAt: serverTimestamp()
       });
 
+      setMsg("");
       toast("Registered ✅");
       location.replace(next);
     } catch (err) {
       console.error(err);
-      setMsg(err.message || "Register failed");
-      toast("Register failed");
+
+      if (err?.code === "auth/email-already-in-use") {
+        setMsg("That email is already registered");
+        toast("Email already in use");
+      } else if (err?.code === "auth/invalid-email") {
+        setMsg("Enter a valid email address");
+        toast("Invalid email");
+      } else if (err?.code === "auth/weak-password") {
+        setMsg("Password is too weak");
+        toast("Weak password");
+      } else {
+        setMsg(err.message || "Register failed");
+        toast("Register failed");
+      }
     }
   });
 }
