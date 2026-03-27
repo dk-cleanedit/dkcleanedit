@@ -10,9 +10,11 @@
 <body>
   <nav class="navbar" aria-label="Primary">
     <ul class="nav-links">
-       <img src="videos/logo.png" class="logo"/>
-      <li><a href="home.html" id="navHome">Home</a></li>
+      <li class="nav-logo">
+        <img src="videos/logo.png" class="logo" alt="DKCleanEdit logo" />
+      </li>
 
+      <li><a href="home.html" id="navHome">Home</a></li>
       <li><a href="booking.html" id="navBooking" data-requires-auth="true">Booking</a></li>
       <li><a href="track.html" id="navTracking" data-requires-auth="true" aria-current="page">Tracking</a></li>
       <li><a href="customer.html" id="navAccount" data-requires-auth="true">My Account</a></li>
@@ -20,7 +22,6 @@
 
       <li><a href="login.html" id="navLogin">Login</a></li>
       <li><a href="register.html" id="navRegister">Register</a></li>
-
       <li><a href="#" id="navLogout" hidden>Logout</a></li>
       <li><span id="navPointsBadge" class="badge" hidden>Points: 0</span></li>
     </ul>
@@ -39,34 +40,120 @@
     </div>
   </div>
 
-  <main class="container tracking-layout">
-    <section class="card">
-      <h1>Order Tracking</h1>
-      <p class="sub">Orders update live when admin changes the stage.</p>
+  <main class="container tracking-page">
+    <section class="tracking-hero card">
+      <div class="tracking-hero-copy">
+        <span class="eyebrow">Luxury Order Tracking</span>
+        <h1>Track your order with confidence</h1>
+        <p class="sub">
+          Follow each stage of your restoration journey in real time, from booking to completion.
+        </p>
+      </div>
 
-      <div class="timeline" aria-label="Tracking stages">
-        <div class="step"><span class="dot"></span><div><h3>Booked</h3><p class="sub">Order created.</p></div></div>
-        <div class="step"><span class="dot"></span><div><h3>Received</h3><p class="sub">Pair received.</p></div></div>
-        <div class="step"><span class="dot"></span><div><h3>Cleaning</h3><p class="sub">Deep clean in progress.</p></div></div>
-        <div class="step"><span class="dot"></span><div><h3>Drying & Finish</h3><p class="sub">Finishing touches.</p></div></div>
-        <div class="step"><span class="dot"></span><div><h3>Ready</h3><p class="sub">Ready for pickup/delivery.</p></div></div>
-        <div class="step"><span class="dot"></span><div><h3>Completed</h3><p class="sub">Points applied.</p></div></div>
-        <div class="step"><span class="dot"></span><div><h3>Cancelled</h3><p class="sub">your order has been cancelled.</p></div></div>
+      <div class="tracking-lookup card soft">
+        <h2 class="lookup-title">Find an order</h2>
+        <p class="sub">Enter your order ID to jump straight to the correct tracking record.</p>
 
+        <div class="tracking-lookup-form">
+          <div class="form-field">
+            <label for="trackOrderSearch">Order ID</label>
+            <input
+              id="trackOrderSearch"
+              class="admin-status"
+              type="text"
+              placeholder="e.g. DK-123456 or Firestore ID"
+              autocomplete="off"
+            />
+          </div>
+
+          <div class="tracking-lookup-actions">
+            <button class="btn primary" id="btnFindOrder" type="button">Find order</button>
+            <button class="btn secondary" id="btnShowLatest" type="button">Latest order</button>
+            <button class="btn secondary" id="btnRefresh" type="button">Refresh</button>
+          </div>
+        </div>
+
+        <p id="trackLookupMsg" class="form-message"></p>
       </div>
     </section>
 
-    <section class="card">
-      <div class="card-header">
-        <div>
-          <h2>My Orders</h2>
-          <p class="sub">Loaded from Firebase: service, location, date/time, status.</p>
-        </div>
-        <button class="btn secondary" type="button" id="btnRefresh">Refresh</button>
+    <section id="trackingSelectedOrder" class="tracking-selected" aria-live="polite"></section>
+
+    <section class="tracking-grid">
+      <div class="tracking-main">
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <h2>My orders</h2>
+              <p class="sub">Choose an order to view full details, timeline, support and history.</p>
+            </div>
+          </div>
+
+          <div id="orders" class="orders-grid" aria-live="polite"></div>
+          <p id="msg" class="form-message"></p>
+        </section>
       </div>
 
-      <div id="orders" class="orders-grid" aria-live="polite"></div>
-      <p id="msg"></p>
+      <aside class="tracking-side">
+        <section class="card">
+          <h3>Need help?</h3>
+          <p class="sub">
+            If your order is delayed or you need to change collection details, contact support.
+          </p>
+          <div class="stack-sm">
+            <a class="btn primary full" href="mailto:danielasouzu2@gmail.com">Email support</a>
+            <a class="btn secondary full" href="tel:+447000000000">Call support</a>
+          </div>
+        </section>
+
+        <section class="card">
+          <h3>Tracking FAQs</h3>
+          <div class="faq-list">
+            <details>
+              <summary>How long does the cleaning process take?</summary>
+              <p>
+                Standard services usually take a few days, while faster services may finish sooner.
+                Your estimated ready date is shown in the order summary.
+              </p>
+            </details>
+
+            <details>
+              <summary>Can I cancel or reschedule?</summary>
+              <p>
+                Yes, but only while the order is still in the early stages such as Booked or Received.
+              </p>
+            </details>
+
+            <details>
+              <summary>Will I receive notifications?</summary>
+              <p>
+                Email-style notifications are supported by the design. SMS can be added later as an extension.
+              </p>
+            </details>
+          </div>
+        </section>
+
+        <section class="card">
+          <h3>Notifications</h3>
+          <p class="sub">Stay updated when your order moves to a new stage.</p>
+
+          <div class="notify-box">
+            <label class="notify-row">
+              <input type="checkbox" checked disabled />
+              <span>Email alerts</span>
+            </label>
+
+            <label class="notify-row">
+              <input type="checkbox" disabled />
+              <span>SMS alerts</span>
+            </label>
+
+            <p class="sub">
+              Email is currently the default notification path. SMS can be implemented later if needed.
+            </p>
+          </div>
+        </section>
+      </aside>
     </section>
   </main>
 

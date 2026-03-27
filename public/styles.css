@@ -1,7 +1,6 @@
 /*
    Global design tokens
-   These are the main colours, spacing sizes, shadows and radius values
-   used across the whole website
+   Main colours, spacing, shadows and radius values
 */
 :root{
   --primary: #006ce4;
@@ -75,8 +74,7 @@
 }
 
 /*
-   Basic reset and shared rules
-   Keeps spacing and sizing predictable across the site
+   Reset and shared rules
 */
 [hidden],
 .overlay[hidden]{
@@ -152,8 +150,7 @@ button{
 
 /*
    Typography
-   Shared heading and paragraph styles
- */
+*/
 h1,h2,h3,h4,p{
   margin-top: 0;
 }
@@ -212,7 +209,7 @@ p{
 
 /*
    Layout helpers
- */
+*/
 .section-head{
   display: flex;
   align-items: end;
@@ -256,8 +253,7 @@ p{
 
 /*
    Navigation
-   Top navbar used across pages
- */
+*/
 .navbar{
   position: sticky;
   top: 0;
@@ -320,8 +316,7 @@ p{
 
 /*
    Buttons
-   Main button styles used on forms and actions
- */
+*/
 .btn{
   display: inline-flex;
   align-items: center;
@@ -393,8 +388,7 @@ p{
 
 /*
    Cards
-   Shared card component used on booking, account and admin sections
- */
+*/
 .card{
   position: relative;
   padding: var(--s-5);
@@ -452,8 +446,7 @@ p{
 
 /*
    Home page
-   Hero, steps, carousel and testimonials
- */
+*/
 .hero{
   display: grid;
   grid-template-columns: 1.15fr 0.85fr;
@@ -693,8 +686,7 @@ p{
 
 /*
    Footer
-   Contact area and socials
- */
+*/
 .footer1{
   width: min(var(--max), calc(100% - 32px));
   margin: 0 auto 40px;
@@ -765,6 +757,24 @@ p{
   border-color: #cbe0ff;
 }
 
+.badge.success{
+  color: var(--success);
+  background: var(--success-100);
+  border-color: #ccecdf;
+}
+
+.badge.warning{
+  color: var(--warning);
+  background: var(--warning-100);
+  border-color: #f0d6a3;
+}
+
+.badge.danger{
+  color: var(--danger);
+  background: var(--danger-100);
+  border-color: #f2c3c3;
+}
+
 .text-muted{ color: var(--text-3) !important; }
 .text-success{ color: var(--success) !important; }
 .text-warning{ color: var(--warning) !important; }
@@ -772,7 +782,6 @@ p{
 
 /*
    Booking page
-   Service intro cards, booking form and price area
 */
 .booking-layout{
   display: grid;
@@ -931,8 +940,7 @@ p{
 
 /*
    Overlay and popup
-   Used when a user needs to log in before booking or tracking
- */
+*/
 .overlay{
   position: fixed;
   inset: 0;
@@ -972,8 +980,7 @@ p{
 
 /*
    Toast messages
-   Small floating feedback messages for actions like login or booking
- */
+*/
 #toastHost{
   position: fixed;
   right: 16px;
@@ -1003,8 +1010,224 @@ p{
 }
 
 /*
+   Tracking page layout
+   New section fitted to your current HTML and JS
+*/
+.tracking-page{
+  display: grid;
+  gap: var(--s-6);
+}
+
+.tracking-hero{
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.88fr);
+  gap: var(--s-5);
+  align-items: stretch;
+}
+
+.tracking-hero-copy{
+  display: grid;
+  align-content: center;
+  gap: var(--s-3);
+}
+
+.tracking-lookup{
+  align-self: stretch;
+}
+
+.lookup-title{
+  margin-bottom: 8px;
+}
+
+.tracking-lookup-form{
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.tracking-lookup-actions{
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tracking-grid{
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.72fr);
+  gap: var(--s-6);
+  align-items: start;
+}
+
+.tracking-main,
+.tracking-side{
+  display: grid;
+  gap: var(--s-5);
+}
+
+.tracking-selected{
+  display: grid;
+  gap: var(--s-5);
+}
+
+.tracking-detail-card{
+  padding: 0;
+  overflow: hidden;
+}
+
+.tracking-detail-card > .card-header{
+  margin: 0;
+  padding: var(--s-5);
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+}
+
+.tracking-summary-grid{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-5);
+  padding: var(--s-5);
+  border-bottom: 1px solid var(--line);
+}
+
+.tracking-summary-grid:last-of-type{
+  border-bottom: 0;
+}
+
+.tracking-status-hero{
+  margin: 0 0 8px;
+  font-size: clamp(1.35rem, 2vw, 1.8rem);
+  font-weight: 800;
+  color: #163059;
+  letter-spacing: -0.02em;
+}
+
+.detail-list{
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.detail-row{
+  display: grid;
+  grid-template-columns: minmax(120px, 180px) 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.detail-row:last-child{
+  border-bottom: 0;
+}
+
+.detail-row span{
+  color: var(--text-3);
+  font-weight: 600;
+}
+
+.detail-row strong{
+  color: #163059;
+  font-weight: 700;
+  word-break: break-word;
+}
+
+.detail-row a{
+  color: var(--primary-700);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.tracking-items{
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.tracking-item-row{
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) 80px;
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: #fff;
+}
+
+.tracking-item-media img,
+.tracking-item-placeholder{
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  object-fit: cover;
+  background: var(--surface-3);
+}
+
+.tracking-item-placeholder{
+  display: grid;
+  place-items: center;
+  color: var(--text-4);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.tracking-item-title{
+  font-size: 1rem;
+  font-weight: 750;
+  color: #173156;
+}
+
+.tracking-item-copy{
+  min-width: 0;
+}
+
+.tracking-item-qty{
+  text-align: right;
+}
+
+.tracking-history{
+  padding: var(--s-5);
+  background: #fff;
+}
+
+.timeline-list{
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.timeline-item{
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.timeline-dot{
+  width: 12px;
+  height: 12px;
+  margin-top: 5px;
+  border-radius: 999px;
+  background: var(--primary);
+  box-shadow: 0 0 0 4px rgba(0,108,228,0.10);
+}
+
+.timeline-copy strong{
+  display: block;
+  color: #163059;
+  margin-bottom: 4px;
+}
+
+.orders-grid{
+  display: grid;
+  gap: 16px;
+}
+
+/*
    Orders, tracking and account cards
-   Used on tracking, customer account and admin pages
 */
 .order-card{
   padding: 18px;
@@ -1013,6 +1236,21 @@ p{
   background: #fff;
   box-shadow: var(--shadow-1);
   margin-bottom: 16px;
+  transition:
+    transform var(--ease),
+    box-shadow var(--ease),
+    border-color var(--ease),
+    background-color var(--ease);
+}
+
+.order-card:hover{
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-2);
+  border-color: #c6d7ea;
+}
+
+.order-card[data-order-card]{
+  cursor: pointer;
 }
 
 .order-top{
@@ -1045,35 +1283,15 @@ p{
   margin-top: 14px;
 }
 
-.badge.success{
-  color: var(--success);
-  background: var(--success-100);
-  border-color: #ccecdf;
-}
-
-.badge.warning{
-  color: var(--warning);
-  background: var(--warning-100);
-  border-color: #f0d6a3;
-}
-
-.badge.danger{
-  color: var(--danger);
-  background: var(--danger-100);
-  border-color: #f2c3c3;
-}
-
 /*
    Order tracker
-   Progress steps shown for each order status
- */
+*/
 .order-tracker{
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(84px, 1fr));
+  align-items: start;
   position: relative;
-  margin: 18px 0 12px;
-  padding-top: 2px;
+  margin: 20px 0 12px;
   gap: 0;
 }
 
@@ -1081,8 +1299,8 @@ p{
   content: "";
   position: absolute;
   top: 9px;
-  left: 8%;
-  right: 8%;
+  left: 5%;
+  right: 5%;
   height: 3px;
   background: #dbe2ea;
   border-radius: 999px;
@@ -1091,30 +1309,30 @@ p{
 
 .step{
   position: relative;
-  flex: 1;
   text-align: center;
   z-index: 1;
+  padding: 0 4px;
 }
 
 .circle{
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #dbe2ea;
+  background: #fff;
   display: block;
   margin: 0 auto;
-  border: 3px solid #fff;
-  box-shadow: 0 0 0 2px #dbe2ea;
+  border: 2px solid #c7d3e3;
+  box-shadow: 0 0 0 4px #fff;
 }
 
 .step.active .circle{
   background: #2563eb;
-  box-shadow: 0 0 0 2px #2563eb;
+  border-color: #2563eb;
 }
 
 .step.cancelled .circle{
   background: #dc2626;
-  box-shadow: 0 0 0 2px #dc2626;
+  border-color: #dc2626;
 }
 
 .label{
@@ -1124,6 +1342,9 @@ p{
   line-height: 1.25;
   color: #6b7280;
   text-align: center;
+  max-width: 110px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .step.active .label{
@@ -1138,8 +1359,7 @@ p{
 
 /*
    Admin page
-   Controls for updating order status and points
- */
+*/
 .admin-row{
   display: grid;
   grid-template-columns: 1.2fr 1fr auto;
@@ -1160,158 +1380,79 @@ p{
 .admin-status,
 .admin-points,
 #adminSearch,
-#adminFilter{
+#adminFilter,
+#trackOrderSearch{
   width: 100%;
   min-height: 46px;
   padding: 10px 12px;
   border: 1px solid var(--line-2);
   border-radius: var(--r-sm);
   background: #fff;
+  color: var(--text);
+  transition: border-color var(--ease), box-shadow var(--ease), background-color var(--ease);
+}
+
+.admin-status:hover,
+.admin-points:hover,
+#adminSearch:hover,
+#adminFilter:hover,
+#trackOrderSearch:hover{
+  border-color: #bfd0e4;
+}
+
+.admin-status:focus,
+.admin-points:focus,
+#adminSearch:focus,
+#adminFilter:focus,
+#trackOrderSearch:focus{
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(0,108,228,0.10);
 }
 
 /*
-   Responsive tweaks
-   Keeps the layout cleaner on smaller screens
- */
-@media (max-width: 1080px){
-  .hero{
-    grid-template-columns: 1fr;
-  }
-
-  .grid-3,
-  .steps-grid,
-  .testimonials-grid{
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+   Tracking sidebar
+*/
+.faq-list{
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
 }
 
-@media (max-width: 760px){
-  .grid-2,
-  .grid-3,
-  .grid-4,
-  .steps-grid,
-  .testimonials-grid{
-    grid-template-columns: 1fr;
-  }
-
-  .section-head,
-  .card-header,
-  .order-top,
-  .order-meta{
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .carousel-track img{
-    height: 300px;
-  }
-
-  .admin-row{
-    grid-template-columns: 1fr;
-  }
+.faq-list details{
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: #fff;
+  padding: 14px 16px;
 }
 
-@media (max-width: 700px){
-  .order-tracker{
-    overflow-x: auto;
-    gap: 14px;
-    padding-bottom: 6px;
-  }
-
-  .order-tracker::before{
-    left: 24px;
-    right: 24px;
-  }
-
-  .step{
-    min-width: 90px;
-  }
-
-  .label{
-    font-size: 11px;
-  }
+.faq-list summary{
+  cursor: pointer;
+  font-weight: 700;
+  color: #173156;
 }
 
-@media (max-width: 560px){
-  .nav-links{
-    justify-content: center;
-    gap: 8px;
-  }
-
-  .nav-logo{
-    width: 100%;
-    justify-content: center;
-    margin-right: 0;
-  }
-
-  .nav-links a{
-    min-height: 42px;
-    padding: 8px 10px;
-    font-size: 0.95rem;
-  }
-
-  .container{
-    width: min(var(--max), calc(100% - 20px));
-    margin-top: 18px;
-  }
-
-  .card{
-    padding: 16px;
-  }
-
-  .hero-actions,
-  .popup-actions,
-  .order-actions{
-    flex-direction: column;
-  }
-
-  .btn{
-    width: 100%;
-  }
-
-  .carousel-btn{
-    width: 40px;
-    height: 40px;
-  }
-
-  #toastHost{
-    right: 10px;
-    left: 10px;
-    bottom: 10px;
-  }
-
-  .toast{
-    max-width: none;
-    width: 100%;
-  }
+.faq-list details p{
+  margin: 10px 0 0;
 }
 
-@media (max-width: 480px){
-  .logo{
-    width: 78px;
-  }
-
-  .testimonial-img{
-    height: 210px;
-  }
-
-  .carousel-track img{
-    height: 240px;
-  }
+.notify-box{
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
 }
 
-@media (prefers-reduced-motion: reduce){
-  *,
-  *::before,
-  *::after{
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
+.notify-row{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: #fff;
 }
-}}
-/* login redesign  */
+
+/* login redesign */
 
 .login-page{
   background:
@@ -1466,9 +1607,88 @@ p{
   font-weight: 500;
 }
 
-/* optional tighter spacing if both buttons are stacked */
 .login-card .btn + .btn{
   margin-top: 12px;
+}
+
+/*
+   Responsive tweaks
+*/
+@media (max-width: 1080px){
+  .hero,
+  .tracking-hero,
+  .tracking-grid,
+  .tracking-summary-grid{
+    grid-template-columns: 1fr;
+  }
+
+  .grid-3,
+  .steps-grid,
+  .testimonials-grid{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px){
+  .grid-2,
+  .grid-3,
+  .grid-4,
+  .steps-grid,
+  .testimonials-grid{
+    grid-template-columns: 1fr;
+  }
+
+  .section-head,
+  .card-header,
+  .order-top,
+  .order-meta{
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .carousel-track img{
+    height: 300px;
+  }
+
+  .admin-row{
+    grid-template-columns: 1fr;
+  }
+
+  .tracking-item-row{
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+
+  .tracking-item-qty{
+    text-align: left;
+    grid-column: 2;
+  }
+
+  .detail-row{
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 700px){
+  .order-tracker{
+    overflow-x: auto;
+    grid-template-columns: repeat(6, 110px);
+    gap: 8px;
+    padding-bottom: 6px;
+  }
+
+  .order-tracker::before{
+    left: 32px;
+    right: 32px;
+  }
+
+  .step{
+    min-width: 90px;
+  }
+
+  .label{
+    font-size: 11px;
+  }
 }
 
 @media (max-width: 640px){
@@ -1498,5 +1718,95 @@ p{
   .register-btn{
     min-height: 52px;
     border-radius: 10px;
+  }
+}
+
+@media (max-width: 560px){
+  .nav-links{
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .nav-logo{
+    width: 100%;
+    justify-content: center;
+    margin-right: 0;
+  }
+
+  .nav-links a{
+    min-height: 42px;
+    padding: 8px 10px;
+    font-size: 0.95rem;
+  }
+
+  .container{
+    width: min(var(--max), calc(100% - 20px));
+    margin-top: 18px;
+  }
+
+  .card{
+    padding: 16px;
+  }
+
+  .hero-actions,
+  .popup-actions,
+  .order-actions,
+  .tracking-lookup-actions{
+    flex-direction: column;
+  }
+
+  .btn{
+    width: 100%;
+  }
+
+  .carousel-btn{
+    width: 40px;
+    height: 40px;
+  }
+
+  #toastHost{
+    right: 10px;
+    left: 10px;
+    bottom: 10px;
+  }
+
+  .toast{
+    max-width: none;
+    width: 100%;
+  }
+
+  .tracking-detail-card > .card-header,
+  .tracking-summary-grid,
+  .tracking-history{
+    padding: 16px;
+  }
+
+  .tracking-item-row{
+    padding: 12px;
+  }
+}
+
+@media (max-width: 480px){
+  .logo{
+    width: 78px;
+  }
+
+  .testimonial-img{
+    height: 210px;
+  }
+
+  .carousel-track img{
+    height: 240px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce){
+  *,
+  *::before,
+  *::after{
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
