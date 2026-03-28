@@ -26,7 +26,7 @@ import {
   increment
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
-/* helpers for the main page, has varivables  */
+/* helpers for the main page, has variables */
 const $ = (selector) => document.querySelector(selector);
 
 const STATUS = [
@@ -132,7 +132,7 @@ function renderStepProgress(status) {
   `;
 }
 
-/* login page,the login in  helpers  */
+/* login page,the login in helpers */
 function getNextFromUrl() {
   const url = new URL(location.href);
   const next = url.searchParams.get("next");
@@ -143,7 +143,7 @@ function goLogin(nextFile = "home.html") {
   location.href = `login.html?next=${encodeURIComponent(nextFile)}`;
 }
 
-/* the points and user function  */
+/* the points and user function */
 async function getPoints(uid) {
   const snap = await getDoc(doc(db, "users", uid));
   return snap.exists() ? Number(snap.data().points || 0) : 0;
@@ -173,7 +173,7 @@ function badgeClass(status) {
   return "badge";
 }
 
-/* the overlay*/
+/* the overlay */
 function hideSignupOverlay() {
   const overlay = $("#signupOverlay");
   if (overlay) overlay.hidden = true;
@@ -229,7 +229,7 @@ function wireAuthRequiredLinks() {
   );
 }
 
-/* the navagation section  */
+/* the navigation section */
 async function setupNav(user) {
   const navAdmin = $("#navAdmin");
   const navLogin = $("#navLogin");
@@ -636,7 +636,7 @@ function initProfessionalBookingUI() {
   updateBookingSummary();
 }
 
-/* the booking page  */
+/* the booking page */
 function initBooking() {
   const btnBook = $("#btnBook");
   if (!btnBook || btnBook.dataset.bound === "1") return;
@@ -742,7 +742,7 @@ function renderOrderActions(order) {
   `;
 }
 
-/* the custpmer order */
+/* the customer order */
 function renderOrderCard(order) {
   const pct = progressPercent(order.status || "Booked");
 
@@ -768,7 +768,7 @@ function renderOrderCard(order) {
   `;
 }
 
-/* canacel the order  */
+/* cancel the order */
 async function cancelOrderByCustomer(orderId, user) {
   const ref = doc(db, "orders", orderId);
   const snap = await getDoc(ref);
@@ -801,7 +801,7 @@ async function cancelOrderByCustomer(orderId, user) {
   toast("Booking cancelled");
 }
 
-/* the recsecule function  */
+/* the reschedule function */
 async function rescheduleOrderByCustomer(orderId, user) {
   const ref = doc(db, "orders", orderId);
   const snap = await getDoc(ref);
@@ -846,7 +846,7 @@ async function rescheduleOrderByCustomer(orderId, user) {
   toast("Booking rescheduled");
 }
 
-/* customer order  */
+/* customer order actions */
 function wireCustomerOrderActions(listEl) {
   if (!listEl || listEl.dataset.orderActionsBound === "1") return;
   listEl.dataset.orderActionsBound = "1";
@@ -877,14 +877,178 @@ function wireCustomerOrderActions(listEl) {
   });
 }
 
-/* the tracking page  */
+/* tracking page helpers */
+function formatTrackingDate(value) {
+  if (!value) return "-";
+  const d = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
+  });
+}
+
+function getTrackingStatusNote(status) {
+  if (status === "Booked") return "Your booking has been placed and is waiting for collection or drop-off.";
+  if (status === "Received") return "Your item has been received and is now in the queue.";
+  if (status === "Cleaning") return "Your item is currently being cleaned.";
+  if (status === "Drying & Finish") return "Your item is in the drying and finishing stage.";
+  if (status === "Ready") return "Your item is ready for collection or delivery.";
+  if (status === "Completed") return "This order has been completed successfully.";
+  if (status === "Cancelled") return "This order has been cancelled.";
+  return "Tracking update available.";
+}
+
+function renderTrackingSelectedOrder(order) {
+  if (!order) {
+    return `
+      <section class="card">
+        <div class="order-title">No order selected</div>
+        <p class="sub">Choose an order below, search by order ID, or open your latest order.</p>
+      </section>
+    `;
+  }
+
+  const pct = progressPercent(order.status || "Booked");
+
+  return `
+    <section class="card selected-order-card">
+      <div class="order-top">
+        <div>
+          <div class="order-title">${esc(serviceLabel(order.service))} • ${esc(order.location || "-")}</div>
+          <div class="sub">Order ID: ${esc(order.id)} • ${esc(order.price || "")}</div>
+        </div>
+        <span class="${badgeClass(order.status || "Booked")}">${esc(order.status || "Booked")}</span>
+      </div>
+
+      <div class="tracking-summary-grid">
+        <div class="summary-row"><strong>Service:</strong> <span>${esc(serviceLabel(order.service))}</span></div>
+        <div class="summary-row"><strong>Location:</strong> <span>${esc(order.location || "-")}</span></div>
+        <div class="summary-row"><strong>Date:</strong> <span>${esc(formatTrackingDate(order.date))}</span></div>
+        <div class="summary-row"><strong>Time:</strong> <span>${esc(order.timeSlot || "-")}</span></div>
+        <div class="summary-row"><strong>Price:</strong> <span>${esc(order.price || "-")}</span></div>
+        <div class="summary-row"><strong>Progress:</strong> <span>${pct}%</span></div>
+      </div>
+
+      ${renderStepProgress(order.status || "Booked")}
+
+      <div class="order-meta">
+        <span class="sub">Status note: ${esc(getTrackingStatusNote(order.status || "Booked"))}</span>
+      </div>
+
+      ${renderOrderActions(order)}
+    </section>
+  `;
+}
+
+function renderTrackingListCard(order, isSelected = false) {
+  const pct = progressPercent(order.status || "Booked");
+
+  return `
+    <div class="order-card ${isSelected ? "selected" : ""}" data-id="${esc(order.id)}" data-track-open="${esc(order.id)}">
+      <div class="order-top">
+        <div>
+          <div class="order-title">${esc(serviceLabel(order.service))} • ${esc(order.location || "")}</div>
+          <div class="sub">${esc(order.date || "")} • ${esc(order.timeSlot || "")} • ${esc(order.price || "")}</div>
+        </div>
+        <span class="${badgeClass(order.status || "Booked")}">${esc(order.status || "Booked")}</span>
+      </div>
+
+      ${renderStepProgress(order.status || "Booked")}
+
+      <div class="order-meta">
+        <span class="sub">Order ID: ${esc(order.id)}</span>
+        <span class="sub">${pct}%</span>
+      </div>
+
+      <div class="order-actions">
+        <button class="btn" type="button" data-track-open="${esc(order.id)}">View details</button>
+        ${isCustomerEditableStatus(order.status)
+          ? `
+            <button class="btn" type="button" data-action="reschedule" data-id="${esc(order.id)}">Reschedule</button>
+            <button class="btn danger" type="button" data-action="cancel" data-id="${esc(order.id)}">Cancel</button>
+          `
+          : ""
+        }
+      </div>
+    </div>
+  `;
+}
+
+/* the tracking page */
 function initTracking() {
   const ordersEl = $("#orders");
+  const selectedEl = $("#trackingSelectedOrder");
+  const inputEl = $("#trackOrderSearch");
+  const btnFindOrder = $("#btnFindOrder");
+  const btnShowLatest = $("#btnShowLatest");
+  const btnRefresh = $("#btnRefresh");
+
   if (!ordersEl || ordersEl.dataset.bound === "1") return;
   ordersEl.dataset.bound = "1";
 
   wireOverlayExitButtonsSafe();
   wireCustomerOrderActions(ordersEl);
+
+  let unsubOrders = null;
+  let currentOrders = [];
+  let selectedOrderId = null;
+
+  function renderSelected() {
+    const selectedOrder =
+      currentOrders.find((item) => item.id === selectedOrderId) ||
+      currentOrders[0] ||
+      null;
+
+    if (!selectedOrderId && selectedOrder) {
+      selectedOrderId = selectedOrder.id;
+    }
+
+    if (selectedEl) {
+      selectedEl.innerHTML = renderTrackingSelectedOrder(selectedOrder);
+    }
+  }
+
+  function renderOrders() {
+    if (!currentOrders.length) {
+      ordersEl.innerHTML = `
+        <div class="order-card">
+          <div class="order-title">No orders yet</div>
+          <p class="sub">Book a service to start tracking.</p>
+          <a class="btn primary" href="booking.html">Go to Booking</a>
+        </div>
+      `;
+
+      if (selectedEl) {
+        selectedEl.innerHTML = renderTrackingSelectedOrder(null);
+      }
+      return;
+    }
+
+    ordersEl.innerHTML = currentOrders
+      .map((order) => renderTrackingListCard(order, order.id === selectedOrderId))
+      .join("");
+
+    renderSelected();
+  }
+
+  function selectOrderById(orderId, showMessage = true) {
+    const found = currentOrders.find((item) => item.id === orderId);
+
+    if (!found) {
+      setMsg("Order not found", "trackLookupMsg");
+      if (showMessage) toast("Order not found");
+      return;
+    }
+
+    selectedOrderId = found.id;
+    renderOrders();
+    setMsg(`Showing order ${found.id}`, "trackLookupMsg");
+
+    const card = ordersEl.querySelector(`[data-id="${CSS.escape(found.id)}"]`);
+    card?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
 
   ordersEl.innerHTML = `
     <div class="order-card">
@@ -893,7 +1057,65 @@ function initTracking() {
     </div>
   `;
 
-  let unsubOrders = null;
+  if (selectedEl) {
+    selectedEl.innerHTML = renderTrackingSelectedOrder(null);
+  }
+
+  ordersEl.addEventListener("click", (e) => {
+    const openBtn = e.target.closest("[data-track-open]");
+    if (!openBtn) return;
+
+    const orderId = openBtn.getAttribute("data-track-open");
+    if (!orderId) return;
+
+    selectOrderById(orderId, false);
+  });
+
+  if (btnFindOrder && btnFindOrder.dataset.bound !== "1") {
+    btnFindOrder.dataset.bound = "1";
+    btnFindOrder.addEventListener("click", () => {
+      const value = String(inputEl?.value || "").trim();
+      if (!value) {
+        setMsg("Enter an order ID", "trackLookupMsg");
+        toast("Enter an order ID");
+        return;
+      }
+      selectOrderById(value);
+    });
+  }
+
+  if (inputEl && inputEl.dataset.bound !== "1") {
+    inputEl.dataset.bound = "1";
+    inputEl.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      btnFindOrder?.click();
+    });
+  }
+
+  if (btnShowLatest && btnShowLatest.dataset.bound !== "1") {
+    btnShowLatest.dataset.bound = "1";
+    btnShowLatest.addEventListener("click", () => {
+      if (!currentOrders.length) {
+        setMsg("No orders available", "trackLookupMsg");
+        toast("No orders available");
+        return;
+      }
+
+      selectedOrderId = currentOrders[0].id;
+      renderOrders();
+      setMsg(`Showing latest order ${currentOrders[0].id}`, "trackLookupMsg");
+      toast("Latest order opened");
+    });
+  }
+
+  if (btnRefresh && btnRefresh.dataset.bound !== "1") {
+    btnRefresh.dataset.bound = "1";
+    btnRefresh.addEventListener("click", () => {
+      renderOrders();
+      toast("Tracking refreshed ✅");
+    });
+  }
 
   onAuthStateChanged(auth, (user) => {
     if (typeof unsubOrders === "function") {
@@ -901,8 +1123,12 @@ function initTracking() {
       unsubOrders = null;
     }
 
+    currentOrders = [];
+    selectedOrderId = null;
+
     if (!user) {
       showSignupOverlay();
+
       ordersEl.innerHTML = `
         <div class="order-card">
           <div class="order-title">Please log in</div>
@@ -910,6 +1136,11 @@ function initTracking() {
           <a class="btn primary" href="login.html?next=track.html">Go to Login</a>
         </div>
       `;
+
+      if (selectedEl) {
+        selectedEl.innerHTML = renderTrackingSelectedOrder(null);
+      }
+
       return;
     }
 
@@ -920,36 +1151,32 @@ function initTracking() {
     unsubOrders = onSnapshot(
       q,
       (snap) => {
-        const items = [];
-        snap.forEach((d) => items.push({ id: d.id, ...d.data() }));
-        items.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        currentOrders = [];
+        snap.forEach((d) => currentOrders.push({ id: d.id, ...d.data() }));
+        currentOrders.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
 
-        ordersEl.innerHTML = items.length
-          ? items.map(renderOrderCard).join("")
-          : `
-            <div class="order-card">
-              <div class="order-title">No orders yet</div>
-              <p class="sub">Book a service to start tracking.</p>
-              <a class="btn primary" href="booking.html">Go to Booking</a>
-            </div>
-          `;
+        if (selectedOrderId && !currentOrders.some((item) => item.id === selectedOrderId)) {
+          selectedOrderId = currentOrders[0]?.id || null;
+        }
+
+        if (!selectedOrderId && currentOrders.length) {
+          selectedOrderId = currentOrders[0].id;
+        }
+
+        renderOrders();
+        setMsg("", "trackLookupMsg");
       },
       (err) => {
         console.error(err);
         setMsg("Tracking failed");
+        setMsg("Tracking failed", "trackLookupMsg");
         toast("Tracking failed");
       }
     );
   });
-
-  const btnRefresh = $("#btnRefresh");
-  if (btnRefresh && btnRefresh.dataset.bound !== "1") {
-    btnRefresh.dataset.bound = "1";
-    btnRefresh.addEventListener("click", () => toast("Tracking is live ✅"));
-  }
 }
 
-/* the cutsomer page, my account  */
+/* the customer page, my account */
 function initCustomer() {
   const page = $("#custOrders") || $("#btnChangePass") || $("#custName");
   if (!page || page.dataset.customerInit === "1") return;

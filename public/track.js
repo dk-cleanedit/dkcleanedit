@@ -64,10 +64,12 @@ function progressPercent(status) {
 
 function formatDate(value) {
   if (!value) return "Not available";
+
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) {
     const alt = new Date(`${value}T00:00:00`);
     if (Number.isNaN(alt.getTime())) return String(value);
+
     return alt.toLocaleDateString("en-GB", {
       day: "2-digit",
       month: "short",
@@ -84,6 +86,7 @@ function formatDate(value) {
 
 function formatDateTimeFromFirestore(ts) {
   if (!ts?.seconds) return "Not available";
+
   const d = new Date(ts.seconds * 1000);
   return d.toLocaleString("en-GB", {
     day: "2-digit",
@@ -127,7 +130,10 @@ function getCarrierTrackingUrl(order) {
   if (!base) return "";
   if (!trackingNumber) return base;
 
-  if (base.includes("?")) return `${base}&trackingnumber=${encodeURIComponent(trackingNumber)}`;
+  if (base.includes("?")) {
+    return `${base}&trackingnumber=${encodeURIComponent(trackingNumber)}`;
+  }
+
   return `${base}?trackingnumber=${encodeURIComponent(trackingNumber)}`;
 }
 

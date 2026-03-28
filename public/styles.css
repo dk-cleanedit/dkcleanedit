@@ -1810,3 +1810,337 @@ p{
     scroll-behavior: auto !important;
   }
 }
+/* =========================
+   TRACKING PAGE RESPONSIVE
+========================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.container {
+  width: min(1200px, calc(100% - 2rem));
+  margin: 0 auto;
+}
+
+.navbar {
+  width: 100%;
+  padding: 0.75rem 1rem;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-links li {
+  min-width: 0;
+}
+
+.nav-links a,
+.nav-links span {
+  white-space: nowrap;
+}
+
+.logo {
+  width: 120px;
+  max-width: 100%;
+  height: auto;
+}
+
+.tracking-page {
+  padding: 1rem 0 2rem;
+}
+
+.tracking-hero {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 1.25rem;
+  align-items: start;
+  margin-bottom: 1.5rem;
+}
+
+.tracking-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 360px);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.tracking-main,
+.tracking-side {
+  min-width: 0;
+}
+
+.card {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 20px;
+}
+
+.card.soft {
+  padding: 1rem;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.tracking-lookup-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.form-field {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.track-order-input {
+  width: 100%;
+  min-width: 0;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+}
+
+.tracking-lookup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.tracking-lookup-actions .btn {
+  flex: 1 1 160px;
+}
+
+.orders-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.order-card {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 18px;
+}
+
+.order-top,
+.order-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.tracking-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.detail-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: start;
+}
+
+.detail-row span,
+.detail-row strong {
+  min-width: 0;
+}
+
+.detail-row strong {
+  text-align: right;
+  word-break: break-word;
+}
+
+.tracking-items {
+  display: grid;
+  gap: 1rem;
+}
+
+.tracking-item-row {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+}
+
+.tracking-item-media img,
+.tracking-item-placeholder {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 14px;
+}
+
+.timeline-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.timeline-item {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.order-tracker {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 0.35rem;
+  scrollbar-width: thin;
+}
+
+.step {
+  min-width: 110px;
+  flex: 0 0 auto;
+  text-align: center;
+}
+
+.circle {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+
+.label {
+  display: block;
+  margin-top: 0.45rem;
+  font-size: 0.85rem;
+  line-height: 1.25;
+}
+
+.stack-sm {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.btn.full {
+  width: 100%;
+}
+
+.faq-list details {
+  margin-bottom: 0.75rem;
+}
+
+@media (max-width: 960px) {
+  .tracking-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .tracking-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tracking-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    width: min(100%, calc(100% - 1rem));
+  }
+
+  .navbar {
+    padding: 0.75rem;
+  }
+
+  .nav-links {
+    gap: 0.5rem 0.75rem;
+  }
+
+  .logo {
+    width: 96px;
+  }
+
+  .tracking-page {
+    padding-top: 0.75rem;
+  }
+
+  .card,
+  .card.soft,
+  .order-card {
+    padding: 0.9rem;
+    border-radius: 16px;
+  }
+
+  .tracking-lookup-actions {
+    flex-direction: column;
+  }
+
+  .tracking-lookup-actions .btn {
+    width: 100%;
+    flex: none;
+  }
+
+  .detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .detail-row strong {
+    text-align: left;
+  }
+
+  .tracking-item-row {
+    grid-template-columns: 1fr;
+    text-align: left;
+  }
+
+  .tracking-item-media {
+    width: 72px;
+  }
+
+  .tracking-item-qty {
+    justify-self: start;
+  }
+
+  .order-top,
+  .order-meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tracking-status-hero {
+    font-size: 1.25rem;
+  }
+
+  .step {
+    min-width: 96px;
+  }
+}
