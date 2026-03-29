@@ -39,190 +39,222 @@
       </div>
     </div>
   </div>
-<main class="container booking-page">
-  <section class="booking-hero card soft">
-    <div class="booking-hero-copy">
-      <span class="eyebrow">Professional sneaker care</span>
-      <h1>Book your cleaning service</h1>
-      <p class="sub">
-        Choose your service, select a location, pick a date and time, and confirm your booking in a few simple steps.
-      </p>
-    </div>
-  </section>
 
-  <section class="booking-layout">
-    <!-- LEFT: BOOKING FORM -->
-    <div class="booking-form card">
-      <div class="card-header">
-        <div>
-          <div class="card-title">Booking details</div>
-          <div class="card-subtitle">Complete the form below to reserve your slot</div>
-        </div>
-        <span class="badge info">Step 1 of 2</span>
+  <main class="container booking-page">
+    <section class="booking-hero card soft">
+      <div class="booking-hero-copy">
+        <span class="eyebrow">Professional sneaker care</span>
+        <h1>Book your cleaning service</h1>
+        <p class="sub">
+          Choose your service, select a location, pick a date and time, and confirm your booking in a few simple steps.
+        </p>
       </div>
+    </section>
 
-      <div class="form-section">
-        <h3>1. Select service</h3>
-        <div class="service-options">
-          <label class="service-option active" data-service-card="standard_clean">
-            <input type="radio" name="serviceCard" value="standard_clean" checked hidden />
-            <div class="service-option-top">
-              <strong>Standard Cleaning</strong>
-              <span class="badge">From £25</span>
-            </div>
-            <p>Deep exterior clean, midsole scrub, lace clean, deodorising, drying and finish.</p>
-          </label>
+    <section class="booking-layout">
 
-          <label class="service-option" data-service-card="express">
-            <input type="radio" name="serviceCard" value="express" hidden />
-            <div class="service-option-top">
-              <strong>Express Service</strong>
-              <span class="badge">From £30</span>
-            </div>
-            <p>Fast turnaround with consistent care and a professional finish.</p>
-          </label>
-
-          <label class="service-option" data-service-card="next_day">
-            <input type="radio" name="serviceCard" value="next_day" hidden />
-            <div class="service-option-top">
-              <strong>Next Day</strong>
-              <span class="badge">From £35</span>
-            </div>
-            <p>Priority cleaning with careful, material-safe processes for every pair.</p>
-          </label>
+      <div class="booking-form card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Booking details</div>
+            <div class="card-subtitle">Complete the form below to reserve your slot</div>
+          </div>
+          <span class="badge info">Step 1 of 2</span>
         </div>
 
-        <!-- hidden actual select if you want to keep current JS -->
-        <select id="service" hidden>
-          <option value="standard_clean">Standard Cleaning</option>
-          <option value="express">Express Service</option>
-          <option value="next_day">Next Day</option>
-        </select>
-      </div>
+        <div class="form-section">
+          <h3>1. Select service</h3>
+          <div class="service-options">
+            <label class="service-option active" data-service-card="standard_clean">
+              <input type="radio" name="serviceCard" value="standard_clean" checked hidden />
+              <div class="service-option-top">
+                <strong>Standard Cleaning</strong>
+                <span class="badge">From £25</span>
+              </div>
+              <p>Deep exterior clean, midsole scrub, lace clean, deodorising, drying and finish.</p>
+            </label>
 
-      <div class="form-grid">
-        <div class="form-field">
-          <label for="location">Location</label>
-          <select id="location">
-            <option value="London">London</option>
-            <option value="Leicester">Leicester</option>
-          </select>
-          <small>Choose your nearest drop-off location.</small>
-        </div>
+            <label class="service-option" data-service-card="express">
+              <input type="radio" name="serviceCard" value="express" hidden />
+              <div class="service-option-top">
+                <strong>Express Service</strong>
+                <span class="badge">From £30</span>
+              </div>
+              <p>Fast turnaround with consistent care and a professional finish.</p>
+            </label>
 
-        <div class="form-field">
-          <label for="date">Booking date</label>
-          <input id="date" type="date" />
-          <small>Select your preferred service date.</small>
-        </div>
-      </div>
+            <label class="service-option" data-service-card="next_day">
+              <input type="radio" name="serviceCard" value="next_day" hidden />
+              <div class="service-option-top">
+                <strong>Next Day</strong>
+                <span class="badge">From £35</span>
+              </div>
+              <p>Priority cleaning with careful, material-safe processes for every pair.</p>
+            </label>
+          </div>
 
-      <div class="form-section">
-        <h3>2. Choose a time slot</h3>
-        <div class="time-slots" id="timeSlotsWrap">
-          <button type="button" class="time-slot active" data-time="10:00">10:00</button>
-          <button type="button" class="time-slot" data-time="12:00">12:00</button>
-          <button type="button" class="time-slot" data-time="14:00">14:00</button>
-          <button type="button" class="time-slot" data-time="16:00">16:00</button>
-          <button type="button" class="time-slot" data-time="18:00">18:00</button>
-        </div>
 
-        <!-- keep select for app.js compatibility -->
-        <select id="timeSlot" hidden>
-          <option value="10:00">10:00</option>
-          <option value="12:00">12:00</option>
-          <option value="14:00">14:00</option>
-          <option value="16:00">16:00</option>
-          <option value="18:00">18:00</option>
-        </select>
-      </div>
-
-      <div class="form-section">
-        <h3>3. Select package</h3>
-
-        <div id="standardPrices" class="price-group">
-          <label for="standardPrice">Standard package</label>
-          <select id="standardPrice" class="service-price">
-            <option value="£25">1 Pair - £25</option>
-            <option value="£60">3 Pairs - £60</option>
-            <option value="£130">6 Pairs - £130</option>
+          <select id="service" hidden>
+            <option value="standard_clean">Standard Cleaning</option>
+            <option value="express">Express Service</option>
+            <option value="next_day">Next Day</option>
           </select>
         </div>
 
-        <div id="expressPrices" class="price-group" hidden>
-          <label for="expressPrice">Express package</label>
-          <select id="expressPrice" class="service-price">
-            <option value="£30">1 Pair - £30</option>
-            <option value="£70">3 Pairs - £70</option>
-            <option value="£130">6 Pairs - £130</option>
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="location">Location</label>
+            <select id="location">
+              <option value="London">London</option>
+              <option value="Leicester">Leicester</option>
+            </select>
+            <small>Choose your nearest drop-off location.</small>
+          </div>
+
+          <div class="form-field">
+            <label for="date">Booking date</label>
+            <input id="date" type="date" />
+            <small>Select your preferred service date.</small>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>2. Choose a time slot</h3>
+          <div class="time-slots" id="timeSlotsWrap">
+            <button type="button" class="time-slot active" data-time="10:00">10:00</button>
+            <button type="button" class="time-slot" data-time="12:00">12:00</button>
+            <button type="button" class="time-slot" data-time="14:00">14:00</button>
+            <button type="button" class="time-slot" data-time="16:00">16:00</button>
+            <button type="button" class="time-slot" data-time="18:00">18:00</button>
+          </div>
+
+
+          <select id="timeSlot" hidden>
+            <option value="10:00">10:00</option>
+            <option value="12:00">12:00</option>
+            <option value="14:00">14:00</option>
+            <option value="16:00">16:00</option>
+            <option value="18:00">18:00</option>
           </select>
         </div>
 
-        <div id="nextdayPrices" class="price-group" hidden>
-          <label for="nextdayPrice">Next Day package</label>
-          <select id="nextdayPrice" class="service-price">
-            <option value="£35">1 Pair - £35</option>
-            <option value="£85">3 Pairs - £85</option>
-          </select>
+        <div class="form-section">
+          <h3>3. Select package</h3>
+
+          <div id="standardPrices" class="price-group">
+            <label for="standardPrice">Standard package</label>
+            <select id="standardPrice" class="service-price">
+              <option value="£25">1 Pair - £25</option>
+              <option value="£60">3 Pairs - £60</option>
+              <option value="£130">6 Pairs - £130</option>
+            </select>
+          </div>
+
+          <div id="expressPrices" class="price-group" hidden>
+            <label for="expressPrice">Express package</label>
+            <select id="expressPrice" class="service-price">
+              <option value="£30">1 Pair - £30</option>
+              <option value="£70">3 Pairs - £70</option>
+              <option value="£130">6 Pairs - £130</option>
+            </select>
+          </div>
+
+          <div id="nextdayPrices" class="price-group" hidden>
+            <label for="nextdayPrice">Next Day package</label>
+            <select id="nextdayPrice" class="service-price">
+              <option value="£35">1 Pair - £35</option>
+              <option value="£85">3 Pairs - £85</option>
+            </select>
+          </div>
         </div>
+
+        <!-- extra notes and upload from the customer -->
+        <div class="form-section">
+          <h3>4. Additional details</h3>
+
+          <div class="form-field">
+            <label for="shoeNotes">Tell us more about the condition</label>
+            <textarea
+              id="shoeNotes"
+              rows="5"
+              placeholder="Example: mud around the sole, stain on the toe box, scuff on the side, strong smell inside, lace needs deep cleaning..."
+            ></textarea>
+            <small>Add anything you want us to know about stains, marks, dirt, smell, damage or problem areas.</small>
+          </div>
+
+          <div class="form-field">
+            <label for="shoeImage">Upload a photo of your shoe</label>
+            <input id="shoeImage" type="file" accept="image/*" />
+            <small>This will be sent with the booking so the admin can review the shoe before cleaning.</small>
+          </div>
+
+          <div id="shoePreviewWrap" class="form-field" hidden>
+            <label>Preview</label>
+            <img
+              id="shoePreview"
+              src=""
+              alt="Shoe preview"
+              style="max-width: 220px; border-radius: 12px; display: block;"
+            />
+          </div>
+        </div>
+
+        <div class="booking-actions">
+          <button id="btnBook" class="btn primary" type="button">Confirm booking</button>
+          <button id="btnGoTrack" class="btn secondary" type="button">Track my order</button>
+        </div>
+
+        <p id="msg" class="form-message"></p>
       </div>
 
-      <div class="booking-actions">
-        <button id="btnBook" class="btn primary" type="button">Confirm booking</button>
-        <button id="btnGoTrack" class="btn secondary" type="button">Track my order</button>
-      </div>
 
-      <p id="msg" class="form-message"></p>
-    </div>
+      <aside class="booking-summary card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Booking summary</div>
+            <div class="card-subtitle">Review your selection before confirming</div>
+          </div>
+        </div>
 
-    <!-- RIGHT: SUMMARY -->
-    <aside class="booking-summary card">
-      <div class="card-header">
-        <div>
-          <div class="card-title">Booking summary</div>
-          <div class="card-subtitle">Review your selection before confirming</div>
+        <div class="summary-list">
+          <div class="summary-row">
+            <span>Service</span>
+            <strong id="summaryService">Standard Cleaning</strong>
+          </div>
+          <div class="summary-row">
+            <span>Location</span>
+            <strong id="summaryLocation">London</strong>
+          </div>
+          <div class="summary-row">
+            <span>Date</span>
+            <strong id="summaryDate">Not selected</strong>
+          </div>
+          <div class="summary-row">
+            <span>Time</span>
+            <strong id="summaryTime">10:00</strong>
+          </div>
+          <div class="summary-row total">
+            <span>Total</span>
+            <strong id="selectedPriceText">£25</strong>
+          </div>
         </div>
-      </div>
 
-      <div class="summary-list">
-        <div class="summary-row">
-          <span>Service</span>
-          <strong id="summaryService">Standard Cleaning</strong>
-        </div>
-        <div class="summary-row">
-          <span>Location</span>
-          <strong id="summaryLocation">London</strong>
-        </div>
-        <div class="summary-row">
-          <span>Date</span>
-          <strong id="summaryDate">Not selected</strong>
-        </div>
-        <div class="summary-row">
-          <span>Time</span>
-          <strong id="summaryTime">10:00</strong>
-        </div>
-        <div class="summary-row total">
-          <span>Total</span>
-          <strong id="selectedPriceText">£25</strong>
-        </div>
-      </div>
+        <hr class="gradient-line" />
 
-      <hr class="gradient-line" />
+        <div class="summary-note">
+          <h3>What’s included</h3>
+          <ul class="summary-features">
+            <li>Material-safe cleaning process</li>
+            <li>Deodorising and finishing</li>
+            <li>Professional handling and inspection</li>
+            <li>Clear booking and tracking flow</li>
+          </ul>
+        </div>
 
-      <div class="summary-note">
-        <h3>What’s included</h3>
-        <ul class="summary-features">
-          <li>Material-safe cleaning process</li>
-          <li>Deodorising and finishing</li>
-          <li>Professional handling and inspection</li>
-          <li>Clear booking and tracking flow</li>
-        </ul>
-      </div>
-
-      <button id="btnGoAdmin" class="btn secondary full" type="button">Admin (if allowed)</button>
-    </aside>
-  </section>
-</main>
+        <button id="btnGoAdmin" class="btn secondary full" type="button">Admin (if allowed)</button>
+      </aside>
+    </section>
+  </main>
 
   <script type="module" src="./app.js"></script>
 </body>

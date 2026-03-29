@@ -1,4 +1,4 @@
-import { auth, db } from "./firebase.js";
+import { auth, db, storage } from "./firebase.js";
 
 import {
   onAuthStateChanged,
@@ -25,6 +25,12 @@ import {
   serverTimestamp,
   increment
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
 
 /* helpers for the main page, has variables */
 const $ = (selector) => document.querySelector(selector);
@@ -84,7 +90,7 @@ function esc(value) {
     "&": "&amp;",
     "<": "&lt;",
     ">": "&gt;",
-    '"': "&quot;",
+    "\"": "&quot;",
     "'": "&#039;"
   }[char]));
 }
@@ -636,6 +642,33 @@ function initProfessionalBookingUI() {
   updateBookingSummary();
 }
 
+/* shoe image preview for the customer before sending */
+function initShoeImagePreview() {
+  const input = $("#shoeImage");
+  const previewWrap = $("#shoePreviewWrap");
+  const preview = $("#shoePreview");
+
+  if (!input || input.dataset.bound === "1") return;
+  input.dataset.bound = "1";
+
+  input.addEventListener("change", () => {
+    const file = input.files?.[0];
+
+    if (!file) {
+      if (previewWrap) previewWrap.hidden = true;
+      if (preview) preview.src = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (preview) preview.src = reader.result;
+      if (previewWrap) previewWrap.hidden = false;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 /* the booking page */
 function initBooking() {
   const btnBook = $("#btnBook");
@@ -645,6 +678,7 @@ function initBooking() {
   wireOverlayExitButtonsSafe();
   initServicePriceSync();
   initProfessionalBookingUI();
+  initShoeImagePreview();
   updateBookingSummary();
 
   const btnGoTrack = $("#btnGoTrack");
@@ -682,6 +716,8 @@ function initBooking() {
     const date = $("#date")?.value;
     const timeSlot = $("#timeSlot")?.value;
     const selectedPrice = getSelectedPrice();
+    const shoeNotes = $("#shoeNotes")?.value.trim() || "";
+    const shoeImageFile = $("#shoeImage")?.files?.[0] || null;
 
     if (!service || !locationVal || !date || !timeSlot || !selectedPrice) {
       setMsg("Select service, location, date, time and price");
@@ -692,6 +728,18 @@ function initBooking() {
     try {
       const userSnap = await getDoc(doc(db, "users", user.uid));
       const userData = userSnap.exists() ? userSnap.data() : {};
+
+      let shoeImageUrl = "";
+      let shoeImagePath = "";
+
+      if (shoeImageFile) {
+        const safeName = `${Date.now()}_${shoeImageFile.name.replace(/\s+/g, "_")}`;
+        const storageRef = ref(storage, `order_uploads/${user.uid}/${safeName}`);
+
+        await uploadBytes(storageRef, shoeImageFile);
+        shoeImageUrl = await getDownloadURL(storageRef);
+        shoeImagePath = storageRef.fullPath;
+      }
 
       const order = {
         uid: user.uid,
@@ -704,6 +752,9 @@ function initBooking() {
         date,
         timeSlot,
         price: selectedPrice,
+        shoeNotes,
+        shoeImageUrl,
+        shoeImagePath,
         status: "Booked",
         pointsAwarded: 10,
         pointsGranted: false,
@@ -711,18 +762,23 @@ function initBooking() {
         updatedAt: serverTimestamp()
       };
 
-      const ref = await addDoc(collection(db, "orders"), order);
+      const refDoc = await addDoc(collection(db, "orders"), order);
 
       toast("Booking confirmed ✅");
-      setMsg(`Order ID: ${ref.id}`);
+      setMsg(`Order ID: ${refDoc.id}`);
       updateBookingSummary();
+
+      if ($("#shoeNotes")) $("#shoeNotes").value = "";
+      if ($("#shoeImage")) $("#shoeImage").value = "";
+      if ($("#shoePreview")) $("#shoePreview").src = "";
+      if ($("#shoePreviewWrap")) $("#shoePreviewWrap").hidden = true;
 
       setTimeout(() => {
         location.href = "track.html";
       }, 400);
     } catch (err) {
       console.error(err);
-      setMsg("Booking failed");
+      setMsg(err.message || "Booking failed");
       toast("Booking failed");
     }
   });
@@ -750,11 +806,26 @@ function renderOrderCard(order) {
     <div class="order-card" data-id="${esc(order.id)}">
       <div class="order-top">
         <div>
-          <div class="order-title">${esc(serviceLabel(order.service))} • ${esc(order.location)}</div>
-          <div class="sub">${esc(order.date)} • ${esc(order.timeSlot)} • ${esc(order.price || "")}</div>
+          <div class="order-title">${esc(serviceLabel(order.service))} • ${esc(order.location || "")}</div>
+          <div class="sub">${esc(order.date || "")} • ${esc(order.timeSlot || "")} • ${esc(order.price || "")}</div>
+          <div class="sub">Notes: ${esc(order.shoeNotes || "None")}</div>
         </div>
         <span class="${badgeClass(order.status || "Booked")}">${esc(order.status || "Booked")}</span>
       </div>
+
+      ${
+        order.shoeImageUrl
+          ? `
+            <div style="margin: 10px 0;">
+              <img
+                src="${esc(order.shoeImageUrl)}"
+                alt="Uploaded shoe"
+                style="max-width: 160px; border-radius: 12px;"
+              />
+            </div>
+          `
+          : ""
+      }
 
       ${renderStepProgress(order.status || "Booked")}
 
@@ -928,8 +999,24 @@ function renderTrackingSelectedOrder(order) {
         <div class="summary-row"><strong>Date:</strong> <span>${esc(formatTrackingDate(order.date))}</span></div>
         <div class="summary-row"><strong>Time:</strong> <span>${esc(order.timeSlot || "-")}</span></div>
         <div class="summary-row"><strong>Price:</strong> <span>${esc(order.price || "-")}</span></div>
+        <div class="summary-row"><strong>Notes:</strong> <span>${esc(order.shoeNotes || "-")}</span></div>
         <div class="summary-row"><strong>Progress:</strong> <span>${pct}%</span></div>
       </div>
+
+      ${
+        order.shoeImageUrl
+          ? `
+            <div style="margin-top:12px;">
+              <strong>Uploaded image:</strong><br />
+              <img
+                src="${esc(order.shoeImageUrl)}"
+                alt="Uploaded shoe"
+                style="max-width:180px; border-radius:12px; margin-top:8px;"
+              />
+            </div>
+          `
+          : ""
+      }
 
       ${renderStepProgress(order.status || "Booked")}
 
@@ -1283,6 +1370,28 @@ function renderAdminOrderCard(order, currentUser) {
         <span class="${badgeClass(order.status || "Booked")}">${esc(order.status || "Booked")}</span>
       </div>
 
+      <div class="admin-extra-details" style="margin: 12px 0;">
+        <div class="sub"><strong>Customer notes:</strong> ${esc(order.shoeNotes || "No additional details")}</div>
+        ${
+          order.shoeImageUrl
+            ? `
+              <div class="admin-upload-preview" style="margin-top:10px;">
+                <div class="sub"><strong>Uploaded shoe image:</strong></div>
+                <a href="${esc(order.shoeImageUrl)}" target="_blank" rel="noopener noreferrer">
+                  <img
+                    src="${esc(order.shoeImageUrl)}"
+                    alt="Uploaded shoe"
+                    style="max-width: 180px; border-radius: 12px; margin-top: 8px;"
+                  />
+                </a>
+              </div>
+            `
+            : `
+              <div class="sub" style="margin-top:10px;"><strong>Uploaded shoe image:</strong> None</div>
+            `
+        }
+      </div>
+
       ${renderStepProgress(order.status || "Booked")}
 
       ${
@@ -1334,8 +1443,8 @@ async function saveAdminOrder(orderId) {
   const status = statusEl.value;
   const pointsAwarded = Math.max(0, Number(pointsEl.value || 0));
 
-  const ref = doc(db, "orders", orderId);
-  const snap = await getDoc(ref);
+  const refDoc = doc(db, "orders", orderId);
+  const snap = await getDoc(refDoc);
 
   if (!snap.exists()) {
     toast("Order not found");
@@ -1349,7 +1458,7 @@ async function saveAdminOrder(orderId) {
     updatedAt: serverTimestamp()
   };
 
-  await updateDoc(ref, updates);
+  await updateDoc(refDoc, updates);
 
   if (
     status === "Completed" &&
@@ -1361,7 +1470,7 @@ async function saveAdminOrder(orderId) {
       points: increment(pointsAwarded)
     });
 
-    await updateDoc(ref, {
+    await updateDoc(refDoc, {
       pointsGranted: true,
       updatedAt: serverTimestamp()
     });
@@ -1377,6 +1486,9 @@ function initAdmin() {
 
   const adminSearch = $("#adminSearch");
   const adminFilter = $("#adminFilter");
+  const btnAdminRefresh = $("#btnAdminRefresh");
+  const debugUid = $("#debugUid");
+  const debugRole = $("#debugRole");
 
   let allOrders = [];
   let currentUser = null;
@@ -1384,10 +1496,10 @@ function initAdmin() {
 
   function render() {
     const search = String(adminSearch?.value || "").trim().toLowerCase();
-    const filter = String(adminFilter?.value || "").trim();
+    const filter = String(adminFilter?.value || "All").trim();
 
     const items = allOrders.filter((order) => {
-      const matchesFilter = !filter || order.status === filter;
+      const matchesFilter = filter === "All" || order.status === filter;
 
       const haystack = [
         order.customerName,
@@ -1397,7 +1509,8 @@ function initAdmin() {
         order.serviceLabel,
         order.date,
         order.timeSlot,
-        order.id
+        order.id,
+        order.shoeNotes
       ]
         .join(" ")
         .toLowerCase();
@@ -1427,6 +1540,14 @@ function initAdmin() {
     adminFilter.addEventListener("change", render);
   }
 
+  if (btnAdminRefresh && btnAdminRefresh.dataset.bound !== "1") {
+    btnAdminRefresh.dataset.bound = "1";
+    btnAdminRefresh.addEventListener("click", () => {
+      render();
+      toast("Admin refreshed ✅");
+    });
+  }
+
   adminOrders.addEventListener("click", async (e) => {
     const btn = e.target.closest("[data-admin-save]");
     if (!btn) return;
@@ -1448,6 +1569,9 @@ function initAdmin() {
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
 
+    if (debugUid) debugUid.textContent = user?.uid || "-";
+    if (debugRole) debugRole.textContent = user ? (isAdminEmail(user.email) ? "Admin" : "User") : "-";
+
     if (typeof unsub === "function") {
       unsub();
       unsub = null;
@@ -1468,10 +1592,10 @@ function initAdmin() {
       return;
     }
 
-    const q = query(collection(db, "orders"));
+    const ordersRef = collection(db, "orders");
 
     unsub = onSnapshot(
-      q,
+      ordersRef,
       (snap) => {
         allOrders = [];
         snap.forEach((d) => allOrders.push({ id: d.id, ...d.data() }));
