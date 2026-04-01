@@ -1,4 +1,8 @@
-import { auth, db, storage } from "./firebase.js";
+/* =========================
+   app.js
+========================= */
+
+import { auth, db } from "./firebase.js";
 
 import {
   onAuthStateChanged,
@@ -26,13 +30,7 @@ import {
   increment
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL
-} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
-
-/* helpers for the main page, has variables */
+/* helpers */
 const $ = (selector) => document.querySelector(selector);
 
 const STATUS = [
@@ -57,6 +55,9 @@ const TRACKABLE_STATUS = [
 const CUSTOMER_EDITABLE_STATUS = ["Booked", "Received"];
 const ADMIN_EMAIL = "danielasouzu2@gmail.com";
 
+/* -------------------------
+   basic ui helpers
+------------------------- */
 function setMsg(text, id = "msg") {
   const el = document.getElementById(id);
   if (el) el.textContent = text || "";
@@ -90,7 +91,7 @@ function esc(value) {
     "&": "&amp;",
     "<": "&lt;",
     ">": "&gt;",
-    "\"": "&quot;",
+    '"': "&quot;",
     "'": "&#039;"
   }[char]));
 }
@@ -102,7 +103,33 @@ function serviceLabel(value) {
   return value || "";
 }
 
-/* helpers for the progress such as the progress bar */
+function badgeClass(status) {
+  if (status === "Completed") return "badge success";
+  if (status === "Cancelled") return "badge danger";
+  if (status === "Ready") return "badge info";
+  if (status === "Cleaning" || status === "Drying & Finish") return "badge warning";
+  return "badge";
+}
+
+function isAdminEmail(email) {
+  return String(email || "").trim().toLowerCase() === String(ADMIN_EMAIL).trim().toLowerCase();
+}
+
+function isCustomerEditableStatus(status) {
+  return CUSTOMER_EDITABLE_STATUS.includes(String(status || ""));
+}
+
+function isValidDateInput(value) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(String(value || ""));
+}
+
+function isValidTimeInput(value) {
+  return /^([01]\d|2[0-3]):([0-5]\d)$/.test(String(value || ""));
+}
+
+/* -------------------------
+   progress
+------------------------- */
 function progressPercent(status) {
   if (status === "Cancelled") return 0;
   const index = Math.max(0, TRACKABLE_STATUS.indexOf(status));
@@ -138,7 +165,9 @@ function renderStepProgress(status) {
   `;
 }
 
-/* login page,the login in helpers */
+/* -------------------------
+   auth navigation helpers
+------------------------- */
 function getNextFromUrl() {
   const url = new URL(location.href);
   const next = url.searchParams.get("next");
@@ -149,37 +178,11 @@ function goLogin(nextFile = "home.html") {
   location.href = `login.html?next=${encodeURIComponent(nextFile)}`;
 }
 
-/* the points and user function */
 async function getPoints(uid) {
   const snap = await getDoc(doc(db, "users", uid));
   return snap.exists() ? Number(snap.data().points || 0) : 0;
 }
 
-function isAdminEmail(email) {
-  return String(email || "").trim().toLowerCase() === String(ADMIN_EMAIL).trim().toLowerCase();
-}
-
-function isCustomerEditableStatus(status) {
-  return CUSTOMER_EDITABLE_STATUS.includes(String(status || ""));
-}
-
-function isValidDateInput(value) {
-  return /^\d{4}-\d{2}-\d{2}$/.test(String(value || ""));
-}
-
-function isValidTimeInput(value) {
-  return /^([01]\d|2[0-3]):([0-5]\d)$/.test(String(value || ""));
-}
-
-function badgeClass(status) {
-  if (status === "Completed") return "badge success";
-  if (status === "Cancelled") return "badge danger";
-  if (status === "Ready") return "badge info";
-  if (status === "Cleaning" || status === "Drying & Finish") return "badge warning";
-  return "badge";
-}
-
-/* the overlay */
 function hideSignupOverlay() {
   const overlay = $("#signupOverlay");
   if (overlay) overlay.hidden = true;
@@ -215,7 +218,6 @@ function wireOverlayExitButtonsSafe() {
   });
 }
 
-/* the links */
 function wireAuthRequiredLinks() {
   if (document.body.dataset.authLinksBound === "1") return;
   document.body.dataset.authLinksBound = "1";
@@ -235,7 +237,6 @@ function wireAuthRequiredLinks() {
   );
 }
 
-/* the navigation section */
 async function setupNav(user) {
   const navAdmin = $("#navAdmin");
   const navLogin = $("#navLogin");
@@ -287,72 +288,50 @@ async function updatePointsBadge(user) {
   }
 }
 
-/* the login page */
+/* -------------------------
+   login page
+------------------------- */
 function initLoginPage() {
   const btnLogin = $("#btnLogin");
-  const btnRegisterGo = $("#btnRegisterGo");
+  if (!btnLogin || btnLogin.dataset.bound === "1") return;
+  btnLogin.dataset.bound = "1";
 
-  if (btnLogin && btnLogin.dataset.bound !== "1") {
-    btnLogin.dataset.bound = "1";
+  const next = getNextFromUrl() || "customer.html";
 
-    const next = getNextFromUrl() || "customer.html";
+  btnLogin.addEventListener("click", async (e) => {
+    e.preventDefault();
 
-    btnLogin.addEventListener("click", async (e) => {
-      e.preventDefault();
+    const email = $("#logEmail")?.value.trim();
+    const pass = $("#logPass")?.value;
 
-      const email = $("#logEmail")?.value.trim();
-      const pass = $("#logPass")?.value;
+    if (!email || !pass) {
+      setMsg("Enter email and password");
+      toast("Enter email and password");
+      return;
+    }
 
-      if (!email || !pass) {
-        setMsg("Enter email and password");
-        toast("Enter email and password");
-        return;
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+      toast("Logged in ✅");
+      location.replace(next);
+    } catch (err) {
+      console.error(err);
+
+      if (err?.code === "auth/invalid-credential") {
+        setMsg("Wrong email or password, or account not registered.");
+        toast("Wrong email or password");
+      } else {
+        setMsg(err.message || "Login failed");
+        toast("Login failed");
       }
-
-      try {
-        await signInWithEmailAndPassword(auth, email, pass);
-        setMsg("");
-        toast("Logged in ✅");
-        location.replace(next);
-      } catch (err) {
-        console.error(err);
-
-        if (err?.code === "auth/invalid-credential") {
-          setMsg("Wrong email or password, or account not registered.");
-          toast("Wrong email or password");
-        } else if (err?.code === "auth/invalid-email") {
-          setMsg("Enter a valid email address.");
-          toast("Invalid email");
-        } else if (err?.code === "auth/too-many-requests") {
-          setMsg("Too many attempts. Try again later.");
-          toast("Too many attempts");
-        } else {
-          setMsg(err.message || "Login failed");
-          toast("Login failed");
-        }
-      }
-    });
-  }
-
-  if (btnRegisterGo && btnRegisterGo.dataset.bound !== "1") {
-    btnRegisterGo.dataset.bound = "1";
-
-    btnRegisterGo.addEventListener("click", (e) => {
-      e.preventDefault();
-      const next = getNextFromUrl();
-      location.href = next
-        ? `register.html?next=${encodeURIComponent(next)}`
-        : "register.html";
-    });
-  }
+    }
+  });
 
   const btnSendReset = $("#btnSendReset");
   if (btnSendReset && btnSendReset.dataset.bound !== "1") {
     btnSendReset.dataset.bound = "1";
 
-    btnSendReset.addEventListener("click", async (e) => {
-      e.preventDefault();
-
+    btnSendReset.addEventListener("click", async () => {
       const email = ($("#resetEmail")?.value || $("#logEmail")?.value || "").trim();
 
       if (!email) {
@@ -367,23 +346,16 @@ function initLoginPage() {
         toast("Reset email sent ✅");
       } catch (err) {
         console.error(err);
-
-        if (err?.code === "auth/invalid-email") {
-          setMsg("Enter a valid email address");
-          toast("Invalid email");
-        } else if (err?.code === "auth/user-not-found") {
-          setMsg("No account found with that email");
-          toast("Email not found");
-        } else {
-          setMsg(err.message || "Could not send reset email");
-          toast("Reset failed");
-        }
+        setMsg(err.message || "Could not send reset email");
+        toast("Reset failed");
       }
     });
   }
 }
 
-/* the register page */
+/* -------------------------
+   register page
+------------------------- */
 function initRegisterPage() {
   const btnRegister = $("#btnRegister");
   if (!btnRegister || btnRegister.dataset.bound === "1") return;
@@ -405,12 +377,6 @@ function initRegisterPage() {
       return;
     }
 
-    if (pass.length < 6) {
-      setMsg("Password must be at least 6 characters");
-      toast("Password too short");
-      return;
-    }
-
     try {
       const cred = await createUserWithEmailAndPassword(auth, email, pass);
       await updateProfile(cred.user, { displayName: name });
@@ -423,30 +389,19 @@ function initRegisterPage() {
         createdAt: serverTimestamp()
       });
 
-      setMsg("");
       toast("Registered ✅");
       location.replace(next);
     } catch (err) {
       console.error(err);
-
-      if (err?.code === "auth/email-already-in-use") {
-        setMsg("That email is already registered");
-        toast("Email already in use");
-      } else if (err?.code === "auth/invalid-email") {
-        setMsg("Enter a valid email address");
-        toast("Invalid email");
-      } else if (err?.code === "auth/weak-password") {
-        setMsg("Password is too weak");
-        toast("Weak password");
-      } else {
-        setMsg(err.message || "Register failed");
-        toast("Register failed");
-      }
+      setMsg(err.message || "Register failed");
+      toast("Register failed");
     }
   });
 }
 
-/* price service change */
+/* -------------------------
+   booking helpers
+------------------------- */
 function getActivePriceSelect() {
   const service = $("#service")?.value;
 
@@ -642,34 +597,9 @@ function initProfessionalBookingUI() {
   updateBookingSummary();
 }
 
-/* shoe image preview for the customer before sending */
-function initShoeImagePreview() {
-  const input = $("#shoeImage");
-  const previewWrap = $("#shoePreviewWrap");
-  const preview = $("#shoePreview");
-
-  if (!input || input.dataset.bound === "1") return;
-  input.dataset.bound = "1";
-
-  input.addEventListener("change", () => {
-    const file = input.files?.[0];
-
-    if (!file) {
-      if (previewWrap) previewWrap.hidden = true;
-      if (preview) preview.src = "";
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (preview) preview.src = reader.result;
-      if (previewWrap) previewWrap.hidden = false;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-/* the booking page */
+/* -------------------------
+   booking page
+------------------------- */
 function initBooking() {
   const btnBook = $("#btnBook");
   if (!btnBook || btnBook.dataset.bound === "1") return;
@@ -678,7 +608,6 @@ function initBooking() {
   wireOverlayExitButtonsSafe();
   initServicePriceSync();
   initProfessionalBookingUI();
-  initShoeImagePreview();
   updateBookingSummary();
 
   const btnGoTrack = $("#btnGoTrack");
@@ -716,8 +645,6 @@ function initBooking() {
     const date = $("#date")?.value;
     const timeSlot = $("#timeSlot")?.value;
     const selectedPrice = getSelectedPrice();
-    const shoeNotes = $("#shoeNotes")?.value.trim() || "";
-    const shoeImageFile = $("#shoeImage")?.files?.[0] || null;
 
     if (!service || !locationVal || !date || !timeSlot || !selectedPrice) {
       setMsg("Select service, location, date, time and price");
@@ -728,18 +655,6 @@ function initBooking() {
     try {
       const userSnap = await getDoc(doc(db, "users", user.uid));
       const userData = userSnap.exists() ? userSnap.data() : {};
-
-      let shoeImageUrl = "";
-      let shoeImagePath = "";
-
-      if (shoeImageFile) {
-        const safeName = `${Date.now()}_${shoeImageFile.name.replace(/\s+/g, "_")}`;
-        const storageRef = ref(storage, `order_uploads/${user.uid}/${safeName}`);
-
-        await uploadBytes(storageRef, shoeImageFile);
-        shoeImageUrl = await getDownloadURL(storageRef);
-        shoeImagePath = storageRef.fullPath;
-      }
 
       const order = {
         uid: user.uid,
@@ -752,9 +667,6 @@ function initBooking() {
         date,
         timeSlot,
         price: selectedPrice,
-        shoeNotes,
-        shoeImageUrl,
-        shoeImagePath,
         status: "Booked",
         pointsAwarded: 10,
         pointsGranted: false,
@@ -762,31 +674,26 @@ function initBooking() {
         updatedAt: serverTimestamp()
       };
 
-      const refDoc = await addDoc(collection(db, "orders"), order);
+      const ref = await addDoc(collection(db, "orders"), order);
 
       toast("Booking confirmed ✅");
-      setMsg(`Order ID: ${refDoc.id}`);
+      setMsg(`Order ID: ${ref.id}`);
       updateBookingSummary();
-
-      if ($("#shoeNotes")) $("#shoeNotes").value = "";
-      if ($("#shoeImage")) $("#shoeImage").value = "";
-      if ($("#shoePreview")) $("#shoePreview").src = "";
-      if ($("#shoePreviewWrap")) $("#shoePreviewWrap").hidden = true;
 
       setTimeout(() => {
         location.href = "track.html";
       }, 400);
     } catch (err) {
       console.error(err);
-      setMsg(err.message || "Booking failed");
+      setMsg("Booking failed");
       toast("Booking failed");
     }
   });
 }
 
-/* =========================
-   ORDER ACTIONS
-========================= */
+/* -------------------------
+   order rendering
+------------------------- */
 function renderOrderActions(order) {
   if (!isCustomerEditableStatus(order.status)) return "";
 
@@ -798,7 +705,6 @@ function renderOrderActions(order) {
   `;
 }
 
-/* the customer order */
 function renderOrderCard(order) {
   const pct = progressPercent(order.status || "Booked");
 
@@ -806,26 +712,11 @@ function renderOrderCard(order) {
     <div class="order-card" data-id="${esc(order.id)}">
       <div class="order-top">
         <div>
-          <div class="order-title">${esc(serviceLabel(order.service))} • ${esc(order.location || "")}</div>
-          <div class="sub">${esc(order.date || "")} • ${esc(order.timeSlot || "")} • ${esc(order.price || "")}</div>
-          <div class="sub">Notes: ${esc(order.shoeNotes || "None")}</div>
+          <div class="order-title">${esc(serviceLabel(order.service))} • ${esc(order.location)}</div>
+          <div class="sub">${esc(order.date)} • ${esc(order.timeSlot)} • ${esc(order.price || "")}</div>
         </div>
         <span class="${badgeClass(order.status || "Booked")}">${esc(order.status || "Booked")}</span>
       </div>
-
-      ${
-        order.shoeImageUrl
-          ? `
-            <div style="margin: 10px 0;">
-              <img
-                src="${esc(order.shoeImageUrl)}"
-                alt="Uploaded shoe"
-                style="max-width: 160px; border-radius: 12px;"
-              />
-            </div>
-          `
-          : ""
-      }
 
       ${renderStepProgress(order.status || "Booked")}
 
@@ -839,7 +730,9 @@ function renderOrderCard(order) {
   `;
 }
 
-/* cancel the order */
+/* -------------------------
+   customer order actions
+------------------------- */
 async function cancelOrderByCustomer(orderId, user) {
   const ref = doc(db, "orders", orderId);
   const snap = await getDoc(ref);
@@ -872,7 +765,6 @@ async function cancelOrderByCustomer(orderId, user) {
   toast("Booking cancelled");
 }
 
-/* the reschedule function */
 async function rescheduleOrderByCustomer(orderId, user) {
   const ref = doc(db, "orders", orderId);
   const snap = await getDoc(ref);
@@ -917,7 +809,6 @@ async function rescheduleOrderByCustomer(orderId, user) {
   toast("Booking rescheduled");
 }
 
-/* customer order actions */
 function wireCustomerOrderActions(listEl) {
   if (!listEl || listEl.dataset.orderActionsBound === "1") return;
   listEl.dataset.orderActionsBound = "1";
@@ -948,194 +839,16 @@ function wireCustomerOrderActions(listEl) {
   });
 }
 
-/* tracking page helpers */
-function formatTrackingDate(value) {
-  if (!value) return "-";
-  const d = new Date(`${value}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return value;
-  return d.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric"
-  });
-}
-
-function getTrackingStatusNote(status) {
-  if (status === "Booked") return "Your booking has been placed and is waiting for collection or drop-off.";
-  if (status === "Received") return "Your item has been received and is now in the queue.";
-  if (status === "Cleaning") return "Your item is currently being cleaned.";
-  if (status === "Drying & Finish") return "Your item is in the drying and finishing stage.";
-  if (status === "Ready") return "Your item is ready for collection or delivery.";
-  if (status === "Completed") return "This order has been completed successfully.";
-  if (status === "Cancelled") return "This order has been cancelled.";
-  return "Tracking update available.";
-}
-
-function renderTrackingSelectedOrder(order) {
-  if (!order) {
-    return `
-      <section class="card">
-        <div class="order-title">No order selected</div>
-        <p class="sub">Choose an order below, search by order ID, or open your latest order.</p>
-      </section>
-    `;
-  }
-
-  const pct = progressPercent(order.status || "Booked");
-
-  return `
-    <section class="card selected-order-card">
-      <div class="order-top">
-        <div>
-          <div class="order-title">${esc(serviceLabel(order.service))} • ${esc(order.location || "-")}</div>
-          <div class="sub">Order ID: ${esc(order.id)} • ${esc(order.price || "")}</div>
-        </div>
-        <span class="${badgeClass(order.status || "Booked")}">${esc(order.status || "Booked")}</span>
-      </div>
-
-      <div class="tracking-summary-grid">
-        <div class="summary-row"><strong>Service:</strong> <span>${esc(serviceLabel(order.service))}</span></div>
-        <div class="summary-row"><strong>Location:</strong> <span>${esc(order.location || "-")}</span></div>
-        <div class="summary-row"><strong>Date:</strong> <span>${esc(formatTrackingDate(order.date))}</span></div>
-        <div class="summary-row"><strong>Time:</strong> <span>${esc(order.timeSlot || "-")}</span></div>
-        <div class="summary-row"><strong>Price:</strong> <span>${esc(order.price || "-")}</span></div>
-        <div class="summary-row"><strong>Notes:</strong> <span>${esc(order.shoeNotes || "-")}</span></div>
-        <div class="summary-row"><strong>Progress:</strong> <span>${pct}%</span></div>
-      </div>
-
-      ${
-        order.shoeImageUrl
-          ? `
-            <div style="margin-top:12px;">
-              <strong>Uploaded image:</strong><br />
-              <img
-                src="${esc(order.shoeImageUrl)}"
-                alt="Uploaded shoe"
-                style="max-width:180px; border-radius:12px; margin-top:8px;"
-              />
-            </div>
-          `
-          : ""
-      }
-
-      ${renderStepProgress(order.status || "Booked")}
-
-      <div class="order-meta">
-        <span class="sub">Status note: ${esc(getTrackingStatusNote(order.status || "Booked"))}</span>
-      </div>
-
-      ${renderOrderActions(order)}
-    </section>
-  `;
-}
-
-function renderTrackingListCard(order, isSelected = false) {
-  const pct = progressPercent(order.status || "Booked");
-
-  return `
-    <div class="order-card ${isSelected ? "selected" : ""}" data-id="${esc(order.id)}" data-track-open="${esc(order.id)}">
-      <div class="order-top">
-        <div>
-          <div class="order-title">${esc(serviceLabel(order.service))} • ${esc(order.location || "")}</div>
-          <div class="sub">${esc(order.date || "")} • ${esc(order.timeSlot || "")} • ${esc(order.price || "")}</div>
-        </div>
-        <span class="${badgeClass(order.status || "Booked")}">${esc(order.status || "Booked")}</span>
-      </div>
-
-      ${renderStepProgress(order.status || "Booked")}
-
-      <div class="order-meta">
-        <span class="sub">Order ID: ${esc(order.id)}</span>
-        <span class="sub">${pct}%</span>
-      </div>
-
-      <div class="order-actions">
-        <button class="btn" type="button" data-track-open="${esc(order.id)}">View details</button>
-        ${isCustomerEditableStatus(order.status)
-          ? `
-            <button class="btn" type="button" data-action="reschedule" data-id="${esc(order.id)}">Reschedule</button>
-            <button class="btn danger" type="button" data-action="cancel" data-id="${esc(order.id)}">Cancel</button>
-          `
-          : ""
-        }
-      </div>
-    </div>
-  `;
-}
-
-/* the tracking page */
+/* -------------------------
+   tracking page
+------------------------- */
 function initTracking() {
   const ordersEl = $("#orders");
-  const selectedEl = $("#trackingSelectedOrder");
-  const inputEl = $("#trackOrderSearch");
-  const btnFindOrder = $("#btnFindOrder");
-  const btnShowLatest = $("#btnShowLatest");
-  const btnRefresh = $("#btnRefresh");
-
   if (!ordersEl || ordersEl.dataset.bound === "1") return;
   ordersEl.dataset.bound = "1";
 
   wireOverlayExitButtonsSafe();
   wireCustomerOrderActions(ordersEl);
-
-  let unsubOrders = null;
-  let currentOrders = [];
-  let selectedOrderId = null;
-
-  function renderSelected() {
-    const selectedOrder =
-      currentOrders.find((item) => item.id === selectedOrderId) ||
-      currentOrders[0] ||
-      null;
-
-    if (!selectedOrderId && selectedOrder) {
-      selectedOrderId = selectedOrder.id;
-    }
-
-    if (selectedEl) {
-      selectedEl.innerHTML = renderTrackingSelectedOrder(selectedOrder);
-    }
-  }
-
-  function renderOrders() {
-    if (!currentOrders.length) {
-      ordersEl.innerHTML = `
-        <div class="order-card">
-          <div class="order-title">No orders yet</div>
-          <p class="sub">Book a service to start tracking.</p>
-          <a class="btn primary" href="booking.html">Go to Booking</a>
-        </div>
-      `;
-
-      if (selectedEl) {
-        selectedEl.innerHTML = renderTrackingSelectedOrder(null);
-      }
-      return;
-    }
-
-    ordersEl.innerHTML = currentOrders
-      .map((order) => renderTrackingListCard(order, order.id === selectedOrderId))
-      .join("");
-
-    renderSelected();
-  }
-
-  function selectOrderById(orderId, showMessage = true) {
-    const found = currentOrders.find((item) => item.id === orderId);
-
-    if (!found) {
-      setMsg("Order not found", "trackLookupMsg");
-      if (showMessage) toast("Order not found");
-      return;
-    }
-
-    selectedOrderId = found.id;
-    renderOrders();
-    setMsg(`Showing order ${found.id}`, "trackLookupMsg");
-
-    const card = ordersEl.querySelector(`[data-id="${CSS.escape(found.id)}"]`);
-    card?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }
 
   ordersEl.innerHTML = `
     <div class="order-card">
@@ -1144,65 +857,7 @@ function initTracking() {
     </div>
   `;
 
-  if (selectedEl) {
-    selectedEl.innerHTML = renderTrackingSelectedOrder(null);
-  }
-
-  ordersEl.addEventListener("click", (e) => {
-    const openBtn = e.target.closest("[data-track-open]");
-    if (!openBtn) return;
-
-    const orderId = openBtn.getAttribute("data-track-open");
-    if (!orderId) return;
-
-    selectOrderById(orderId, false);
-  });
-
-  if (btnFindOrder && btnFindOrder.dataset.bound !== "1") {
-    btnFindOrder.dataset.bound = "1";
-    btnFindOrder.addEventListener("click", () => {
-      const value = String(inputEl?.value || "").trim();
-      if (!value) {
-        setMsg("Enter an order ID", "trackLookupMsg");
-        toast("Enter an order ID");
-        return;
-      }
-      selectOrderById(value);
-    });
-  }
-
-  if (inputEl && inputEl.dataset.bound !== "1") {
-    inputEl.dataset.bound = "1";
-    inputEl.addEventListener("keydown", (e) => {
-      if (e.key !== "Enter") return;
-      e.preventDefault();
-      btnFindOrder?.click();
-    });
-  }
-
-  if (btnShowLatest && btnShowLatest.dataset.bound !== "1") {
-    btnShowLatest.dataset.bound = "1";
-    btnShowLatest.addEventListener("click", () => {
-      if (!currentOrders.length) {
-        setMsg("No orders available", "trackLookupMsg");
-        toast("No orders available");
-        return;
-      }
-
-      selectedOrderId = currentOrders[0].id;
-      renderOrders();
-      setMsg(`Showing latest order ${currentOrders[0].id}`, "trackLookupMsg");
-      toast("Latest order opened");
-    });
-  }
-
-  if (btnRefresh && btnRefresh.dataset.bound !== "1") {
-    btnRefresh.dataset.bound = "1";
-    btnRefresh.addEventListener("click", () => {
-      renderOrders();
-      toast("Tracking refreshed ✅");
-    });
-  }
+  let unsubOrders = null;
 
   onAuthStateChanged(auth, (user) => {
     if (typeof unsubOrders === "function") {
@@ -1210,12 +865,8 @@ function initTracking() {
       unsubOrders = null;
     }
 
-    currentOrders = [];
-    selectedOrderId = null;
-
     if (!user) {
       showSignupOverlay();
-
       ordersEl.innerHTML = `
         <div class="order-card">
           <div class="order-title">Please log in</div>
@@ -1223,11 +874,6 @@ function initTracking() {
           <a class="btn primary" href="login.html?next=track.html">Go to Login</a>
         </div>
       `;
-
-      if (selectedEl) {
-        selectedEl.innerHTML = renderTrackingSelectedOrder(null);
-      }
-
       return;
     }
 
@@ -1238,32 +884,38 @@ function initTracking() {
     unsubOrders = onSnapshot(
       q,
       (snap) => {
-        currentOrders = [];
-        snap.forEach((d) => currentOrders.push({ id: d.id, ...d.data() }));
-        currentOrders.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        const items = [];
+        snap.forEach((d) => items.push({ id: d.id, ...d.data() }));
+        items.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
 
-        if (selectedOrderId && !currentOrders.some((item) => item.id === selectedOrderId)) {
-          selectedOrderId = currentOrders[0]?.id || null;
-        }
-
-        if (!selectedOrderId && currentOrders.length) {
-          selectedOrderId = currentOrders[0].id;
-        }
-
-        renderOrders();
-        setMsg("", "trackLookupMsg");
+        ordersEl.innerHTML = items.length
+          ? items.map(renderOrderCard).join("")
+          : `
+            <div class="order-card">
+              <div class="order-title">No orders yet</div>
+              <p class="sub">Book a service to start tracking.</p>
+              <a class="btn primary" href="booking.html">Go to Booking</a>
+            </div>
+          `;
       },
       (err) => {
         console.error(err);
         setMsg("Tracking failed");
-        setMsg("Tracking failed", "trackLookupMsg");
         toast("Tracking failed");
       }
     );
   });
+
+  const btnRefresh = $("#btnRefresh");
+  if (btnRefresh && btnRefresh.dataset.bound !== "1") {
+    btnRefresh.dataset.bound = "1";
+    btnRefresh.addEventListener("click", () => toast("Tracking is live ✅"));
+  }
 }
 
-/* the customer page, my account */
+/* -------------------------
+   customer page
+------------------------- */
 function initCustomer() {
   const page = $("#custOrders") || $("#btnChangePass") || $("#custName");
   if (!page || page.dataset.customerInit === "1") return;
@@ -1355,54 +1007,100 @@ function initCustomer() {
   });
 }
 
-/* admin page */
+/* -------------------------
+   admin helpers
+------------------------- */
+function getOrderImageUrls(order) {
+  const urls = [];
+
+  const possibleSingleFields = [
+    "imageUrl",
+    "photoUrl",
+    "uploadUrl",
+    "beforeImage",
+    "beforeImageUrl",
+    "customerImage",
+    "customerImageUrl"
+  ];
+
+  const possibleArrayFields = [
+    "imageUrls",
+    "photos",
+    "uploads",
+    "images"
+  ];
+
+  possibleSingleFields.forEach((field) => {
+    const value = order?.[field];
+    if (typeof value === "string" && value.trim()) urls.push(value.trim());
+  });
+
+  possibleArrayFields.forEach((field) => {
+    const value = order?.[field];
+    if (Array.isArray(value)) {
+      value.forEach((u) => {
+        if (typeof u === "string" && u.trim()) urls.push(u.trim());
+      });
+    }
+  });
+
+  return [...new Set(urls)];
+}
+
+function renderAdminImages(order) {
+  const urls = getOrderImageUrls(order);
+  if (!urls.length) return "";
+
+  return `
+    <div class="admin-images" style="margin-top:12px;">
+      <div class="sub" style="margin-bottom:8px;">Customer Uploads</div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        ${urls.map((url, i) => `
+          <a href="${esc(url)}" target="_blank" rel="noopener noreferrer" title="Open image ${i + 1}">
+            <img
+              src="${esc(url)}"
+              alt="Customer upload ${i + 1}"
+              style="width:90px; height:90px; object-fit:cover; border-radius:10px; border:1px solid rgba(255,255,255,.12);"
+              loading="lazy"
+            />
+          </a>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
 function renderAdminOrderCard(order, currentUser) {
   const isAdmin = isAdminEmail(currentUser?.email);
+  const orderStatus = order.status || "Booked";
+  const imageUrls = getOrderImageUrls(order);
 
   return `
     <div class="order-card" data-id="${esc(order.id)}">
       <div class="order-top">
         <div>
           <div class="order-title">${esc(order.customerName || "Customer")} • ${esc(serviceLabel(order.service))}</div>
-          <div class="sub">${esc(order.customerEmail || "")} • ${esc(order.location || "")}</div>
+          <div class="sub">${esc(order.customerEmail || "")}${order.customerPhone ? ` • ${esc(order.customerPhone)}` : ""}</div>
+          <div class="sub">${esc(order.location || "")}</div>
           <div class="sub">${esc(order.date || "")} • ${esc(order.timeSlot || "")} • ${esc(order.price || "")}</div>
+          <div class="sub">Order ID: ${esc(order.id)}</div>
         </div>
-        <span class="${badgeClass(order.status || "Booked")}">${esc(order.status || "Booked")}</span>
+        <span class="${badgeClass(orderStatus)}">${esc(orderStatus)}</span>
       </div>
 
-      <div class="admin-extra-details" style="margin: 12px 0;">
-        <div class="sub"><strong>Customer notes:</strong> ${esc(order.shoeNotes || "No additional details")}</div>
-        ${
-          order.shoeImageUrl
-            ? `
-              <div class="admin-upload-preview" style="margin-top:10px;">
-                <div class="sub"><strong>Uploaded shoe image:</strong></div>
-                <a href="${esc(order.shoeImageUrl)}" target="_blank" rel="noopener noreferrer">
-                  <img
-                    src="${esc(order.shoeImageUrl)}"
-                    alt="Uploaded shoe"
-                    style="max-width: 180px; border-radius: 12px; margin-top: 8px;"
-                  />
-                </a>
-              </div>
-            `
-            : `
-              <div class="sub" style="margin-top:10px;"><strong>Uploaded shoe image:</strong> None</div>
-            `
-        }
-      </div>
+      ${renderStepProgress(orderStatus)}
 
-      ${renderStepProgress(order.status || "Booked")}
+      ${renderAdminImages(order)}
 
       ${
         isAdmin
           ? `
-          <div class="admin-row">
+          <div class="admin-row" style="margin-top:14px;">
             <div class="admin-field">
               <label class="sub" for="status-${esc(order.id)}">Status</label>
               <select id="status-${esc(order.id)}" class="admin-status" data-id="${esc(order.id)}">
                 ${STATUS.map((status) => `
-                  <option value="${esc(status)}" ${order.status === status ? "selected" : ""}>${esc(status)}</option>
+                  <option value="${esc(status)}" ${orderStatus === status ? "selected" : ""}>${esc(status)}</option>
                 `).join("")}
               </select>
             </div>
@@ -1424,11 +1122,33 @@ function renderAdminOrderCard(order, currentUser) {
               <button class="btn primary" type="button" data-admin-save="${esc(order.id)}">Save</button>
             </div>
           </div>
+
+          <div class="order-meta" style="margin-top:10px;">
+            <span class="sub">Points granted: ${order.pointsGranted ? "Yes" : "No"}</span>
+            <span class="sub">Images: ${imageUrls.length}</span>
+          </div>
         `
           : ""
       }
     </div>
   `;
+}
+
+function updateAdminStats(orders) {
+  const totalEl = $("#adminTotalOrders");
+  const openEl = $("#adminOpenOrders");
+  const completedEl = $("#adminCompletedOrders");
+  const withImagesEl = $("#adminWithImages");
+
+  const total = orders.length;
+  const open = orders.filter((o) => !["Completed", "Cancelled"].includes(o.status)).length;
+  const completed = orders.filter((o) => o.status === "Completed").length;
+  const withImages = orders.filter((o) => getOrderImageUrls(o).length > 0).length;
+
+  if (totalEl) totalEl.textContent = String(total);
+  if (openEl) openEl.textContent = String(open);
+  if (completedEl) completedEl.textContent = String(completed);
+  if (withImagesEl) withImagesEl.textContent = String(withImages);
 }
 
 async function saveAdminOrder(orderId) {
@@ -1443,8 +1163,8 @@ async function saveAdminOrder(orderId) {
   const status = statusEl.value;
   const pointsAwarded = Math.max(0, Number(pointsEl.value || 0));
 
-  const refDoc = doc(db, "orders", orderId);
-  const snap = await getDoc(refDoc);
+  const ref = doc(db, "orders", orderId);
+  const snap = await getDoc(ref);
 
   if (!snap.exists()) {
     toast("Order not found");
@@ -1452,16 +1172,17 @@ async function saveAdminOrder(orderId) {
   }
 
   const prev = snap.data();
-  const updates = {
+  const wasCompleted = prev.status === "Completed";
+  const willBeCompleted = status === "Completed";
+
+  await updateDoc(ref, {
     status,
     pointsAwarded,
     updatedAt: serverTimestamp()
-  };
-
-  await updateDoc(refDoc, updates);
+  });
 
   if (
-    status === "Completed" &&
+    willBeCompleted &&
     !prev.pointsGranted &&
     prev.uid &&
     Number(pointsAwarded) > 0
@@ -1470,15 +1191,22 @@ async function saveAdminOrder(orderId) {
       points: increment(pointsAwarded)
     });
 
-    await updateDoc(refDoc, {
+    await updateDoc(ref, {
       pointsGranted: true,
       updatedAt: serverTimestamp()
     });
   }
 
+  if (wasCompleted && !willBeCompleted) {
+
+  }
+
   toast("Order updated ✅");
 }
 
+/* -------------------------
+   admin page
+------------------------- */
 function initAdmin() {
   const adminOrders = $("#adminOrders");
   if (!adminOrders || adminOrders.dataset.bound === "1") return;
@@ -1496,29 +1224,35 @@ function initAdmin() {
 
   function render() {
     const search = String(adminSearch?.value || "").trim().toLowerCase();
-    const filter = String(adminFilter?.value || "All").trim();
+    const rawFilter = String(adminFilter?.value || "").trim();
+    const filter = rawFilter === "All" ? "" : rawFilter;
 
     const items = allOrders.filter((order) => {
-      const matchesFilter = filter === "All" || order.status === filter;
+      const matchesFilter = !filter || order.status === filter;
 
+      const imageText = getOrderImageUrls(order).join(" ");
       const haystack = [
         order.customerName,
         order.customerEmail,
+        order.customerPhone,
         order.location,
         order.service,
         order.serviceLabel,
         order.date,
         order.timeSlot,
+        order.price,
+        order.status,
         order.id,
-        order.shoeNotes
+        imageText
       ]
         .join(" ")
         .toLowerCase();
 
       const matchesSearch = !search || haystack.includes(search);
-
       return matchesFilter && matchesSearch;
     });
+
+    updateAdminStats(allOrders);
 
     adminOrders.innerHTML = items.length
       ? items.map((order) => renderAdminOrderCard(order, currentUser)).join("")
@@ -1544,7 +1278,7 @@ function initAdmin() {
     btnAdminRefresh.dataset.bound = "1";
     btnAdminRefresh.addEventListener("click", () => {
       render();
-      toast("Admin refreshed ✅");
+      toast("Admin list refreshed ✅");
     });
   }
 
@@ -1583,6 +1317,7 @@ function initAdmin() {
     }
 
     if (!isAdminEmail(user.email)) {
+      updateAdminStats([]);
       adminOrders.innerHTML = `
         <div class="order-card">
           <div class="order-title">Access denied</div>
@@ -1592,10 +1327,10 @@ function initAdmin() {
       return;
     }
 
-    const ordersRef = collection(db, "orders");
+    const q = query(collection(db, "orders"));
 
     unsub = onSnapshot(
-      ordersRef,
+      q,
       (snap) => {
         allOrders = [];
         snap.forEach((d) => allOrders.push({ id: d.id, ...d.data() }));
@@ -1610,7 +1345,9 @@ function initAdmin() {
   });
 }
 
-/* home page */
+/* -------------------------
+   home page
+------------------------- */
 function initHomePage() {
   const track = $(".carousel-track");
   const dotsWrap = $(".carousel-dots");
@@ -1661,7 +1398,9 @@ function initHomePage() {
   renderCarousel();
 }
 
-/* app bootstrap */
+/* -------------------------
+   bootstrap
+------------------------- */
 function initApp() {
   wireAuthRequiredLinks();
   wireOverlayExitButtonsSafe();
