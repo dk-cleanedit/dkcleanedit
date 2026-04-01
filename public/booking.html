@@ -52,14 +52,13 @@
     </section>
 
     <section class="booking-layout">
-
       <div class="booking-form card">
         <div class="card-header">
           <div>
             <div class="card-title">Booking details</div>
             <div class="card-subtitle">Complete the form below to reserve your slot</div>
           </div>
-          <span class="badge info">Step 1 of 2</span>
+          <span class="badge info">Step 1</span>
         </div>
 
         <div class="form-section">
@@ -71,7 +70,7 @@
                 <strong>Standard Cleaning</strong>
                 <span class="badge">From £25</span>
               </div>
-              <p>Deep exterior clean, midsole scrub, lace clean, deodorising, drying and finish.</p>
+              <p>Deep exterior clean, midsole scrub, lace clean, deodorising, drying and finish done within 3 to 5 days.</p>
             </label>
 
             <label class="service-option" data-service-card="express">
@@ -80,7 +79,7 @@
                 <strong>Express Service</strong>
                 <span class="badge">From £30</span>
               </div>
-              <p>Fast turnaround with consistent care and a professional finish.</p>
+              <p>Fast turnaround with consistent care and a professional finish done within 2 to 3 days.</p>
             </label>
 
             <label class="service-option" data-service-card="next_day">
@@ -89,13 +88,12 @@
                 <strong>Next Day</strong>
                 <span class="badge">From £35</span>
               </div>
-              <p>Priority cleaning with careful, material-safe processes for every pair.</p>
+              <p>Priority cleaning with careful, material-safe processes for every pair done within the next day.</p>
             </label>
           </div>
 
-
           <select id="service" hidden>
-            <option value="standard_clean">Standard Cleaning</option>
+            <option value="standard_clean" selected>Standard Cleaning</option>
             <option value="express">Express Service</option>
             <option value="next_day">Next Day</option>
           </select>
@@ -105,8 +103,8 @@
           <div class="form-field">
             <label for="location">Location</label>
             <select id="location">
-              <option value="London">London</option>
-              <option value="Leicester">Leicester</option>
+              <option value="charles_street_leicester" selected>Charles Street, Leicester</option>
+              <option value="canada_water">Canada Water, London</option>
             </select>
             <small>Choose your nearest drop-off location.</small>
           </div>
@@ -115,6 +113,38 @@
             <label for="date">Booking date</label>
             <input id="date" type="date" />
             <small>Select your preferred service date.</small>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Location map</h3>
+          <div class="location-map-card">
+            <div class="location-map-top">
+              <div>
+                <label class="map-label">Selected branch</label>
+                <strong id="selectedBranchName">Charles Street, Leicester</strong>
+                <p id="selectedBranchAddress" class="map-address">Charles Street, Leicester, UK</p>
+              </div>
+
+              <a
+                id="openMapsBtn"
+                class="btn secondary"
+                href="https://www.google.com/maps/search/?api=1&query=Charles+Street+Leicester+UK"
+                target="_blank"
+                rel="noopener"
+              >
+                Open in Google Maps
+              </a>
+            </div>
+
+            <iframe
+              id="bookingMapFrame"
+              class="booking-map"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              src="https://www.google.com/maps?q=Charles%20Street%20Leicester%20UK&z=15&output=embed"
+              aria-label="Map showing selected branch"
+            ></iframe>
           </div>
         </div>
 
@@ -128,9 +158,8 @@
             <button type="button" class="time-slot" data-time="18:00">18:00</button>
           </div>
 
-
           <select id="timeSlot" hidden>
-            <option value="10:00">10:00</option>
+            <option value="10:00" selected>10:00</option>
             <option value="12:00">12:00</option>
             <option value="14:00">14:00</option>
             <option value="16:00">16:00</option>
@@ -144,7 +173,7 @@
           <div id="standardPrices" class="price-group">
             <label for="standardPrice">Standard package</label>
             <select id="standardPrice" class="service-price">
-              <option value="£25">1 Pair - £25</option>
+              <option value="£25" selected>1 Pair - £25</option>
               <option value="£60">3 Pairs - £60</option>
               <option value="£130">6 Pairs - £130</option>
             </select>
@@ -153,7 +182,7 @@
           <div id="expressPrices" class="price-group" hidden>
             <label for="expressPrice">Express package</label>
             <select id="expressPrice" class="service-price">
-              <option value="£30">1 Pair - £30</option>
+              <option value="£30" selected>1 Pair - £30</option>
               <option value="£70">3 Pairs - £70</option>
               <option value="£130">6 Pairs - £130</option>
             </select>
@@ -162,13 +191,12 @@
           <div id="nextdayPrices" class="price-group" hidden>
             <label for="nextdayPrice">Next Day package</label>
             <select id="nextdayPrice" class="service-price">
-              <option value="£35">1 Pair - £35</option>
+              <option value="£35" selected>1 Pair - £35</option>
               <option value="£85">3 Pairs - £85</option>
             </select>
           </div>
         </div>
 
-        <!-- extra notes and upload from the customer -->
         <div class="form-section">
           <h3>4. Additional details</h3>
 
@@ -185,7 +213,7 @@
           <div class="form-field">
             <label for="shoeImage">Upload a photo of your shoe</label>
             <input id="shoeImage" type="file" accept="image/*" />
-            <small>This will be sent with the booking so the admin can review the shoe before cleaning.</small>
+            <small>This is optional. If image upload fails, the booking will still save.</small>
           </div>
 
           <div id="shoePreviewWrap" class="form-field" hidden>
@@ -207,7 +235,6 @@
         <p id="msg" class="form-message"></p>
       </div>
 
-
       <aside class="booking-summary card">
         <div class="card-header">
           <div>
@@ -223,7 +250,7 @@
           </div>
           <div class="summary-row">
             <span>Location</span>
-            <strong id="summaryLocation">London</strong>
+            <strong id="summaryLocation">Charles Street, Leicester</strong>
           </div>
           <div class="summary-row">
             <span>Date</span>
@@ -247,11 +274,8 @@
             <li>Material-safe cleaning process</li>
             <li>Deodorising and finishing</li>
             <li>Professional handling and inspection</li>
-            <li>Clear booking and tracking flow</li>
           </ul>
         </div>
-
-        <button id="btnGoAdmin" class="btn secondary full" type="button">Admin (if allowed)</button>
       </aside>
     </section>
   </main>
