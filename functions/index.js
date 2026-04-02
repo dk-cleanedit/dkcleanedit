@@ -1,34 +1,37 @@
-const functions = require("firebase-functions");
-const twilio = require("twilio");
+const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+const admin = require("firebase-admin");
+const logger = require("firebase-functions/logger");
 
-exports.sendSms = functions.https.onRequest(async (req, res) => {
-  res.set("Access-Control-Allow-Origin", "*");
-  res.set("Access-Control-Allow-Headers", "Content-Type");
-  res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+admin.initializeApp();
 
-  if (req.method === "OPTIONS") return res.status(204).send("");
-  if (req.method !== "POST") return res.status(405).send("Use POST");
-
-  const { phone, name } = req.body || {};
-  if (!phone) return res.status(400).send("Missing phone");
-
-  const sid = functions.config().twilio.sid;
-  const token = functions.config().twilio.token;
-  const from = functions.config().twilio.from;
-
-  if (!sid || !token || !from) return res.status(500).send("Twilio config missing");
-
-  try {
-    const client = twilio(sid, token);
-    await client.messages.create({
-      to: phone,
-      from,
-      body: `Welcome to DKcleanedit ${name || ""}! 👟 Your account is ready.`
-    });
-    return res.status(200).send("SMS sent");
-  } catch (err) {
-    console.error("Twilio error:", err);
-    return res.status(500).send(err.message || "SMS failed");
+exports.sendBookingConfirmationEmail = onDocumentCreated("orders/{orderId}", async (event) => {
+  const data = event.data?.data();
+  if (!data) {
+    logger.error("No order data found");
+    return;
   }
-});
 
+  const orderId = event.params.orderId;
+  const customerName = data.customerName || "Customer";
+  const customerEmail = data.customerEmail;
+
+  if (!customerEmail) {
+    logger.info("No customerEmail found. Email skipped.");
+    return;
+  }
+
+  await admin.firestore().collection("mail").add({
+    to: customerEmail,
+    message: {
+      subject: "Booking confirmation",
+      html: `
+        <h2>Booking confirmed</h2>
+        <p>Hi ${customerName},</p>
+        <p>Your booking has been received.</p>
+        <p><strong>Order ID:</strong> ${orderId}</p>
+      `,
+    },
+  });
+
+  logger.info("Confirmation email queued", { orderId, customerEmail });
+});

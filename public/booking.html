@@ -5,18 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Book | DKCleanEdit</title>
   <link rel="stylesheet" href="styles.css" />
-
-  <script
-    type="text/javascript"
-    src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
-  </script>
-  <script>
-    (function () {
+  <script type="text/javascript"
+        src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
+</script>
+<script type="text/javascript">
+   (function(){
       emailjs.init({
-        publicKey: "v1GO4hYhLibhbnt_N"
+        publicKey: "v1GO4hYhLibhbnt_N",
       });
-    })();
-  </script>
+   })();
+</script>
 </head>
 <body>
   <nav class="navbar" aria-label="Primary">
@@ -74,15 +72,6 @@
         </div>
 
         <div class="form-section">
-          <h3>Customer details</h3>
-          <div class="form-field">
-            <label for="customerName">Full name</label>
-            <input id="customerName" type="text" placeholder="Enter your full name" />
-            <small>This can auto-fill from your account if available.</small>
-          </div>
-        </div>
-
-        <div class="form-section">
           <h3>1. Select service</h3>
           <div class="service-options">
             <label class="service-option active" data-service-card="standard_clean">
@@ -124,8 +113,8 @@
           <div class="form-field">
             <label for="location">Location</label>
             <select id="location">
-              <option value="Charles Street, Leicester" selected>Charles Street, Leicester</option>
-              <option value="Canada Water, London">Canada Water, London</option>
+              <option value="charles_street_leicester" selected>Charles Street, Leicester</option>
+              <option value="canada_water">Canada Water, London</option>
             </select>
             <small>Choose your nearest drop-off location.</small>
           </div>
