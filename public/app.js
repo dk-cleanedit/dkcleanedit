@@ -128,6 +128,44 @@ function isValidTimeInput(value) {
 }
 
 /* -------------------------
+   EmailJS
+------------------------- */
+async function sendBookingEmail({
+  customerName,
+  customerEmail,
+  orderId,
+  service,
+  location,
+  bookingDate,
+  bookingTime,
+  price,
+  shoeNotes
+}) {
+  if (!window.emailjs) {
+    console.warn("EmailJS not loaded");
+    return;
+  }
+
+  const params = {
+    customer_name: customerName || "Customer",
+    customer_email: customerEmail || "",
+    order_id: orderId || "",
+    service: service || "",
+    location: location || "",
+    booking_date: bookingDate || "",
+    booking_time: bookingTime || "",
+    price: price || "",
+    shoe_notes: shoeNotes || ""
+  };
+
+  await window.emailjs.send(
+    "service_6ep5ahh",
+    "template_qca25sq",
+    params
+  );
+}
+
+/* -------------------------
    progress
 ------------------------- */
 function progressPercent(status) {
@@ -597,6 +635,64 @@ function initProfessionalBookingUI() {
   updateBookingSummary();
 }
 
+function initBookingMap() {
+  const locationSelect = $("#location");
+  const branchName = $("#selectedBranchName");
+  const branchAddress = $("#selectedBranchAddress");
+  const mapFrame = $("#bookingMapFrame");
+  const openMapsBtn = $("#openMapsBtn");
+
+  if (!locationSelect || locationSelect.dataset.mapBound === "1") return;
+  locationSelect.dataset.mapBound = "1";
+
+  const locations = {
+    "Charles Street, Leicester": {
+      name: "Charles Street, Leicester",
+      address: "Charles Street, Leicester, UK",
+      mapsLink: "https://www.google.com/maps/search/?api=1&query=Charles+Street+Leicester+UK",
+      embed: "https://www.google.com/maps?q=Charles%20Street%20Leicester%20UK&z=15&output=embed"
+    },
+    "Canada Water, London": {
+      name: "Canada Water, London",
+      address: "Canada Water, London, UK",
+      mapsLink: "https://www.google.com/maps/search/?api=1&query=Canada+Water+London+UK",
+      embed: "https://www.google.com/maps?q=Canada%20Water%20London%20UK&z=15&output=embed"
+    }
+  };
+
+  function updateMap() {
+    const selected = locations[locationSelect.value];
+    if (!selected) return;
+
+    if (branchName) branchName.textContent = selected.name;
+    if (branchAddress) branchAddress.textContent = selected.address;
+    if (mapFrame) mapFrame.src = selected.embed;
+    if (openMapsBtn) openMapsBtn.href = selected.mapsLink;
+  }
+
+  locationSelect.addEventListener("change", updateMap);
+  updateMap();
+}
+
+function initCustomerNameAutofill() {
+  const input = $("#customerName");
+  if (!input) return;
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) return;
+
+    try {
+      const snap = await getDoc(doc(db, "users", user.uid));
+      const userData = snap.exists() ? snap.data() : {};
+      if (!input.value.trim()) {
+        input.value = userData.name || user.displayName || "";
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  });
+}
+
 /* -------------------------
    booking page
 ------------------------- */
@@ -608,6 +704,8 @@ function initBooking() {
   wireOverlayExitButtonsSafe();
   initServicePriceSync();
   initProfessionalBookingUI();
+  initBookingMap();
+  initCustomerNameAutofill();
   updateBookingSummary();
 
   const btnGoTrack = $("#btnGoTrack");
@@ -640,11 +738,13 @@ function initBooking() {
 
     hideSignupOverlay();
 
+    const manualCustomerName = $("#customerName")?.value.trim();
     const service = $("#service")?.value;
     const locationVal = $("#location")?.value;
     const date = $("#date")?.value;
     const timeSlot = $("#timeSlot")?.value;
     const selectedPrice = getSelectedPrice();
+    const shoeNotes = $("#shoeNotes")?.value.trim() || "";
 
     if (!service || !locationVal || !date || !timeSlot || !selectedPrice) {
       setMsg("Select service, location, date, time and price");
@@ -653,20 +753,39 @@ function initBooking() {
     }
 
     try {
+      btnBook.disabled = true;
+      btnBook.textContent = "Processing...";
+
       const userSnap = await getDoc(doc(db, "users", user.uid));
       const userData = userSnap.exists() ? userSnap.data() : {};
 
+      const finalCustomerName =
+        manualCustomerName ||
+        userData.name ||
+        user.displayName ||
+        "Customer";
+
+      const finalCustomerEmail =
+        userData.email ||
+        user.email ||
+        "";
+
+      const finalCustomerPhone =
+        userData.phone ||
+        "";
+
       const order = {
         uid: user.uid,
-        customerName: userData.name || user.displayName || "",
-        customerEmail: userData.email || user.email || "",
-        customerPhone: userData.phone || "",
+        customerName: finalCustomerName,
+        customerEmail: finalCustomerEmail,
+        customerPhone: finalCustomerPhone,
         service,
         serviceLabel: serviceLabel(service),
         location: locationVal,
         date,
         timeSlot,
         price: selectedPrice,
+        shoeNotes,
         status: "Booked",
         pointsAwarded: 10,
         pointsGranted: false,
@@ -676,17 +795,37 @@ function initBooking() {
 
       const ref = await addDoc(collection(db, "orders"), order);
 
+      try {
+        await sendBookingEmail({
+          customerName: finalCustomerName,
+          customerEmail: finalCustomerEmail,
+          orderId: ref.id,
+          service: serviceLabel(service),
+          location: locationVal,
+          bookingDate: date,
+          bookingTime: timeSlot,
+          price: selectedPrice,
+          shoeNotes
+        });
+      } catch (emailErr) {
+        console.error("Email send failed:", emailErr);
+        toast("Booking saved, but email failed to send");
+      }
+
       toast("Booking confirmed ✅");
       setMsg(`Order ID: ${ref.id}`);
       updateBookingSummary();
 
       setTimeout(() => {
         location.href = "track.html";
-      }, 400);
+      }, 700);
     } catch (err) {
       console.error(err);
       setMsg("Booking failed");
       toast("Booking failed");
+    } finally {
+      btnBook.disabled = false;
+      btnBook.textContent = "Confirm booking";
     }
   });
 }
@@ -1198,7 +1337,7 @@ async function saveAdminOrder(orderId) {
   }
 
   if (wasCompleted && !willBeCompleted) {
-
+    // optional reverse logic later
   }
 
   toast("Order updated ✅");
