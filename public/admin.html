@@ -10,7 +10,11 @@
 <body class="admin-body">
   <nav class="navbar" aria-label="Primary">
     <ul class="nav-links">
-      <img src="videos/logo.png" class="logo" alt="DKcleanedit logo" />
+      <li class="nav-logo">
+        <a href="home.html" aria-label="DKcleanedit home">
+          <img src="videos/logo.png" class="logo" alt="DKcleanedit logo" />
+        </a>
+      </li>
       <li><a href="home.html" id="navHome">Home</a></li>
       <li><a href="booking.html" id="navBooking" data-requires-auth="true">Booking</a></li>
       <li><a href="track.html" id="navTracking" data-requires-auth="true">Tracking</a></li>
@@ -18,63 +22,112 @@
       <li><a href="admin.html" id="navAdmin" aria-current="page" data-requires-auth="true">Admin</a></li>
       <li><a href="login.html" id="navLogin">Login</a></li>
       <li><a href="register.html" id="navRegister">Register</a></li>
-      <li><a class="admin-link" href="analytics.html">Analytics</a></li>
+      <li><a href="analytics.html">Analytics</a></li>
       <li><a href="#" id="navLogout" hidden>Logout</a></li>
       <li><span id="navPointsBadge" class="badge" hidden>Points: 0</span></li>
     </ul>
   </nav>
 
   <main class="container admin-layout">
+
+    <!-- ── SIDEBAR ── -->
     <aside class="card admin-sidebar">
+
       <div class="admin-brand">
         <div class="brand-title">DKCleanEdit</div>
         <div class="sub">Admin dashboard</div>
       </div>
 
-      <nav class="admin-nav">
-        <a class="admin-link active" href="admin.html">Orders</a>
-        <a class="admin-link" href="analytics.html">Analytics</a>
-        <a class="admin-link" href="booking.html">Booking</a>
-        <a class="admin-link" href="track.html">Tracking</a>
-        <a class="admin-link" href="home.html">Home</a>
+      <nav class="admin-side-nav" style="margin-top:14px;">
+        <a class="admin-side-link active" href="admin.html">Orders</a>
+        <a class="admin-side-link" href="analytics.html">Analytics</a>
+        <a class="admin-side-link" href="booking.html">Booking</a>
+        <a class="admin-side-link" href="track.html">Tracking</a>
+        <a class="admin-side-link" href="home.html">Home</a>
       </nav>
 
-      <hr />
+      <hr style="margin:16px 0; border-color:var(--line);" />
 
-      <div class="admin-quick-stats">
-        <div class="card stat-card">
-          <div class="sub">Total Orders</div>
-          <div class="order-title" id="adminTotalOrders">0</div>
+      <!-- Quick stats -->
+      <div class="sidebar-section-title">Quick stats</div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-lbl">Total</div>
+          <div class="stat-val" id="adminTotalOrders">0</div>
         </div>
-
-        <div class="card stat-card">
-          <div class="sub">Open Orders</div>
-          <div class="order-title" id="adminOpenOrders">0</div>
+        <div class="stat-card">
+          <div class="stat-lbl">Open</div>
+          <div class="stat-val" id="adminOpenOrders">0</div>
         </div>
-
-        <div class="card stat-card">
-          <div class="sub">Completed</div>
-          <div class="order-title" id="adminCompletedOrders">0</div>
+        <div class="stat-card">
+          <div class="stat-lbl">Done</div>
+          <div class="stat-val" id="adminCompletedOrders">0</div>
         </div>
-
-        <div class="card stat-card">
-          <div class="sub">With Images</div>
-          <div class="order-title" id="adminWithImages">0</div>
+        <div class="stat-card">
+          <div class="stat-lbl">Images</div>
+          <div class="stat-val" id="adminWithImages">0</div>
         </div>
       </div>
 
-      <hr />
+      <hr style="margin:16px 0; border-color:var(--line);" />
 
-      <div class="sub">UID: <span id="debugUid">-</span></div>
-      <div class="sub">Role: <span id="debugRole">-</span></div>
+      <!-- ── AVAILABILITY MANAGER ── -->
+      <div class="sidebar-section-title">Availability</div>
+      <div class="avail-panel">
+
+        <!-- Mini calendar -->
+        <div class="avail-cal-wrap">
+          <div class="avail-cal-header">
+            <button class="avail-cal-nav" id="availPrev" type="button" aria-label="Previous month">&#8249;</button>
+            <span id="availMonthLabel">April 2026</span>
+            <button class="avail-cal-nav" id="availNext" type="button" aria-label="Next month">&#8250;</button>
+          </div>
+          <div class="avail-day-names">
+            <div class="avail-day-name">S</div>
+            <div class="avail-day-name">M</div>
+            <div class="avail-day-name">T</div>
+            <div class="avail-day-name">W</div>
+            <div class="avail-day-name">T</div>
+            <div class="avail-day-name">F</div>
+            <div class="avail-day-name">S</div>
+          </div>
+          <div class="avail-cal-body" id="availCalBody"></div>
+        </div>
+
+        <!-- Selected date slot editor -->
+        <div id="availSlotEditor" style="display:none;">
+          <div class="avail-selected-label" id="availSelectedLabel">Select a date</div>
+          <div class="avail-slot-grid" id="availSlotGrid"></div>
+          <div class="avail-actions" style="margin-top:10px;">
+            <button class="btn secondary" type="button" id="btnAvailOpenAll">Open all</button>
+            <button class="btn danger"    type="button" id="btnAvailCloseAll">Close all</button>
+            <button class="btn primary"   type="button" id="btnAvailSave">Save</button>
+          </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="avail-legend">
+          <div class="legend-item"><div class="legend-dot legend-dot--open"></div>Open</div>
+          <div class="legend-dot legend-dot--closed"></div>
+          <div class="legend-item"><div class="legend-dot legend-dot--closed"></div>Closed</div>
+          <div class="legend-item"><div class="legend-dot legend-dot--today"></div>Today</div>
+        </div>
+      </div>
+
+      <hr style="margin:16px 0; border-color:var(--line);" />
+
+      <div class="sub" style="font-size:0.78rem;">UID: <span id="debugUid">-</span></div>
+      <div class="sub" style="font-size:0.78rem;">Role: <span id="debugRole">-</span></div>
     </aside>
 
+    <!-- ── MAIN PANEL ── -->
     <section class="card admin-main">
+
       <header class="admin-header">
         <div>
           <h1>Order Management</h1>
           <p class="sub">
-            Review customer uploads, update order stages, and award points when an order is completed.
+            Review uploads, update order stages, and award loyalty points on completion.
           </p>
         </div>
 
@@ -82,10 +135,9 @@
           <input
             id="adminSearch"
             type="text"
-            placeholder="Search name, email, phone, location, image, order id…"
+            placeholder="Search name, email, order ID…"
             autocomplete="off"
           />
-
           <select id="adminFilter">
             <option value="All">All stages</option>
             <option value="Booked">Booked</option>
@@ -96,24 +148,48 @@
             <option value="Completed">Completed</option>
             <option value="Cancelled">Cancelled</option>
           </select>
-
           <button class="btn secondary" type="button" id="btnAdminRefresh">Refresh</button>
         </div>
       </header>
 
-      <section class="card admin-info-panel" style="margin-bottom:16px;">
-        <div class="order-title">Admin Notes</div>
-        <p class="sub" style="margin:8px 0 0;">
-          Orders with uploaded customer images will show image previews here.
-          Click any preview to open the full image.
-        </p>
-      </section>
+      <!-- Tabs -->
+      <div class="admin-tabs">
+        <button class="admin-tab active" type="button" data-tab="orders">Orders</button>
+        <button class="admin-tab" type="button" data-tab="conflicts">Conflicts <span id="conflictCount" class="badge info" style="margin-left:4px;font-size:0.7rem;min-height:0;padding:2px 7px;">0</span></button>
+        <button class="admin-tab" type="button" data-tab="schedule">Today's Schedule</button>
+      </div>
 
-      <div id="adminOrders" class="admin-orders"></div>
+      <!-- Orders tab -->
+      <div class="admin-tab-panel active" id="tabOrders">
+        <div id="adminOrders" class="admin-orders"></div>
+      </div>
+
+      <!-- Conflicts tab -->
+      <div class="admin-tab-panel" id="tabConflicts">
+        <div class="card soft" style="margin-bottom:16px; padding:14px 18px;">
+          <div class="card-title" style="font-size:0.95rem;">Double-booking conflicts</div>
+          <p class="sub" style="margin-top:4px; font-size:0.88rem;">
+            These are orders that share the same date, time slot, and location. Resolve by rescheduling or cancelling one.
+          </p>
+        </div>
+        <div id="conflictsList"></div>
+      </div>
+
+      <!-- Today's schedule tab -->
+      <div class="admin-tab-panel" id="tabSchedule">
+        <div class="card soft" style="margin-bottom:16px; padding:14px 18px;">
+          <div class="card-title" style="font-size:0.95rem;" id="todayLabel">Today's bookings</div>
+          <p class="sub" style="margin-top:4px; font-size:0.88rem;">All orders booked for today across all locations.</p>
+        </div>
+        <div id="scheduleList"></div>
+      </div>
+
       <p id="msg" class="admin-msg"></p>
     </section>
+
   </main>
 
+  <div id="toastHost"></div>
   <script type="module" src="./app.js"></script>
 </body>
 </html>
