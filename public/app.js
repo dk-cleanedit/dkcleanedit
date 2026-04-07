@@ -30,8 +30,17 @@ import {
   increment
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
+import {
+  getStorage,
+  ref as storageRef,
+  uploadBytes,
+  getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
+
 /* helpers */
 const $ = (selector) => document.querySelector(selector);
+
+const storage = getStorage();
 
 const STATUS = [
   "Booked",
@@ -440,6 +449,28 @@ function initRegisterPage() {
 /* -------------------------
    booking helpers
 ------------------------- */
+function getBookingFileInput() {
+  return $("#shoeImages") || $("#orderImages") || $("#uploadImages");
+}
+
+async function uploadOrderImages(files, orderId) {
+  const uploadedUrls = [];
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    if (!file) continue;
+
+    const path = `orders/${orderId}/${Date.now()}-${i}-${file.name}`;
+    const fileRef = storageRef(storage, path);
+
+    await uploadBytes(fileRef, file);
+    const url = await getDownloadURL(fileRef);
+    uploadedUrls.push(url);
+  }
+
+  return uploadedUrls;
+}
+
 function getActivePriceSelect() {
   const service = $("#service")?.value;
 
@@ -466,11 +497,11 @@ function formatBookingDate(value) {
 }
 
 function updateBookingSummary() {
-  const summaryService = $("#summaryService");
+  const summaryService  = $("#summaryService");
   const summaryLocation = $("#summaryLocation");
-  const summaryDate = $("#summaryDate");
-  const summaryTime = $("#summaryTime");
-  const summaryPrice = $("#selectedPriceText");
+  const summaryDate     = $("#summaryDate");
+  const summaryTime     = $("#summaryTime");
+  const summaryPrice    = $("#selectedPriceText");
 
   if (summaryService) {
     summaryService.textContent = serviceLabel($("#service")?.value || "");
@@ -512,14 +543,14 @@ function syncServicePriceUI() {
   const service = $("#service")?.value;
 
   const standardGroup = $("#standardPrices");
-  const expressGroup = $("#expressPrices");
-  const nextdayGroup = $("#nextdayPrices");
+  const expressGroup  = $("#expressPrices");
+  const nextdayGroup  = $("#nextdayPrices");
 
   if (!standardGroup || !expressGroup || !nextdayGroup) return;
 
   standardGroup.hidden = service !== "standard_clean";
-  expressGroup.hidden = service !== "express";
-  nextdayGroup.hidden = service !== "next_day";
+  expressGroup.hidden  = service !== "express";
+  nextdayGroup.hidden  = service !== "next_day";
 
   updateSelectedPriceText();
   updateBookingSummary();
@@ -545,15 +576,191 @@ function initServicePriceSync() {
   syncServicePriceUI();
 }
 
+/* -------------------------
+   calendar UI
+   Builds and manages the interactive date-picker grid.
+   Writes the chosen date into the hidden #date input so all
+   existing booking validation / Firestore logic works unchanged.
+------------------------- */
+function initCalendarUI() {
+  const calBody    = document.getElementById("calBody");
+  const calLabel   = document.getElementById("calMonthLabel");
+  const dateLabel  = document.getElementById("selectedDateLabel");
+  const hiddenDate = document.getElementById("date");
+  const prevBtn    = document.getElementById("calPrev");
+  const nextBtn    = document.getElementById("calNext");
+
+  // Only run on pages that include the calendar widget
+  if (!calBody || !prevBtn || !nextBtn) return;
+
+  // Guard against double-init if an inline script already ran
+  if (calBody.dataset.appBound === "1") return;
+  calBody.dataset.appBound = "1";
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let viewYear  = today.getFullYear();
+  let viewMonth = today.getMonth();
+  let selectedDate = null;
+
+  const MONTHS = [
+    "January","February","March","April","May","June",
+    "July","August","September","October","November","December"
+  ];
+
+  function pad(n) {
+    return String(n).padStart(2, "0");
+  }
+
+  function formatDisplay(d) {
+    return d.toLocaleDateString("en-GB", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    });
+  }
+
+  function buildCalendar() {
+    if (calLabel) calLabel.textContent = `${MONTHS[viewMonth]} ${viewYear}`;
+    calBody.innerHTML = "";
+
+    const firstDay    = new Date(viewYear, viewMonth, 1).getDay();
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+    const daysInPrev  = new Date(viewYear, viewMonth, 0).getDate();
+
+    // Previous-month filler cells
+    for (let i = 0; i < firstDay; i++) {
+      const cell = document.createElement("div");
+      cell.className = "cal-cell cal-cell--other";
+      cell.textContent = daysInPrev - firstDay + 1 + i;
+      calBody.appendChild(cell);
+    }
+
+    // Current-month cells
+    for (let d = 1; d <= daysInMonth; d++) {
+      const cell = document.createElement("div");
+      cell.className = "cal-cell";
+      cell.textContent = d;
+
+      const thisDate = new Date(viewYear, viewMonth, d);
+      thisDate.setHours(0, 0, 0, 0);
+
+      if (thisDate < today) {
+        cell.classList.add("cal-cell--past");
+      } else {
+        cell.addEventListener("click", () => selectDate(thisDate));
+      }
+
+      if (thisDate.toDateString() === today.toDateString()) {
+        cell.classList.add("cal-cell--today");
+      }
+
+      if (selectedDate && thisDate.toDateString() === selectedDate.toDateString()) {
+        cell.classList.add("cal-cell--selected");
+      }
+
+      calBody.appendChild(cell);
+    }
+
+    // Next-month filler cells
+    const totalCells = firstDay + daysInMonth;
+    const remaining  = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+    for (let i = 1; i <= remaining; i++) {
+      const cell = document.createElement("div");
+      cell.className = "cal-cell cal-cell--other";
+      cell.textContent = i;
+      calBody.appendChild(cell);
+    }
+  }
+
+  function selectDate(date) {
+    selectedDate = date;
+
+    // Write ISO value into the hidden #date input so all existing
+    // booking logic (validation, Firestore, summary) picks it up
+    const iso = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    if (hiddenDate) {
+      hiddenDate.value = iso;
+      hiddenDate.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+
+    // Update the "selected date" label shown above the time slots
+    if (dateLabel) {
+      dateLabel.textContent = formatDisplay(date);
+    }
+
+    // Re-render to show the selected highlight
+    buildCalendar();
+
+    // Keep the booking summary sidebar in sync
+    updateBookingSummary();
+  }
+
+  prevBtn.addEventListener("click", () => {
+    viewMonth--;
+    if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+    buildCalendar();
+  });
+
+  nextBtn.addEventListener("click", () => {
+    viewMonth++;
+    if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+    buildCalendar();
+  });
+
+  // If the hidden #date already has a value (e.g. set by an earlier
+  // inline script), restore the visual selection state
+  if (hiddenDate?.value && isValidDateInput(hiddenDate.value)) {
+    const parts = hiddenDate.value.split("-");
+    const pre   = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    pre.setHours(0, 0, 0, 0);
+    selectedDate = pre;
+    viewYear     = pre.getFullYear();
+    viewMonth    = pre.getMonth();
+  }
+
+  buildCalendar();
+}
+
+/* -------------------------
+   shoe image preview
+------------------------- */
+function initShoeImagePreview() {
+  const input       = $("#shoeImages");
+  const previewImg  = $("#shoePreview");
+  const previewWrap = $("#shoePreviewWrap");
+
+  if (!input || input.dataset.previewBound === "1") return;
+  input.dataset.previewBound = "1";
+
+  input.addEventListener("change", () => {
+    const file = input.files?.[0];
+    if (!file || !previewImg || !previewWrap) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      previewImg.src   = e.target.result;
+      previewWrap.hidden = false;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+/* -------------------------
+   professional booking UI
+------------------------- */
 function initProfessionalBookingUI() {
-  const serviceSelect = $("#service");
+  const serviceSelect  = $("#service");
   const timeSlotSelect = $("#timeSlot");
   const locationSelect = $("#location");
-  const dateInput = $("#date");
+  const dateInput      = $("#date");
 
   const serviceCards = document.querySelectorAll("[data-service-card]");
-  const timeButtons = document.querySelectorAll(".time-slot");
+  const timeButtons  = document.querySelectorAll(".time-slot");
 
+  // Service card clicks
   if (serviceCards.length) {
     serviceCards.forEach((card) => {
       if (card.dataset.bound === "1") return;
@@ -577,6 +784,7 @@ function initProfessionalBookingUI() {
     });
   }
 
+  // Time slot button clicks — syncs the hidden #timeSlot select
   if (timeButtons.length) {
     timeButtons.forEach((btn) => {
       if (btn.dataset.bound === "1") return;
@@ -597,6 +805,7 @@ function initProfessionalBookingUI() {
     });
   }
 
+  // Keep service cards in sync when hidden select changes
   if (serviceSelect && serviceSelect.dataset.summaryBound !== "1") {
     serviceSelect.dataset.summaryBound = "1";
     serviceSelect.addEventListener("change", () => {
@@ -611,6 +820,7 @@ function initProfessionalBookingUI() {
     });
   }
 
+  // Keep time slot buttons in sync when hidden select changes
   if (timeSlotSelect && timeSlotSelect.dataset.summaryBound !== "1") {
     timeSlotSelect.dataset.summaryBound = "1";
     timeSlotSelect.addEventListener("change", () => {
@@ -627,6 +837,8 @@ function initProfessionalBookingUI() {
     locationSelect.addEventListener("change", updateBookingSummary);
   }
 
+  // #date is written by the calendar; listen for its change event
+  // to keep the summary sidebar live without any extra wiring
   if (dateInput && dateInput.dataset.summaryBound !== "1") {
     dateInput.dataset.summaryBound = "1";
     dateInput.addEventListener("change", updateBookingSummary);
@@ -637,22 +849,23 @@ function initProfessionalBookingUI() {
 
 function initBookingMap() {
   const locationSelect = $("#location");
-  const branchName = $("#selectedBranchName");
-  const branchAddress = $("#selectedBranchAddress");
-  const mapFrame = $("#bookingMapFrame");
-  const openMapsBtn = $("#openMapsBtn");
+  const branchName     = $("#selectedBranchName");
+  const branchAddress  = $("#selectedBranchAddress");
+  const mapFrame       = $("#bookingMapFrame");
+  const openMapsBtn    = $("#openMapsBtn");
 
   if (!locationSelect || locationSelect.dataset.mapBound === "1") return;
   locationSelect.dataset.mapBound = "1";
 
+  // Keyed by the select option values in booking.html
   const locations = {
-    "Charles Street, Leicester": {
+    charles_street_leicester: {
       name: "Charles Street, Leicester",
       address: "Charles Street, Leicester, UK",
       mapsLink: "https://www.google.com/maps/search/?api=1&query=Charles+Street+Leicester+UK",
       embed: "https://www.google.com/maps?q=Charles%20Street%20Leicester%20UK&z=15&output=embed"
     },
-    "Canada Water, London": {
+    canada_water: {
       name: "Canada Water, London",
       address: "Canada Water, London, UK",
       mapsLink: "https://www.google.com/maps/search/?api=1&query=Canada+Water+London+UK",
@@ -664,10 +877,10 @@ function initBookingMap() {
     const selected = locations[locationSelect.value];
     if (!selected) return;
 
-    if (branchName) branchName.textContent = selected.name;
+    if (branchName)    branchName.textContent   = selected.name;
     if (branchAddress) branchAddress.textContent = selected.address;
-    if (mapFrame) mapFrame.src = selected.embed;
-    if (openMapsBtn) openMapsBtn.href = selected.mapsLink;
+    if (mapFrame)      mapFrame.src              = selected.embed;
+    if (openMapsBtn)   openMapsBtn.href          = selected.mapsLink;
   }
 
   locationSelect.addEventListener("change", updateMap);
@@ -676,13 +889,14 @@ function initBookingMap() {
 
 function initCustomerNameAutofill() {
   const input = $("#customerName");
-  if (!input) return;
+  if (!input || input.dataset.bound === "1") return;
+  input.dataset.bound = "1";
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) return;
 
     try {
-      const snap = await getDoc(doc(db, "users", user.uid));
+      const snap     = await getDoc(doc(db, "users", user.uid));
       const userData = snap.exists() ? snap.data() : {};
       if (!input.value.trim()) {
         input.value = userData.name || user.displayName || "";
@@ -704,6 +918,8 @@ function initBooking() {
   wireOverlayExitButtonsSafe();
   initServicePriceSync();
   initProfessionalBookingUI();
+  initCalendarUI();        // interactive calendar grid
+  initShoeImagePreview();  // live image preview
   initBookingMap();
   initCustomerNameAutofill();
   updateBookingSummary();
@@ -739,12 +955,14 @@ function initBooking() {
     hideSignupOverlay();
 
     const manualCustomerName = $("#customerName")?.value.trim();
-    const service = $("#service")?.value;
-    const locationVal = $("#location")?.value;
-    const date = $("#date")?.value;
-    const timeSlot = $("#timeSlot")?.value;
-    const selectedPrice = getSelectedPrice();
-    const shoeNotes = $("#shoeNotes")?.value.trim() || "";
+    const service            = $("#service")?.value;
+    const locationVal        = $("#location")?.value;
+    const date               = $("#date")?.value;
+    const timeSlot           = $("#timeSlot")?.value;
+    const selectedPrice      = getSelectedPrice();
+    const shoeNotes          = $("#shoeNotes")?.value.trim() || "";
+    const imageInput         = getBookingFileInput();
+    const imageFiles         = imageInput?.files ? Array.from(imageInput.files) : [];
 
     if (!service || !locationVal || !date || !timeSlot || !selectedPrice) {
       setMsg("Select service, location, date, time and price");
@@ -753,30 +971,19 @@ function initBooking() {
     }
 
     try {
-      btnBook.disabled = true;
+      btnBook.disabled    = true;
       btnBook.textContent = "Processing...";
 
       const userSnap = await getDoc(doc(db, "users", user.uid));
       const userData = userSnap.exists() ? userSnap.data() : {};
 
-      const finalCustomerName =
-        manualCustomerName ||
-        userData.name ||
-        user.displayName ||
-        "Customer";
-
-      const finalCustomerEmail =
-        userData.email ||
-        user.email ||
-        "";
-
-      const finalCustomerPhone =
-        userData.phone ||
-        "";
+      const finalCustomerName  = manualCustomerName || userData.name  || user.displayName || "Customer";
+      const finalCustomerEmail = userData.email     || user.email     || "";
+      const finalCustomerPhone = userData.phone     || "";
 
       const order = {
         uid: user.uid,
-        customerName: finalCustomerName,
+        customerName:  finalCustomerName,
         customerEmail: finalCustomerEmail,
         customerPhone: finalCustomerPhone,
         service,
@@ -789,22 +996,38 @@ function initBooking() {
         status: "Booked",
         pointsAwarded: 10,
         pointsGranted: false,
+        grantedPointsAmount: 0,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       };
 
-      const ref = await addDoc(collection(db, "orders"), order);
+      const orderRef = await addDoc(collection(db, "orders"), order);
+
+      let uploadedImageUrls = [];
+
+      if (imageFiles.length) {
+        try {
+          uploadedImageUrls = await uploadOrderImages(imageFiles, orderRef.id);
+          await updateDoc(orderRef, {
+            imageUrls: uploadedImageUrls,
+            updatedAt: serverTimestamp()
+          });
+        } catch (uploadErr) {
+          console.error("Image upload failed:", uploadErr);
+          toast("Booking saved, but image upload failed");
+        }
+      }
 
       try {
         await sendBookingEmail({
-          customerName: finalCustomerName,
+          customerName:  finalCustomerName,
           customerEmail: finalCustomerEmail,
-          orderId: ref.id,
-          service: serviceLabel(service),
-          location: locationVal,
-          bookingDate: date,
-          bookingTime: timeSlot,
-          price: selectedPrice,
+          orderId:       orderRef.id,
+          service:       serviceLabel(service),
+          location:      locationVal,
+          bookingDate:   date,
+          bookingTime:   timeSlot,
+          price:         selectedPrice,
           shoeNotes
         });
       } catch (emailErr) {
@@ -813,7 +1036,7 @@ function initBooking() {
       }
 
       toast("Booking confirmed ✅");
-      setMsg(`Order ID: ${ref.id}`);
+      setMsg(`Order ID: ${orderRef.id}`);
       updateBookingSummary();
 
       setTimeout(() => {
@@ -824,7 +1047,7 @@ function initBooking() {
       setMsg("Booking failed");
       toast("Booking failed");
     } finally {
-      btnBook.disabled = false;
+      btnBook.disabled    = false;
       btnBook.textContent = "Confirm booking";
     }
   });
@@ -873,57 +1096,33 @@ function renderOrderCard(order) {
    customer order actions
 ------------------------- */
 async function cancelOrderByCustomer(orderId, user) {
-  const ref = doc(db, "orders", orderId);
+  const ref  = doc(db, "orders", orderId);
   const snap = await getDoc(ref);
 
-  if (!snap.exists()) {
-    toast("Order not found");
-    return;
-  }
+  if (!snap.exists()) { toast("Order not found"); return; }
 
   const data = snap.data();
 
-  if (data.uid !== user.uid && !isAdminEmail(user.email)) {
-    toast("Not allowed");
-    return;
-  }
-
-  if (!isCustomerEditableStatus(data.status)) {
-    toast("This order can no longer be cancelled");
-    return;
-  }
+  if (data.uid !== user.uid && !isAdminEmail(user.email)) { toast("Not allowed"); return; }
+  if (!isCustomerEditableStatus(data.status)) { toast("This order can no longer be cancelled"); return; }
 
   const ok = confirm("Cancel this booking?");
   if (!ok) return;
 
-  await updateDoc(ref, {
-    status: "Cancelled",
-    updatedAt: serverTimestamp()
-  });
-
+  await updateDoc(ref, { status: "Cancelled", updatedAt: serverTimestamp() });
   toast("Booking cancelled");
 }
 
 async function rescheduleOrderByCustomer(orderId, user) {
-  const ref = doc(db, "orders", orderId);
+  const ref  = doc(db, "orders", orderId);
   const snap = await getDoc(ref);
 
-  if (!snap.exists()) {
-    toast("Order not found");
-    return;
-  }
+  if (!snap.exists()) { toast("Order not found"); return; }
 
   const data = snap.data();
 
-  if (data.uid !== user.uid && !isAdminEmail(user.email)) {
-    toast("Not allowed");
-    return;
-  }
-
-  if (!isCustomerEditableStatus(data.status)) {
-    toast("This order can no longer be rescheduled");
-    return;
-  }
+  if (data.uid !== user.uid && !isAdminEmail(user.email)) { toast("Not allowed"); return; }
+  if (!isCustomerEditableStatus(data.status)) { toast("This order can no longer be rescheduled"); return; }
 
   const newDate = prompt("Enter new date (YYYY-MM-DD)", data.date || "");
   if (newDate === null) return;
@@ -939,12 +1138,7 @@ async function rescheduleOrderByCustomer(orderId, user) {
     return;
   }
 
-  await updateDoc(ref, {
-    date: cleanDate,
-    timeSlot: cleanTime,
-    updatedAt: serverTimestamp()
-  });
-
+  await updateDoc(ref, { date: cleanDate, timeSlot: cleanTime, updatedAt: serverTimestamp() });
   toast("Booking rescheduled");
 }
 
@@ -956,14 +1150,11 @@ function wireCustomerOrderActions(listEl) {
     const btn = e.target.closest("[data-action]");
     if (!btn) return;
 
-    const action = btn.getAttribute("data-action");
+    const action  = btn.getAttribute("data-action");
     const orderId = btn.getAttribute("data-id");
-    const user = auth.currentUser;
+    const user    = auth.currentUser;
 
-    if (!user) {
-      goLogin();
-      return;
-    }
+    if (!user) { goLogin(); return; }
 
     try {
       if (action === "cancel") {
@@ -992,17 +1183,35 @@ function initTracking() {
   ordersEl.innerHTML = `
     <div class="order-card">
       <div class="order-title">Loading…</div>
-      <p class="sub">Checking your account.</p>
+      <p class="sub">Checking your active orders.</p>
     </div>
   `;
 
   let unsubOrders = null;
 
+  const ACTIVE_STATUSES = [
+    "Booked","Received","In Progress","Cleaning","Repairing",
+    "Ready","Out for Delivery","Dispatched","Shipped","Pending"
+  ];
+
+  const HISTORY_STATUSES = ["Completed","Delivered","Collected","Cancelled"];
+
+  function normalizeStatus(status) {
+    return String(status || "").trim().toLowerCase();
+  }
+
+  function isHistoryOrder(order) {
+    return HISTORY_STATUSES.map(s => s.toLowerCase()).includes(normalizeStatus(order.status));
+  }
+
+  function isActiveOrder(order) {
+    const status = normalizeStatus(order.status);
+    if (HISTORY_STATUSES.map(s => s.toLowerCase()).includes(status)) return false;
+    return true;
+  }
+
   onAuthStateChanged(auth, (user) => {
-    if (typeof unsubOrders === "function") {
-      unsubOrders();
-      unsubOrders = null;
-    }
+    if (typeof unsubOrders === "function") { unsubOrders(); unsubOrders = null; }
 
     if (!user) {
       showSignupOverlay();
@@ -1027,13 +1236,24 @@ function initTracking() {
         snap.forEach((d) => items.push({ id: d.id, ...d.data() }));
         items.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
 
-        ordersEl.innerHTML = items.length
-          ? items.map(renderOrderCard).join("")
+        const activeItems  = items.filter(isActiveOrder);
+        const historyItems = items.filter(isHistoryOrder);
+
+        ordersEl.innerHTML = activeItems.length
+          ? activeItems.map(renderOrderCard).join("")
           : `
             <div class="order-card">
-              <div class="order-title">No orders yet</div>
-              <p class="sub">Book a service to start tracking.</p>
-              <a class="btn primary" href="booking.html">Go to Booking</a>
+              <div class="order-title">No current orders</div>
+              <p class="sub">
+                You have no active orders to track right now.
+                ${historyItems.length
+                  ? "Your previous orders are in My Account > Order History."
+                  : "Book a service to get started."}
+              </p>
+              <div class="stack-sm">
+                <a class="btn primary" href="booking.html">Go to Booking</a>
+                <a class="btn secondary" href="customer.html">My Account</a>
+              </div>
             </div>
           `;
       },
@@ -1060,12 +1280,12 @@ function initCustomer() {
   if (!page || page.dataset.customerInit === "1") return;
   page.dataset.customerInit = "1";
 
-  const nameEl = $("#custName");
-  const emailEl = $("#custEmail");
-  const ptsEl = $("#custPoints");
-  const listEl = $("#custOrders");
+  const nameEl         = $("#custName");
+  const emailEl        = $("#custEmail");
+  const ptsEl          = $("#custPoints");
+  const listEl         = $("#custOrders");
   const btnCustRefresh = $("#btnCustRefresh");
-  const btnChangePass = $("#btnChangePass");
+  const btnChangePass  = $("#btnChangePass");
 
   let unsub = null;
 
@@ -1077,22 +1297,16 @@ function initCustomer() {
   if (listEl) wireCustomerOrderActions(listEl);
 
   onAuthStateChanged(auth, async (user) => {
-    if (typeof unsub === "function") {
-      unsub();
-      unsub = null;
-    }
+    if (typeof unsub === "function") { unsub(); unsub = null; }
 
-    if (!user) {
-      goLogin("customer.html");
-      return;
-    }
+    if (!user) { goLogin("customer.html"); return; }
 
-    const snap = await getDoc(doc(db, "users", user.uid));
+    const snap     = await getDoc(doc(db, "users", user.uid));
     const userData = snap.exists() ? snap.data() : {};
 
-    if (nameEl) nameEl.textContent = userData.name || user.displayName || "-";
-    if (emailEl) emailEl.textContent = userData.email || user.email || "-";
-    if (ptsEl) ptsEl.textContent = String(userData.points || 0);
+    if (nameEl)  nameEl.textContent  = userData.name  || user.displayName || "-";
+    if (emailEl) emailEl.textContent = userData.email || user.email       || "-";
+    if (ptsEl)   ptsEl.textContent   = String(userData.points || 0);
 
     if (listEl) {
       const q = query(collection(db, "orders"), where("uid", "==", user.uid));
@@ -1153,21 +1367,11 @@ function getOrderImageUrls(order) {
   const urls = [];
 
   const possibleSingleFields = [
-    "imageUrl",
-    "photoUrl",
-    "uploadUrl",
-    "beforeImage",
-    "beforeImageUrl",
-    "customerImage",
-    "customerImageUrl"
+    "imageUrl","photoUrl","uploadUrl","beforeImage",
+    "beforeImageUrl","customerImage","customerImageUrl"
   ];
 
-  const possibleArrayFields = [
-    "imageUrls",
-    "photos",
-    "uploads",
-    "images"
-  ];
+  const possibleArrayFields = ["imageUrls","photos","uploads","images"];
 
   possibleSingleFields.forEach((field) => {
     const value = order?.[field];
@@ -1210,9 +1414,9 @@ function renderAdminImages(order) {
 }
 
 function renderAdminOrderCard(order, currentUser) {
-  const isAdmin = isAdminEmail(currentUser?.email);
+  const isAdmin     = isAdminEmail(currentUser?.email);
   const orderStatus = order.status || "Booked";
-  const imageUrls = getOrderImageUrls(order);
+  const imageUrls   = getOrderImageUrls(order);
 
   return `
     <div class="order-card" data-id="${esc(order.id)}">
@@ -1228,117 +1432,152 @@ function renderAdminOrderCard(order, currentUser) {
       </div>
 
       ${renderStepProgress(orderStatus)}
-
       ${renderAdminImages(order)}
 
-      ${
-        isAdmin
-          ? `
-          <div class="admin-row" style="margin-top:14px;">
-            <div class="admin-field">
-              <label class="sub" for="status-${esc(order.id)}">Status</label>
-              <select id="status-${esc(order.id)}" class="admin-status" data-id="${esc(order.id)}">
-                ${STATUS.map((status) => `
-                  <option value="${esc(status)}" ${orderStatus === status ? "selected" : ""}>${esc(status)}</option>
-                `).join("")}
-              </select>
-            </div>
-
-            <div class="admin-field">
-              <label class="sub" for="points-${esc(order.id)}">Points to award</label>
-              <input
-                id="points-${esc(order.id)}"
-                class="admin-points"
-                data-id="${esc(order.id)}"
-                type="number"
-                min="0"
-                step="1"
-                value="${esc(order.pointsAwarded ?? 10)}"
-              />
-            </div>
-
-            <div class="admin-field admin-field-btn">
-              <button class="btn primary" type="button" data-admin-save="${esc(order.id)}">Save</button>
-            </div>
+      ${isAdmin ? `
+        <div class="admin-row" style="margin-top:14px;">
+          <div class="admin-field">
+            <label class="sub" for="status-${esc(order.id)}">Status</label>
+            <select id="status-${esc(order.id)}" class="admin-status" data-id="${esc(order.id)}">
+              ${STATUS.map((status) => `
+                <option value="${esc(status)}" ${orderStatus === status ? "selected" : ""}>${esc(status)}</option>
+              `).join("")}
+            </select>
           </div>
 
-          <div class="order-meta" style="margin-top:10px;">
-            <span class="sub">Points granted: ${order.pointsGranted ? "Yes" : "No"}</span>
-            <span class="sub">Images: ${imageUrls.length}</span>
+          <div class="admin-field">
+            <label class="sub" for="points-${esc(order.id)}">Points to award</label>
+            <input
+              id="points-${esc(order.id)}"
+              class="admin-points"
+              data-id="${esc(order.id)}"
+              type="number"
+              min="0"
+              step="1"
+              value="${esc(order.pointsAwarded ?? 10)}"
+            />
           </div>
-        `
-          : ""
-      }
+
+          <div class="admin-field admin-field-btn">
+            <button class="btn primary" type="button" data-admin-save="${esc(order.id)}">Save</button>
+          </div>
+        </div>
+
+        <div class="order-meta" style="margin-top:10px;">
+          <span class="sub">Points granted: ${order.pointsGranted ? "Yes" : "No"}</span>
+          <span class="sub">Images: ${imageUrls.length}</span>
+        </div>
+      ` : ""}
     </div>
   `;
 }
 
 function updateAdminStats(orders) {
-  const totalEl = $("#adminTotalOrders");
-  const openEl = $("#adminOpenOrders");
-  const completedEl = $("#adminCompletedOrders");
+  const totalEl      = $("#adminTotalOrders");
+  const openEl       = $("#adminOpenOrders");
+  const completedEl  = $("#adminCompletedOrders");
   const withImagesEl = $("#adminWithImages");
 
-  const total = orders.length;
-  const open = orders.filter((o) => !["Completed", "Cancelled"].includes(o.status)).length;
-  const completed = orders.filter((o) => o.status === "Completed").length;
+  const total      = orders.length;
+  const open       = orders.filter((o) => !["Completed","Cancelled"].includes(o.status)).length;
+  const completed  = orders.filter((o) => o.status === "Completed").length;
   const withImages = orders.filter((o) => getOrderImageUrls(o).length > 0).length;
 
-  if (totalEl) totalEl.textContent = String(total);
-  if (openEl) openEl.textContent = String(open);
-  if (completedEl) completedEl.textContent = String(completed);
+  if (totalEl)      totalEl.textContent      = String(total);
+  if (openEl)       openEl.textContent       = String(open);
+  if (completedEl)  completedEl.textContent  = String(completed);
   if (withImagesEl) withImagesEl.textContent = String(withImages);
+}
+
+function renderAdminAnalytics(orders) {
+  const revenueEl           = $("#adminRevenue");
+  const bookedEl            = $("#adminBookedCount");
+  const receivedEl          = $("#adminReceivedCount");
+  const cleaningEl          = $("#adminCleaningCount");
+  const readyEl             = $("#adminReadyCount");
+  const cancelledEl         = $("#adminCancelledCount");
+  const locationBreakdownEl = $("#adminLocationBreakdown");
+  const serviceBreakdownEl  = $("#adminServiceBreakdown");
+
+  const parseMoney = (value) => {
+    const n = parseFloat(String(value || "").replace(/[^\d.]/g, ""));
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const completedOrders = orders.filter((o) => o.status === "Completed");
+  const revenue = completedOrders.reduce((sum, o) => sum + parseMoney(o.price), 0);
+
+  const statusCounts = {
+    Booked: 0, Received: 0, Cleaning: 0,
+    "Drying & Finish": 0, Ready: 0, Completed: 0, Cancelled: 0
+  };
+
+  const locationCounts = {};
+  const serviceCounts  = {};
+
+  orders.forEach((o) => {
+    const status = o.status || "Booked";
+    statusCounts[status] = (statusCounts[status] || 0) + 1;
+
+    const location = o.location || "Unknown";
+    locationCounts[location] = (locationCounts[location] || 0) + 1;
+
+    const service = serviceLabel(o.service || o.serviceLabel || "Unknown");
+    serviceCounts[service] = (serviceCounts[service] || 0) + 1;
+  });
+
+  if (revenueEl)   revenueEl.textContent   = `£${revenue.toFixed(2)}`;
+  if (bookedEl)    bookedEl.textContent    = String(statusCounts.Booked   || 0);
+  if (receivedEl)  receivedEl.textContent  = String(statusCounts.Received || 0);
+  if (cleaningEl)  cleaningEl.textContent  = String((statusCounts.Cleaning || 0) + (statusCounts["Drying & Finish"] || 0));
+  if (readyEl)     readyEl.textContent     = String((statusCounts.Ready    || 0) + (statusCounts.Completed         || 0));
+  if (cancelledEl) cancelledEl.textContent = String(statusCounts.Cancelled || 0);
+
+  if (locationBreakdownEl) {
+    locationBreakdownEl.innerHTML = Object.entries(locationCounts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, count]) => `<div class="sub">${esc(name)}: ${count}</div>`)
+      .join("");
+  }
+
+  if (serviceBreakdownEl) {
+    serviceBreakdownEl.innerHTML = Object.entries(serviceCounts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, count]) => `<div class="sub">${esc(name)}: ${count}</div>`)
+      .join("");
+  }
 }
 
 async function saveAdminOrder(orderId) {
   const statusEl = document.querySelector(`.admin-status[data-id="${orderId}"]`);
   const pointsEl = document.querySelector(`.admin-points[data-id="${orderId}"]`);
 
-  if (!statusEl || !pointsEl) {
-    toast("Missing admin fields");
-    return;
-  }
+  if (!statusEl || !pointsEl) { toast("Missing admin fields"); return; }
 
-  const status = statusEl.value;
+  const status        = statusEl.value;
   const pointsAwarded = Math.max(0, Number(pointsEl.value || 0));
 
-  const ref = doc(db, "orders", orderId);
-  const snap = await getDoc(ref);
+  const orderRef = doc(db, "orders", orderId);
+  const snap     = await getDoc(orderRef);
 
-  if (!snap.exists()) {
-    toast("Order not found");
-    return;
+  if (!snap.exists()) { toast("Order not found"); return; }
+
+  const prev                    = snap.data();
+  const previouslyGrantedAmount = Number(prev.grantedPointsAmount || 0);
+  const nextGrantedAmount       = status === "Completed" ? pointsAwarded : 0;
+  const delta                   = nextGrantedAmount - previouslyGrantedAmount;
+
+  if (prev.uid && delta !== 0) {
+    await setDoc(doc(db, "users", prev.uid), { points: increment(delta) }, { merge: true });
   }
 
-  const prev = snap.data();
-  const wasCompleted = prev.status === "Completed";
-  const willBeCompleted = status === "Completed";
-
-  await updateDoc(ref, {
+  await updateDoc(orderRef, {
     status,
     pointsAwarded,
+    pointsGranted: nextGrantedAmount > 0,
+    grantedPointsAmount: nextGrantedAmount,
     updatedAt: serverTimestamp()
   });
-
-  if (
-    willBeCompleted &&
-    !prev.pointsGranted &&
-    prev.uid &&
-    Number(pointsAwarded) > 0
-  ) {
-    await updateDoc(doc(db, "users", prev.uid), {
-      points: increment(pointsAwarded)
-    });
-
-    await updateDoc(ref, {
-      pointsGranted: true,
-      updatedAt: serverTimestamp()
-    });
-  }
-
-  if (wasCompleted && !willBeCompleted) {
-    // optional reverse logic later
-  }
 
   toast("Order updated ✅");
 }
@@ -1351,47 +1590,35 @@ function initAdmin() {
   if (!adminOrders || adminOrders.dataset.bound === "1") return;
   adminOrders.dataset.bound = "1";
 
-  const adminSearch = $("#adminSearch");
-  const adminFilter = $("#adminFilter");
+  const adminSearch     = $("#adminSearch");
+  const adminFilter     = $("#adminFilter");
   const btnAdminRefresh = $("#btnAdminRefresh");
-  const debugUid = $("#debugUid");
-  const debugRole = $("#debugRole");
+  const debugUid        = $("#debugUid");
+  const debugRole       = $("#debugRole");
 
-  let allOrders = [];
+  let allOrders   = [];
   let currentUser = null;
-  let unsub = null;
+  let unsub       = null;
 
   function render() {
-    const search = String(adminSearch?.value || "").trim().toLowerCase();
+    const search    = String(adminSearch?.value || "").trim().toLowerCase();
     const rawFilter = String(adminFilter?.value || "").trim();
-    const filter = rawFilter === "All" ? "" : rawFilter;
+    const filter    = rawFilter === "All" ? "" : rawFilter;
 
     const items = allOrders.filter((order) => {
       const matchesFilter = !filter || order.status === filter;
+      const imageText     = getOrderImageUrls(order).join(" ");
+      const haystack      = [
+        order.customerName, order.customerEmail, order.customerPhone,
+        order.location, order.service, order.serviceLabel,
+        order.date, order.timeSlot, order.price, order.status, order.id, imageText
+      ].join(" ").toLowerCase();
 
-      const imageText = getOrderImageUrls(order).join(" ");
-      const haystack = [
-        order.customerName,
-        order.customerEmail,
-        order.customerPhone,
-        order.location,
-        order.service,
-        order.serviceLabel,
-        order.date,
-        order.timeSlot,
-        order.price,
-        order.status,
-        order.id,
-        imageText
-      ]
-        .join(" ")
-        .toLowerCase();
-
-      const matchesSearch = !search || haystack.includes(search);
-      return matchesFilter && matchesSearch;
+      return matchesFilter && (!search || haystack.includes(search));
     });
 
     updateAdminStats(allOrders);
+    renderAdminAnalytics(allOrders);
 
     adminOrders.innerHTML = items.length
       ? items.map((order) => renderAdminOrderCard(order, currentUser)).join("")
@@ -1415,20 +1642,14 @@ function initAdmin() {
 
   if (btnAdminRefresh && btnAdminRefresh.dataset.bound !== "1") {
     btnAdminRefresh.dataset.bound = "1";
-    btnAdminRefresh.addEventListener("click", () => {
-      render();
-      toast("Admin list refreshed ✅");
-    });
+    btnAdminRefresh.addEventListener("click", () => { render(); toast("Admin list refreshed ✅"); });
   }
 
   adminOrders.addEventListener("click", async (e) => {
     const btn = e.target.closest("[data-admin-save]");
     if (!btn) return;
 
-    if (!currentUser || !isAdminEmail(currentUser.email)) {
-      toast("Admin only");
-      return;
-    }
+    if (!currentUser || !isAdminEmail(currentUser.email)) { toast("Admin only"); return; }
 
     const orderId = btn.getAttribute("data-admin-save");
     try {
@@ -1442,21 +1663,16 @@ function initAdmin() {
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
 
-    if (debugUid) debugUid.textContent = user?.uid || "-";
+    if (debugUid)  debugUid.textContent  = user?.uid || "-";
     if (debugRole) debugRole.textContent = user ? (isAdminEmail(user.email) ? "Admin" : "User") : "-";
 
-    if (typeof unsub === "function") {
-      unsub();
-      unsub = null;
-    }
+    if (typeof unsub === "function") { unsub(); unsub = null; }
 
-    if (!user) {
-      goLogin("admin.html");
-      return;
-    }
+    if (!user) { goLogin("admin.html"); return; }
 
     if (!isAdminEmail(user.email)) {
       updateAdminStats([]);
+      renderAdminAnalytics([]);
       adminOrders.innerHTML = `
         <div class="order-card">
           <div class="order-title">Access denied</div>
@@ -1488,10 +1704,10 @@ function initAdmin() {
    home page
 ------------------------- */
 function initHomePage() {
-  const track = $(".carousel-track");
+  const track    = $(".carousel-track");
   const dotsWrap = $(".carousel-dots");
-  const prevBtn = $(".carousel-btn.prev");
-  const nextBtn = $(".carousel-btn.next");
+  const prevBtn  = $(".carousel-btn.prev");
+  const nextBtn  = $(".carousel-btn.next");
 
   if (!track || !dotsWrap) return;
 
@@ -1511,16 +1727,11 @@ function initHomePage() {
   if (!dotsWrap.dataset.bound) {
     dotsWrap.dataset.bound = "1";
     dotsWrap.innerHTML = slides
-      .map(
-        (_, i) => `<button type="button" aria-label="Go to slide ${i + 1}" ${i === 0 ? 'class="active"' : ""}></button>`
-      )
+      .map((_, i) => `<button type="button" aria-label="Go to slide ${i + 1}" ${i === 0 ? 'class="active"' : ""}></button>`)
       .join("");
 
     [...dotsWrap.children].forEach((dot, i) => {
-      dot.addEventListener("click", () => {
-        index = i;
-        renderCarousel();
-      });
+      dot.addEventListener("click", () => { index = i; renderCarousel(); });
     });
   }
 

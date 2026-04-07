@@ -4,19 +4,18 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Book | DKCleanEdit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
-  <script type="text/javascript"
-        src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
-</script>
-<script type="text/javascript">
-   (function(){
-      emailjs.init({
-        publicKey: "v1GO4hYhLibhbnt_N",
-      });
-   })();
-</script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script type="text/javascript">
+    (function(){ emailjs.init({ publicKey: "v1GO4hYhLibhbnt_N" }); })();
+  </script>
 </head>
 <body>
+
+  <!-- NAV -->
   <nav class="navbar" aria-label="Primary">
     <ul class="nav-links">
       <li class="nav-logo">
@@ -24,7 +23,6 @@
           <img src="videos/logo.png" class="logo" alt="DKcleanedit logo" />
         </a>
       </li>
-
       <li><a href="home.html" id="navHome">Home</a></li>
       <li><a href="booking.html" id="navBooking" data-requires-auth="true" aria-current="page">Booking</a></li>
       <li><a href="track.html" id="navTracking" data-requires-auth="true">Tracking</a></li>
@@ -33,14 +31,15 @@
       <li><a href="login.html" id="navLogin">Login</a></li>
       <li><a href="register.html" id="navRegister">Register</a></li>
       <li><a href="#" id="navLogout" hidden>Logout</a></li>
-      <li><span id="navPointsBadge" class="badge" hidden>Points: 0</span></li>
+      <li><span id="navPointsBadge" class="badge points-badge" hidden>Points: 0</span></li>
     </ul>
   </nav>
 
+  <!-- AUTH OVERLAY -->
   <div id="signupOverlay" class="overlay" hidden>
     <div class="popup" role="dialog" aria-modal="true" aria-labelledby="signupTitle">
       <h2 id="signupTitle">Please sign up</h2>
-      <p>Create an account to book services and track orders.</p>
+      <p>Create an account to book services and track your orders.</p>
       <div class="popup-actions">
         <a class="btn primary" href="login.html">Log in</a>
         <a class="btn secondary" href="register.html">Register</a>
@@ -51,57 +50,58 @@
   </div>
 
   <main class="container booking-page">
-    <section class="booking-hero card soft">
-      <div class="booking-hero-copy">
-        <span class="eyebrow">Professional sneaker care</span>
-        <h1>Book your cleaning service</h1>
-        <p class="sub">
-          Choose your service, select a location, pick a date and time, and confirm your booking in a few simple steps.
-        </p>
-      </div>
+
+    <!-- HERO -->
+    <section class="booking-hero">
+      <div class="hero-glow hero-glow--blue"></div>
+      <div class="hero-glow hero-glow--gold"></div>
+      <span class="eyebrow">Professional sneaker care</span>
+      <h1>Book your<br>cleaning service</h1>
+      <p class="sub">Choose your service, location, date and time — confirmed in minutes.</p>
     </section>
 
     <section class="booking-layout">
+
+      <!-- MAIN FORM -->
       <div class="booking-form card">
         <div class="card-header">
           <div>
             <div class="card-title">Booking details</div>
             <div class="card-subtitle">Complete the form below to reserve your slot</div>
           </div>
-          <span class="badge info">Step 1</span>
+          <span class="badge info-badge">Step 1</span>
         </div>
 
+        <!-- 1. SERVICE -->
         <div class="form-section">
-          <h3>1. Select service</h3>
+          <h3 class="section-label">1. Select service</h3>
           <div class="service-options">
             <label class="service-option active" data-service-card="standard_clean">
               <input type="radio" name="serviceCard" value="standard_clean" checked hidden />
               <div class="service-option-top">
                 <strong>Standard Cleaning</strong>
-                <span class="badge">From £25</span>
+                <span class="badge info-badge">From £25</span>
               </div>
-              <p>Deep exterior clean, midsole scrub, lace clean, deodorising, drying and finish done within 3 to 5 days.</p>
+              <p>Deep exterior clean, midsole scrub, lace clean, deodorising, drying and finish. Ready in 3–5 days.</p>
             </label>
-
             <label class="service-option" data-service-card="express">
               <input type="radio" name="serviceCard" value="express" hidden />
               <div class="service-option-top">
                 <strong>Express Service</strong>
-                <span class="badge">From £30</span>
+                <span class="badge info-badge">From £30</span>
               </div>
-              <p>Fast turnaround with consistent care and a professional finish done within 2 to 3 days.</p>
+              <p>Fast turnaround with consistent care and a professional finish. Ready in 2–3 days.</p>
             </label>
-
             <label class="service-option" data-service-card="next_day">
               <input type="radio" name="serviceCard" value="next_day" hidden />
               <div class="service-option-top">
                 <strong>Next Day</strong>
-                <span class="badge">From £35</span>
+                <span class="badge info-badge">From £35</span>
               </div>
-              <p>Priority cleaning with careful, material-safe processes for every pair done within the next day.</p>
+              <p>Priority cleaning with careful, material-safe processes for every pair. Ready next day.</p>
             </label>
           </div>
-
+          <!-- Hidden select kept for app.js compatibility -->
           <select id="service" hidden>
             <option value="standard_clean" selected>Standard Cleaning</option>
             <option value="express">Express Service</option>
@@ -109,9 +109,11 @@
           </select>
         </div>
 
-        <div class="form-grid">
+        <!-- 2. LOCATION -->
+        <div class="form-section">
+          <h3 class="section-label">2. Select location</h3>
           <div class="form-field">
-            <label for="location">Location</label>
+            <label for="location">Drop-off branch</label>
             <select id="location">
               <option value="charles_street_leicester" selected>Charles Street, Leicester</option>
               <option value="canada_water">Canada Water, London</option>
@@ -119,55 +121,66 @@
             <small>Choose your nearest drop-off location.</small>
           </div>
 
-          <div class="form-field">
-            <label for="date">Booking date</label>
-            <input id="date" type="date" />
-            <small>Select your preferred service date.</small>
-          </div>
-        </div>
-
-        <div class="form-section">
-          <h3>Location map</h3>
+          <!-- MAP -->
           <div class="location-map-card">
             <div class="location-map-top">
               <div>
-                <label class="map-label">Selected branch</label>
+                <span class="map-label">Selected branch</span>
                 <strong id="selectedBranchName">Charles Street, Leicester</strong>
                 <p id="selectedBranchAddress" class="map-address">Charles Street, Leicester, UK</p>
               </div>
-
-              <a
-                id="openMapsBtn"
-                class="btn secondary"
+              <a id="openMapsBtn" class="btn gold-btn"
                 href="https://www.google.com/maps/search/?api=1&query=Charles+Street+Leicester+UK"
-                target="_blank"
-                rel="noopener"
-              >
-                Open in Google Maps
-              </a>
+                target="_blank" rel="noopener">Open Maps ↗</a>
             </div>
-
-            <iframe
-              id="bookingMapFrame"
-              class="booking-map"
-              loading="lazy"
+            <iframe id="bookingMapFrame" class="booking-map" loading="lazy"
               referrerpolicy="no-referrer-when-downgrade"
               src="https://www.google.com/maps?q=Charles%20Street%20Leicester%20UK&z=15&output=embed"
-              aria-label="Map showing selected branch"
-            ></iframe>
+              aria-label="Map showing selected branch"></iframe>
           </div>
         </div>
 
+        <!-- 3. DATE & TIME — CALENDAR -->
         <div class="form-section">
-          <h3>2. Choose a time slot</h3>
-          <div class="time-slots" id="timeSlotsWrap">
-            <button type="button" class="time-slot active" data-time="10:00">10:00</button>
-            <button type="button" class="time-slot" data-time="12:00">12:00</button>
-            <button type="button" class="time-slot" data-time="14:00">14:00</button>
-            <button type="button" class="time-slot" data-time="16:00">16:00</button>
-            <button type="button" class="time-slot" data-time="18:00">18:00</button>
+          <h3 class="section-label">3. Pick a date &amp; time</h3>
+
+          <div class="calendar-time-layout">
+            <!-- CALENDAR -->
+            <div class="calendar-wrap">
+              <div class="cal-header">
+                <button type="button" class="cal-nav" id="calPrev" aria-label="Previous month">&#8249;</button>
+                <span class="cal-month-label" id="calMonthLabel">April 2026</span>
+                <button type="button" class="cal-nav" id="calNext" aria-label="Next month">&#8250;</button>
+              </div>
+              <div class="cal-grid">
+                <div class="cal-day-name">Sun</div>
+                <div class="cal-day-name">Mon</div>
+                <div class="cal-day-name">Tue</div>
+                <div class="cal-day-name">Wed</div>
+                <div class="cal-day-name">Thu</div>
+                <div class="cal-day-name">Fri</div>
+                <div class="cal-day-name">Sat</div>
+              </div>
+              <div class="cal-body" id="calBody"></div>
+            </div>
+
+            <!-- TIME SLOTS -->
+            <div class="time-panel">
+              <div class="time-panel-header">
+                <span id="selectedDateLabel" class="selected-date-label">Select a date</span>
+              </div>
+              <div class="time-slots" id="timeSlotsWrap">
+                <button type="button" class="time-slot active" data-time="10:00">10:00</button>
+                <button type="button" class="time-slot" data-time="12:00">12:00</button>
+                <button type="button" class="time-slot" data-time="14:00">14:00</button>
+                <button type="button" class="time-slot" data-time="16:00">16:00</button>
+                <button type="button" class="time-slot" data-time="18:00">18:00</button>
+              </div>
+            </div>
           </div>
 
+          <!-- Hidden inputs kept for app.js compatibility -->
+          <input id="date" type="date" hidden />
           <select id="timeSlot" hidden>
             <option value="10:00" selected>10:00</option>
             <option value="12:00">12:00</option>
@@ -177,82 +190,69 @@
           </select>
         </div>
 
+        <!-- 4. PACKAGE -->
         <div class="form-section">
-          <h3>3. Select package</h3>
-
+          <h3 class="section-label">4. Select package</h3>
           <div id="standardPrices" class="price-group">
             <label for="standardPrice">Standard package</label>
             <select id="standardPrice" class="service-price">
-              <option value="£25" selected>1 Pair - £25</option>
-              <option value="£60">3 Pairs - £60</option>
-              <option value="£130">6 Pairs - £130</option>
+              <option value="£25" selected>1 Pair — £25</option>
+              <option value="£60">3 Pairs — £60</option>
+              <option value="£130">6 Pairs — £130</option>
             </select>
           </div>
-
           <div id="expressPrices" class="price-group" hidden>
             <label for="expressPrice">Express package</label>
             <select id="expressPrice" class="service-price">
-              <option value="£30" selected>1 Pair - £30</option>
-              <option value="£70">3 Pairs - £70</option>
-              <option value="£130">6 Pairs - £130</option>
+              <option value="£30" selected>1 Pair — £30</option>
+              <option value="£70">3 Pairs — £70</option>
+              <option value="£130">6 Pairs — £130</option>
             </select>
           </div>
-
           <div id="nextdayPrices" class="price-group" hidden>
             <label for="nextdayPrice">Next Day package</label>
             <select id="nextdayPrice" class="service-price">
-              <option value="£35" selected>1 Pair - £35</option>
-              <option value="£85">3 Pairs - £85</option>
+              <option value="£35" selected>1 Pair — £35</option>
+              <option value="£85">3 Pairs — £85</option>
             </select>
           </div>
         </div>
 
+        <!-- 5. DETAILS -->
         <div class="form-section">
-          <h3>4. Additional details</h3>
-
-          <div class="form-field">
-            <label for="shoeNotes">Tell us more about the condition</label>
-            <textarea
-              id="shoeNotes"
-              rows="5"
-              placeholder="Example: mud around the sole, stain on the toe box, scuff on the side, strong smell inside, lace needs deep cleaning..."
-            ></textarea>
-            <small>Add anything you want us to know about stains, marks, dirt, smell, damage or problem areas.</small>
+          <h3 class="section-label">5. Additional details</h3>
+          <div class="form-field" style="margin-bottom:1rem;">
+            <label for="shoeNotes">Condition notes</label>
+            <textarea id="shoeNotes" rows="4"
+              placeholder="E.g. mud around the sole, stain on toe box, scuff on the side, strong smell inside…"></textarea>
+            <small>Tell us about any stains, marks, damage or problem areas.</small>
           </div>
-
           <div class="form-field">
-            <label for="shoeImage">Upload a photo of your shoe</label>
-            <input id="shoeImage" type="file" accept="image/*" multiple />
-            <small>This is optional. If image upload fails, the booking will still save.</small>
+            <label for="shoeImages">Upload a photo (optional)</label>
+            <input id="shoeImages" type="file" accept="image/*" multiple>
+            <small>Helps us assess the clean. Booking saves even if upload fails.</small>
           </div>
-
-          <div id="shoePreviewWrap" class="form-field" hidden>
+          <div id="shoePreviewWrap" class="form-field" hidden style="margin-top:.75rem;">
             <label>Preview</label>
-            <img
-              id="shoePreview"
-              src=""
-              alt="Shoe preview"
-              style="max-width: 220px; border-radius: 12px; display: block;"
-            />
+            <img id="shoePreview" src="" alt="Shoe preview" />
           </div>
         </div>
 
         <div class="booking-actions">
-          <button id="btnBook" class="btn primary" type="button">Confirm booking</button>
+          <button id="btnBook" class="btn primary full-btn" type="button">Confirm booking</button>
           <button id="btnGoTrack" class="btn secondary" type="button">Track my order</button>
         </div>
-
         <p id="msg" class="form-message"></p>
       </div>
 
+      <!-- SUMMARY SIDEBAR -->
       <aside class="booking-summary card">
         <div class="card-header">
           <div>
-            <div class="card-title">Booking summary</div>
-            <div class="card-subtitle">Review your selection before confirming</div>
+            <div class="card-title">Summary</div>
+            <div class="card-subtitle">Review before confirming</div>
           </div>
         </div>
-
         <div class="summary-list">
           <div class="summary-row">
             <span>Service</span>
@@ -270,16 +270,14 @@
             <span>Time</span>
             <strong id="summaryTime">10:00</strong>
           </div>
-          <div class="summary-row total">
+          <div class="summary-row total-row">
             <span>Total</span>
             <strong id="selectedPriceText">£25</strong>
           </div>
         </div>
-
         <hr class="gradient-line" />
-
         <div class="summary-note">
-          <h3>What’s included</h3>
+          <h3 class="section-label">What's included</h3>
           <ul class="summary-features">
             <li>Material-safe cleaning process</li>
             <li>Deodorising and finishing</li>
@@ -287,8 +285,11 @@
           </ul>
         </div>
       </aside>
+
     </section>
   </main>
+
+
 
   <script type="module" src="./app.js"></script>
 </body>
