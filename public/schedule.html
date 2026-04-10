@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Schedule | DKCleanEdit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+
+</head>
+
+<body class="schedule-body">
+
+  <!-- NAV -->
+  <nav class="navbar" aria-label="Primary">
+    <ul class="nav-links">
+      <li class="nav-logo">
+        <a href="home.html" aria-label="DKcleanedit home">
+          <img src="videos/logo.png" class="logo" alt="DKcleanedit logo" />
+        </a>
+      </li>
+      <li><a href="home.html"     id="navHome">Home</a></li>
+      <li><a href="booking.html"  id="navBooking"  data-requires-auth="true">Booking</a></li>
+      <li><a href="track.html"    id="navTracking" data-requires-auth="true">Tracking</a></li>
+      <li><a href="customer.html" id="navAccount"  data-requires-auth="true">My Account</a></li>
+      <li><a href="admin.html"    id="navAdmin"    data-requires-auth="true">Admin</a></li>
+      <li><a href="schedule.html" id="navSchedule" aria-current="page" data-requires-auth="true">Schedule</a></li>
+      <li><a href="login.html"    id="navLogin">Login</a></li>
+      <li><a href="register.html" id="navRegister">Register</a></li>
+      <li><a href="#" id="navLogout" hidden>Logout</a></li>
+      <li><span id="navPointsBadge" class="badge" hidden>Points: 0</span></li>
+    </ul>
+  </nav>
+
+  <main class="sched-shell">
+
+    <
+    <header class="sched-hero">
+      <div class="sched-hero-text">
+        <h1 class="sched-title">Schedule &amp; Availability</h1>
+        <p class="sched-sub">Manage your open time slots, view daily bookings, and spot conflicts at a glance.</p>
+      </div>
+      <div class="sched-hero-stats">
+        <div class="sched-stat">
+          <span class="sched-stat-val" id="schedTodayCount">0</span>
+          <span class="sched-stat-lbl">Today</span>
+        </div>
+        <div class="sched-stat">
+          <span class="sched-stat-val" id="schedWeekCount">0</span>
+          <span class="sched-stat-lbl">This week</span>
+        </div>
+        <div class="sched-stat">
+          <span class="sched-stat-val" id="schedOpenSlots">0</span>
+          <span class="sched-stat-lbl">Open slots today</span>
+        </div>
+        <div class="sched-stat">
+          <span class="sched-stat-val" id="schedConflicts">0</span>
+          <span class="sched-stat-lbl">Conflicts</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ── TWO COLUMN LAYOUT ── -->
+    <div class="sched-layout">
+
+      <!-- LEFT: full availability calendar -->
+      <section class="sched-card sched-avail-card">
+
+        <div class="sched-card-head">
+          <div>
+            <div class="sched-card-title">Availability Calendar</div>
+            <div class="sched-card-sub">Click a date to set open/closed slots</div>
+          </div>
+          <div class="sched-cal-nav-row">
+            <button class="sched-cal-btn" id="schedPrev" type="button" aria-label="Previous month">&#8249;</button>
+            <span class="sched-month-label" id="schedMonthLabel"></span>
+            <button class="sched-cal-btn" id="schedNext" type="button" aria-label="Next month">&#8250;</button>
+          </div>
+        </div>
+
+        <!-- Day names -->
+        <div class="sched-day-names">
+          <div>Sun</div><div>Mon</div><div>Tue</div>
+          <div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+        </div>
+
+        <!-- Calendar grid -->
+        <div class="sched-cal-grid" id="schedCalGrid"></div>
+
+        <!-- Legend -->
+        <div class="sched-legend">
+          <div class="sched-legend-item"><span class="sched-dot sched-dot--open"></span>Open slots</div>
+          <div class="sched-legend-item"><span class="sched-dot sched-dot--partial"></span>Partially booked</div>
+          <div class="sched-legend-item"><span class="sched-dot sched-dot--full"></span>Fully booked</div>
+          <div class="sched-legend-item"><span class="sched-dot sched-dot--closed"></span>Closed</div>
+          <div class="sched-legend-item"><span class="sched-dot sched-dot--today"></span>Today</div>
+        </div>
+      </section>
+
+      <!-- RIGHT: slot editor + daily schedule -->
+      <div class="sched-right-col">
+
+        <!-- Slot editor panel -->
+        <section class="sched-card sched-editor-card" id="schedEditorCard">
+          <div class="sched-card-head">
+            <div>
+              <div class="sched-card-title" id="schedEditorTitle">Select a date</div>
+              <div class="sched-card-sub">Toggle each time slot open or closed</div>
+            </div>
+            <div class="sched-editor-actions">
+              <button class="sched-pill-btn sched-pill--green"  type="button" id="btnSchedOpenAll">Open all</button>
+              <button class="sched-pill-btn sched-pill--red"    type="button" id="btnSchedCloseAll">Close all</button>
+              <button class="sched-pill-btn sched-pill--blue"   type="button" id="btnSchedSave">Save</button>
+              <button class="sched-pill-btn sched-pill--yellow" type ="button" id="btnSchedReschedule">Reschedule</button>
+            </div>
+          </div>
+
+          <div class="sched-slot-grid" id="schedSlotGrid">
+            <div class="sched-editor-empty">
+              <p>Pick a date on the calendar to manage its availability.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Daily orders panel -->
+        <section class="sched-card sched-day-card">
+          <div class="sched-card-head">
+            <div>
+              <div class="sched-card-title" id="schedDayTitle">Today's Orders</div>
+              <div class="sched-card-sub" id="schedDayISO"></div>
+            </div>
+            <span class="sched-count-badge" id="schedDayCount">0 orders</span>
+          </div>
+
+          <!-- Timeline view -->
+          <div class="sched-timeline" id="schedTimeline">
+            <div class="sched-editor-empty">
+              <div class="sched-empty-icon">🗓</div>
+              <p>No orders found for this date.</p>
+            </div>
+          </div>
+        </section>
+
+      </div><!-- end right col -->
+
+    </div><!-- end layout -->
+
+    <!-- ── BOTTOM: weekly overview ── -->
+    <section class="sched-card sched-week-card">
+      <div class="sched-card-head">
+        <div>
+          <div class="sched-card-title">7-Day Overview</div>
+          <div class="sched-card-sub">Booking load across the next 7 days</div>
+        </div>
+        <button class="sched-pill-btn sched-pill--blue" type="button" id="btnWeekRefresh">Refresh</button>
+      </div>
+      <div class="sched-week-grid" id="schedWeekGrid"></div>
+    </section>
+
+  </main>
+
+  <div id="toastHost"></div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

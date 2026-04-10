@@ -32,6 +32,7 @@
       <li><a href="register.html" id="navRegister">Register</a></li>
       <li><a href="#" id="navLogout" hidden>Logout</a></li>
       <li><span id="navPointsBadge" class="badge points-badge" hidden>Points: 0</span></li>
+        <li><a href="settings.html"><img class="PicSettings" src="https://img.icons8.com/ios-filled/100/666666/settings.png"></a></li>
     </ul>
   </nav>
 
@@ -56,13 +57,12 @@
       <div class="hero-glow hero-glow--blue"></div>
       <div class="hero-glow hero-glow--gold"></div>
       <span class="eyebrow">Professional sneaker care</span>
-      <h1>Book your<br>cleaning service</h1>
-      <p class="sub">Choose your service, location, date and time — confirmed in minutes.</p>
+      <h1>Book your cleaning service</h1>
     </section>
 
     <section class="booking-layout">
 
-      <!-- MAIN FORM -->
+      <!-- the main form -->
       <div class="booking-form card">
         <div class="card-header">
           <div>
@@ -72,7 +72,7 @@
           <span class="badge info-badge">Step 1</span>
         </div>
 
-        <!-- 1. SERVICE -->
+        <!-- 1. service  -->
         <div class="form-section">
           <h3 class="section-label">1. Select service</h3>
           <div class="service-options">
@@ -82,7 +82,7 @@
                 <strong>Standard Cleaning</strong>
                 <span class="badge info-badge">From £25</span>
               </div>
-              <p>Deep exterior clean, midsole scrub, lace clean, deodorising, drying and finish. Ready in 3–5 days.</p>
+              <p>Deep exterior clean, midsole scrub, lace clean, deodorising, drying and finish. Ready in 3 to 5 days.</p>
             </label>
             <label class="service-option" data-service-card="express">
               <input type="radio" name="serviceCard" value="express" hidden />
@@ -90,7 +90,7 @@
                 <strong>Express Service</strong>
                 <span class="badge info-badge">From £30</span>
               </div>
-              <p>Fast turnaround with consistent care and a professional finish. Ready in 2–3 days.</p>
+              <p>Fast turnaround with consistent care and a professional finish. Ready in 2 to 3 days.</p>
             </label>
             <label class="service-option" data-service-card="next_day">
               <input type="radio" name="serviceCard" value="next_day" hidden />
@@ -98,7 +98,7 @@
                 <strong>Next Day</strong>
                 <span class="badge info-badge">From £35</span>
               </div>
-              <p>Priority cleaning with careful, material-safe processes for every pair. Ready next day.</p>
+              <p>Priority cleaning with careful, material-safe processes for every pair of shoe. Ready next day.</p>
             </label>
           </div>
           <!-- Hidden select kept for app.js compatibility -->
@@ -109,11 +109,11 @@
           </select>
         </div>
 
-        <!-- 2. LOCATION -->
+        <!-- 2. location -->
         <div class="form-section">
           <h3 class="section-label">2. Select location</h3>
           <div class="form-field">
-            <label for="location">Drop-off branch</label>
+            <label for="location">Drop off branch </label>
             <select id="location">
               <option value="charles_street_leicester" selected>Charles Street, Leicester</option>
               <option value="canada_water">Canada Water, London</option>
@@ -121,7 +121,7 @@
             <small>Choose your nearest drop-off location.</small>
           </div>
 
-          <!-- MAP -->
+          <!-- Map -->
           <div class="location-map-card">
             <div class="location-map-top">
               <div>
@@ -279,9 +279,12 @@
         <div class="summary-note">
           <h3 class="section-label">What's included</h3>
           <ul class="summary-features">
-            <li>Material-safe cleaning process</li>
+            <li>Material safe cleaning process</li>
+            <li>Shoe wrap</li>
+            <li>Branded abg</li>
             <li>Deodorising and finishing</li>
             <li>Professional handling and inspection</li>
+            <li>after care policy</li>
           </ul>
         </div>
       </aside>
@@ -290,7 +293,7 @@
   </main>
 
 
-
   <script type="module" src="./app.js"></script>
+
 </body>
 </html>

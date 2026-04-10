@@ -3116,6 +3116,1579 @@ textarea:focus{
     grid-template-columns: 1fr;
   }
 }
-=======
+/* ============================================================
+   schedule.css  —  DKCleanEdit Schedule & Availability Page
+
+   ============================================================ */
+
+/* ── Font override for this page ── */
+.schedule-body {
+  font-family: 'DM Sans', system-ui, sans-serif;
 }
->>>>>>> 92e4805 (Refine project calendar by adding sprint 2 milestones, adjusting deadlines based on team capacity, and aligning tasks with backend integration goals)
+
+.sched-title,
+.sched-card-title,
+.sched-month-label,
+.sched-stat-val {
+  font-family: 'Syne', system-ui, serif;
+}
+
+/* ============================================================
+   SHELL / LAYOUT
+   ============================================================ */
+.sched-shell {
+  width: min(1240px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 32px 0 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ============================================================
+   HERO HEADER
+   ============================================================ */
+.sched-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 36px 40px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #0a1628 0%, #112040 55%, #162a52 100%);
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.18);
+  position: relative;
+  overflow: hidden;
+  animation: schedFadeUp 0.4s ease both;
+}
+
+.sched-hero::before {
+  content: '';
+  position: absolute;
+  top: -80px; right: -80px;
+  width: 320px; height: 320px;
+  background: radial-gradient(circle, rgba(0,108,228,0.18) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.sched-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -40px; left: 5%;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(79,149,242,0.10) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.sched-hero-text { flex: 1; }
+
+.sched-eyebrow {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 10px;
+}
+
+.sched-title {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  margin: 0 0 10px;
+}
+
+.sched-sub {
+  font-size: 0.92rem;
+  color: rgba(255,255,255,0.55);
+  max-width: 480px;
+  line-height: 1.65;
+  margin: 0;
+}
+
+.sched-hero-stats {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.sched-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 20px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.09);
+  min-width: 90px;
+  text-align: center;
+}
+
+.sched-stat-val {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+
+.sched-stat-lbl {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+  white-space: nowrap;
+}
+
+/* ============================================================
+   TWO-COLUMN LAYOUT
+   ============================================================ */
+.sched-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 20px;
+  align-items: start;
+}
+
+.sched-right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ============================================================
+   SHARED CARD
+   ============================================================ */
+.sched-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--shadow-2);
+  overflow: hidden;
+  animation: schedFadeUp 0.4s ease both;
+}
+
+.sched-avail-card  { animation-delay: 0.05s; }
+.sched-editor-card { animation-delay: 0.1s;  }
+.sched-day-card    { animation-delay: 0.15s; }
+.sched-week-card   { animation-delay: 0.2s;  }
+
+.sched-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 22px 16px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, #fff 0%, #f9fbff 100%);
+  flex-wrap: wrap;
+}
+
+.sched-card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #111f3d;
+  letter-spacing: -0.01em;
+}
+
+.sched-card-sub {
+  font-size: 0.82rem;
+  color: var(--text-3);
+  margin-top: 3px;
+}
+
+/* ============================================================
+   CALENDAR — FULL SIZE
+   ============================================================ */
+.sched-cal-nav-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.sched-cal-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text-3);
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 180ms ease, color 180ms ease, background 180ms ease;
+  line-height: 1;
+}
+
+.sched-cal-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary-700);
+  background: var(--primary-050);
+}
+
+.sched-month-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111f3d;
+  min-width: 120px;
+  text-align: center;
+}
+
+/* Day name row */
+.sched-day-names {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  padding: 10px 16px 6px;
+  gap: 4px;
+}
+
+.sched-day-names > div {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-4);
+  text-align: center;
+  padding: 4px 0;
+}
+
+/* Calendar grid */
+.sched-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  padding: 4px 16px 16px;
+  gap: 4px;
+}
+
+/* Individual day cell */
+.sched-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 7px 4px 5px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 180ms ease, border-color 180ms ease, transform 120ms ease;
+  min-height: 52px;
+  gap: 3px;
+}
+
+.sched-cell:hover:not(.sched-cell--other):not(.sched-cell--past) {
+  background: var(--primary-050);
+  border-color: #cfe0fb;
+  transform: translateY(-1px);
+}
+
+.sched-cell-num {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1;
+}
+
+/* Booking count pill */
+.sched-cell-count {
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 99px;
+  background: var(--primary-100);
+  color: var(--primary-700);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+/* Slot indicator dots */
+.sched-cell-dots {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.sched-slot-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--primary-400);
+}
+
+.sched-slot-dot--closed { background: #e0d8d0; }
+.sched-slot-dot--booked { background: var(--warning); }
+
+/* State modifiers */
+.sched-cell--other {
+  color: var(--text-4);
+  opacity: 0.38;
+  cursor: default;
+}
+
+.sched-cell--past {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+.sched-cell--past .sched-cell-num { color: var(--text-4); }
+
+.sched-cell--today {
+  background: var(--primary-050);
+  border-color: #cfe0fb;
+}
+
+.sched-cell--today .sched-cell-num {
+  color: var(--primary-700);
+  font-weight: 800;
+}
+
+.sched-cell--today::before {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+.sched-cell--selected {
+  background: var(--primary) !important;
+  border-color: var(--primary-700) !important;
+  box-shadow: 0 4px 14px rgba(0,108,228,0.28);
+}
+
+.sched-cell--selected .sched-cell-num,
+.sched-cell--selected .sched-cell-count { color: #fff !important; background: rgba(255,255,255,0.2) !important; }
+.sched-cell--selected .sched-slot-dot   { background: rgba(255,255,255,0.6) !important; }
+.sched-cell--selected::before            { display: none; }
+
+/* Availability status backgrounds */
+.sched-cell--all-open   { background: #f0fdf6; border-color: #c3e8d4; }
+.sched-cell--partial    { background: #fffbeb; border-color: #f5e0a0; }
+.sched-cell--all-closed { background: #fff5f5; border-color: #f5c0c0; }
+
+/* ── Legend ── */
+.sched-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--line);
+  background: var(--surface-2);
+}
+
+.sched-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-3);
+}
+
+.sched-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sched-dot--open    { background: var(--success); }
+.sched-dot--partial { background: var(--warning); }
+.sched-dot--full    { background: var(--primary); }
+.sched-dot--closed  { background: var(--danger); }
+.sched-dot--today   { background: var(--primary-400); border: 2px solid var(--primary-700); }
+
+/* ============================================================
+   SLOT EDITOR
+   ============================================================ */
+.sched-editor-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.sched-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border: none;
+  cursor: pointer;
+  transition: all 180ms ease;
+  white-space: nowrap;
+}
+
+.sched-pill--green {
+  background: #e8f7f0;
+  color: var(--success);
+  border: 1px solid #c3e8d4;
+}
+.sched-pill--green:hover { background: #d4f0e3; border-color: #a0dbb9; }
+
+.sched-pill--red {
+  background: #fff0f0;
+  color: var(--danger);
+  border: 1px solid #f5c0c0;
+}
+.sched-pill--red:hover { background: #ffe0e0; border-color: #f09090; }
+
+.sched-pill--blue {
+  background: var(--primary);
+  color: #fff;
+  border: 1px solid var(--primary-700);
+  box-shadow: 0 4px 14px rgba(0,108,228,0.22);
+}
+.sched-pill--blue:hover { background: var(--primary-700); transform: translateY(-1px); }
+
+.sched-slot-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 18px 22px 22px;
+}
+
+.sched-slot-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #fff;
+  cursor: pointer;
+  transition: all 180ms ease;
+  gap: 8px;
+}
+
+.sched-slot-item:hover { border-color: #bfd3eb; background: #f9fbff; transform: translateY(-1px); }
+
+.sched-slot-item.slot-open {
+  background: #f0fdf6;
+  border-color: #c3e8d4;
+}
+
+.sched-slot-item.slot-closed {
+  background: #fff5f5;
+  border-color: #f5c0c0;
+  opacity: 0.75;
+}
+
+.sched-slot-item.slot-booked {
+  background: #fffbeb;
+  border-color: #f5e0a0;
+  cursor: not-allowed;
+}
+
+.sched-slot-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sched-slot-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.slot-open   .sched-slot-icon { background: #d4f0e3; }
+.slot-closed .sched-slot-icon { background: #ffe0e0; }
+.slot-booked .sched-slot-icon { background: #fff0cc; }
+
+.sched-slot-time {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.sched-slot-status {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.slot-open   .sched-slot-status { background: #c3e8d4; color: var(--success); }
+.slot-closed .sched-slot-status { background: #f5c0c0; color: var(--danger);  }
+.slot-booked .sched-slot-status { background: #f5e0a0; color: var(--warning); }
+
+.sched-editor-empty {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  text-align: center;
+  color: var(--text-3);
+  gap: 10px;
+}
+
+.sched-empty-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.sched-editor-empty p {
+  font-size: 0.88rem;
+  color: var(--text-3);
+  margin: 0;
+  max-width: 220px;
+}
+
+/* ============================================================
+   DAILY SCHEDULE / TIMELINE
+   ============================================================ */
+.sched-count-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--primary-050);
+  border: 1px solid #cfe0fb;
+  color: var(--primary-700);
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.sched-timeline {
+  padding: 16px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sched-time-slot-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sched-time-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-4);
+  padding-left: 2px;
+}
+
+.sched-time-heading::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.sched-order-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #fff;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.sched-order-row:hover {
+  border-color: #bfd3eb;
+  box-shadow: var(--shadow-1);
+}
+
+.sched-order-row.conflict-row {
+  background: #fff9ed;
+  border-color: #f5e0a0;
+}
+
+.sched-order-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--primary-050);
+  border: 1px solid #cfe0fb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--primary-700);
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+.sched-order-info { flex: 1; min-width: 0; }
+
+.sched-order-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #111f3d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sched-order-meta {
+  font-size: 0.75rem;
+  color: var(--text-3);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sched-order-status {
+  flex-shrink: 0;
+}
+
+.sched-empty-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 16px;
+  gap: 8px;
+  text-align: center;
+}
+
+.sched-empty-day .sched-empty-icon { font-size: 1.8rem; }
+.sched-empty-day p { font-size: 0.85rem; color: var(--text-3); margin: 0; }
+
+/* ============================================================
+   7-DAY WEEK OVERVIEW
+   ============================================================ */
+.sched-week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+  padding: 18px 22px 22px;
+}
+
+.sched-week-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 8px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: #fff;
+  text-align: center;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 120ms ease;
+  cursor: pointer;
+}
+
+.sched-week-day:hover {
+  border-color: #bfd3eb;
+  box-shadow: var(--shadow-1);
+  transform: translateY(-2px);
+}
+
+.sched-week-day.is-today {
+  background: var(--primary-050);
+  border-color: #bfd4f7;
+}
+
+.sched-week-day.is-selected {
+  background: var(--primary);
+  border-color: var(--primary-700);
+  box-shadow: 0 4px 16px rgba(0,108,228,0.25);
+}
+
+.sched-week-name {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-4);
+}
+
+.sched-week-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #111f3d;
+  line-height: 1;
+}
+
+.sched-week-day.is-today .sched-week-name,
+.sched-week-day.is-today .sched-week-num { color: var(--primary-700); }
+
+.sched-week-day.is-selected .sched-week-name,
+.sched-week-day.is-selected .sched-week-num { color: #fff; }
+
+.sched-week-bar-wrap {
+  width: 100%;
+  height: 36px;
+  background: var(--surface-3);
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+}
+
+.sched-week-bar {
+  width: 100%;
+  background: var(--primary-400);
+  border-radius: 6px;
+  transition: height 400ms ease;
+  min-height: 3px;
+}
+
+.sched-week-day.is-today    .sched-week-bar { background: var(--primary); }
+.sched-week-day.is-selected .sched-week-bar { background: rgba(255,255,255,0.5); }
+
+.sched-week-orders {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-3);
+}
+
+.sched-week-day.is-today .sched-week-orders    { color: var(--primary-700); }
+.sched-week-day.is-selected .sched-week-orders { color: rgba(255,255,255,0.8); }
+
+/* ============================================================
+   CONFLICT INDICATOR
+   ============================================================ */
+.sched-conflict-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #fff4df;
+  border: 1px solid #f0d6a3;
+  color: var(--warning);
+  font-size: 0.68rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes schedFadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1080px) {
+  .sched-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sched-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 28px 24px;
+  }
+
+  .sched-hero-stats {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 760px) {
+  .sched-shell { padding: 20px 0 60px; }
+
+  .sched-hero { padding: 22px 18px; }
+  .sched-title { font-size: 1.7rem; }
+
+  .sched-hero-stats { gap: 6px; }
+  .sched-stat { padding: 12px 14px; min-width: 72px; }
+  .sched-stat-val { font-size: 1.4rem; }
+
+  .sched-week-grid { grid-template-columns: repeat(4, 1fr); }
+
+  .sched-card-head { padding: 16px 16px 12px; flex-direction: column; align-items: flex-start; }
+
+  .sched-slot-grid { grid-template-columns: 1fr; padding: 14px 16px 18px; }
+
+  .sched-cal-grid,
+  .sched-day-names { padding-left: 10px; padding-right: 10px; }
+}
+
+@media (max-width: 480px) {
+  .sched-week-grid { grid-template-columns: repeat(3, 1fr); }
+  .sched-hero-stats { display: grid; grid-template-columns: 1fr 1fr; }
+  .sched-cell { min-height: 40px; padding: 5px 2px; }
+  .sched-cell-num { font-size: 0.78rem; }
+}
+/* ============================================================
+   admin.css  —  DKCleanEdit Admin Dashboard
+   Companion to styles.css
+   ============================================================ */
+
+/* ── Admin body background ── */
+.admin-body {
+  background:
+    radial-gradient(900px 360px at 100% -10%, rgba(0,108,228,0.07), transparent 60%),
+    radial-gradient(700px 260px at 0% 0%,    rgba(79,149,242,0.07), transparent 58%),
+    linear-gradient(180deg, #f8fbff 0%, #f3f7fc 100%);
+}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.admin-layout {
+  display: grid;
+  grid-template-columns: 290px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+.admin-sidebar {
+  position: sticky;
+  top: calc(var(--nav-h) + 16px);
+  padding: 22px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  border: 1px solid #d9e5f3;
+  box-shadow: 0 12px 30px rgba(16,24,40,0.08);
+  overflow-y: auto;
+  max-height: calc(100vh - var(--nav-h) - 40px);
+}
+
+.admin-brand {
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #122648;
+}
+
+/* ── Sidebar nav links ── */
+.admin-side-nav {
+  display: grid;
+  gap: 4px;
+}
+
+.admin-side-link {
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-2);
+  background: transparent;
+  text-decoration: none;
+  transition: background var(--ease), border-color var(--ease), color var(--ease), transform var(--ease);
+}
+
+.admin-side-link:hover {
+  background: var(--primary-050);
+  border-color: #d7e6fb;
+  color: var(--primary-700);
+  transform: translateX(2px);
+}
+
+.admin-side-link.active {
+  background: linear-gradient(180deg, #eef5ff 0%, #e4efff 100%);
+  color: var(--primary-700);
+  border-color: #bfd7fb;
+  box-shadow: inset 0 0 0 1px rgba(0,108,228,0.05);
+}
+
+/* ── Section label ── */
+.sidebar-section-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 10px;
+}
+
+/* ── Stat grid ── */
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.stat-card {
+  padding: 13px 14px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  box-shadow: none;
+  transition: border-color var(--ease), box-shadow var(--ease);
+}
+
+.stat-card:hover {
+  border-color: #bfd3eb;
+  box-shadow: var(--shadow-1);
+}
+
+.stat-card .stat-val {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #163059;
+  line-height: 1;
+  margin-top: 4px;
+}
+
+.stat-card .stat-lbl {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+/* ============================================================
+   AVAILABILITY MINI-CALENDAR (sidebar)
+   ============================================================ */
+.avail-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.avail-cal-wrap {
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  background: #fff;
+}
+
+.avail-cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+}
+
+.avail-cal-header span {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #163059;
+}
+
+.avail-cal-nav {
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-xs);
+  background: #fff;
+  color: var(--text-3);
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color var(--ease), color var(--ease), background var(--ease);
+  line-height: 1;
+}
+
+.avail-cal-nav:hover {
+  border-color: var(--primary);
+  color: var(--primary-700);
+  background: var(--primary-050);
+}
+
+.avail-day-names {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  padding: 6px 4px 2px;
+}
+
+.avail-day-name {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-4);
+  text-align: center;
+}
+
+.avail-cal-body {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  padding: 2px 4px 6px;
+  gap: 2px;
+}
+
+.avail-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text);
+  position: relative;
+  transition: background-color var(--ease), border-color var(--ease);
+  border: 1px solid transparent;
+}
+
+.avail-cell:hover:not(.avail-cell--other):not(.avail-cell--past) {
+  background: var(--primary-050);
+  border-color: #d0e4fb;
+}
+
+.avail-cell--other { color: var(--text-4); opacity: 0.4; cursor: default; }
+.avail-cell--past  { color: var(--text-4); opacity: 0.35; cursor: not-allowed; }
+
+.avail-cell--today {
+  font-weight: 800;
+  color: var(--primary-700);
+}
+
+.avail-cell--today::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+.avail-cell--open {
+  background: #e8f7f0;
+  border-color: #b0dfc8;
+  color: var(--success);
+  font-weight: 700;
+}
+
+.avail-cell--closed {
+  background: #fff0f0;
+  border-color: #f5c0c0;
+  color: var(--danger);
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.avail-cell--selected {
+  background: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color: #fff !important;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0,108,228,0.25);
+}
+
+.avail-cell--selected::after { display: none; }
+
+/* ── Slot editor (sidebar) ── */
+.avail-selected-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #163059;
+  margin-bottom: 8px;
+}
+
+.avail-slot-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.avail-slot-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line);
+  background: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all var(--ease);
+  gap: 6px;
+}
+
+.avail-slot-btn:hover { border-color: #bfd3eb; background: #f9fbff; }
+
+.avail-slot-btn.slot-open {
+  background: #e8f7f0;
+  border-color: #b0dfc8;
+  color: var(--success);
+}
+
+.avail-slot-btn.slot-closed {
+  background: #fff5f5;
+  border-color: #f2c3c3;
+  color: var(--danger);
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.avail-slot-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.avail-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.avail-actions .btn {
+  flex: 1;
+  min-height: 36px;
+  font-size: 0.76rem;
+  padding: 7px 8px;
+}
+
+/* ── Legend ── */
+.avail-legend {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  color: var(--text-3);
+  font-weight: 600;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-dot--open   { background: var(--success); }
+.legend-dot--closed { background: var(--danger);  }
+.legend-dot--today  { background: var(--primary); }
+
+/* ============================================================
+   MAIN PANEL
+   ============================================================ */
+.admin-main {
+  min-width: 0;
+  padding: 0;
+}
+
+.admin-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.admin-header h1 { margin-bottom: 4px; }
+
+.admin-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* ── Tabs ── */
+.admin-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 0 24px;
+  background: var(--surface-2);
+}
+
+.admin-tab {
+  padding: 12px 18px;
+  border-bottom: 2px solid transparent;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-3);
+  cursor: pointer;
+  background: transparent;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  transition: color var(--ease), border-color var(--ease);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.admin-tab:hover { color: var(--primary-700); }
+
+.admin-tab.active {
+  color: var(--primary-700);
+  border-bottom-color: var(--primary);
+}
+
+.admin-tab-panel {
+  display: none;
+  padding: 20px 24px;
+}
+
+.admin-tab-panel.active { display: block; }
+
+/* ── Orders list ── */
+.admin-orders {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.admin-orders .order-card {
+  padding: 18px 20px;
+  border-radius: 16px;
+  border: 1px solid #dbe5f1;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  box-shadow: 0 4px 16px rgba(16,24,40,0.06);
+  transition: transform var(--ease), box-shadow var(--ease), border-color var(--ease);
+}
+
+.admin-orders .order-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(16,24,40,0.10);
+  border-color: #c7d8ec;
+}
+
+/* ── Conflict badge ── */
+.conflict-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  background: #fff4df;
+  border: 1px solid #f0d6a3;
+  color: var(--warning);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+/* ── Admin msg ── */
+.admin-msg {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--text-3);
+  font-size: 0.88rem;
+  min-height: 20px;
+}
+
+/* ── Admin form row inside order card ── */
+.admin-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.9fr) auto;
+  gap: 12px;
+  align-items: end;
+  margin-top: 14px;
+}
+
+.admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-field label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #18345d;
+}
+
+.admin-field-btn { justify-content: flex-end; }
+
+.admin-status,
+.admin-points,
+#adminSearch,
+#adminFilter {
+  min-height: 44px;
+  border-radius: 10px;
+  border: 1px solid #cfdae8;
+  background: #fff;
+  padding: 9px 12px;
+  font-size: 0.9rem;
+  color: var(--text);
+  transition: border-color var(--ease), box-shadow var(--ease);
+}
+
+.admin-status:focus,
+.admin-points:focus,
+#adminSearch:focus,
+#adminFilter:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0,108,228,0.10);
+}
+
+/* ── Conflict & schedule panels ── */
+.conflict-group {
+  margin-bottom: 20px;
+}
+
+.conflict-group-header {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--warning);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  background: #fff9ed;
+  border-radius: var(--r-sm);
+  border: 1px solid #f5e0a0;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1080px) {
+  .admin-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-sidebar {
+    position: static;
+    max-height: none;
+  }
+
+  .admin-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-header {
+    flex-direction: column;
+    padding: 16px 16px 14px;
+  }
+
+  .admin-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .admin-actions input,
+  .admin-actions select,
+  .admin-actions .btn {
+    width: 100%;
+  }
+
+  .admin-tabs {
+    padding: 0 12px;
+    overflow-x: auto;
+  }
+
+  .admin-tab-panel {
+    padding: 16px;
+  }
+
+  .stat-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .stat-grid { grid-template-columns: 1fr 1fr; }
+  .avail-slot-grid { grid-template-columns: 1fr; }
+}
+
+/*setting page*/
+.PicSettings{
+height: 30px;
+width: 30px;
+}
+
+.customer-layout {
+  margin-top: 30px;
+}
+
+.account-card {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.account-card h1 {
+  margin-bottom: 24px;
+  font-size: 2rem;
+  color: var(--text);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.stat {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+}
+
+.stat-title {
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.stat-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.img {
+  width: 140px;
+  height: 140px;
+  margin-bottom: 14px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--primary-100);
+  background: #dbeafe;
+}
+
+.profile-upload {
+  margin-bottom: 12px;
+}
+
+.Switch.box {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 220px;
+  padding: 14px 16px;
+  border-radius: var(--r-md);
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  z-index: 999;
+}
+
+.Swittext {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.switch {
+  display: none;
+}
+
+.Darkmode {
+  width: 52px;
+  height: 30px;
+  position: relative;
+  display: block;
+  background: #d1d5db;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.Darkmode::after {
+  content: "";
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  border-radius: 50%;
+  background: #fff;
+  transition: 0.3s;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.switch:checked + .Darkmode {
+  background: var(--primary);
+}
+
+.switch:checked + .Darkmode::after {
+  left: 27px;
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .Switch.box {
+    right: 12px;
+    left: 12px;
+    bottom: 12px;
+    width: auto;
+  }
+
+  .img {
+    width: 120px;
+    height: 120px;
+  }
+}
