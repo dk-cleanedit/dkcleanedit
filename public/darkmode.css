@@ -1,0 +1,37 @@
+/* Dark mode. Applied by toggling .dark-mode on <html>.
+   We override the tokens from styles.css so everything adapts automatically. */
+
+html.dark-mode {
+  --bg: #0f1115;
+  --surface: #171a21;
+  --surface-2: #1d212a;
+  --border: #262b36;
+  --text: #e7eaf0;
+  --text-soft: #aab2c0;
+  --text-mute: #7a8494;
+  --brand: #5b8bff;
+  --brand-hover: #7aa0ff;
+  --brand-soft: rgba(91, 139, 255, .14);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .35);
+  --shadow-md: 0 10px 28px rgba(0, 0, 0, .45);
+  --shadow-lg: 0 24px 60px rgba(0, 0, 0, .55);
+}
+
+html.dark-mode body { background: var(--bg); }
+
+html.dark-mode .navbar {
+  background: rgba(23, 26, 33, .78);
+  border-bottom-color: var(--border);
+}
+
+html.dark-mode input,
+html.dark-mode select,
+html.dark-mode textarea {
+  background: var(--surface-2);
+  color: var(--text);
+  border-color: var(--border);
+}
+html.dark-mode input::placeholder { color: var(--text-mute); }
+
+html.dark-mode .btn.secondary { background: var(--surface-2); }
+html.dark-mode .Darkmode::after { background: #e7eaf0; }

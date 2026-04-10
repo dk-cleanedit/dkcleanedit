@@ -5,7 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Admin | DKCleanEdit</title>
   <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="admin.css" />
+  <link rel="stylesheet" href="darkmode.css" />
+  <link rel="stylesheet" href="booking.css" />
+  <link rel="stylesheet" href="tracking.css" />
+   <link rel="stylesheet" href="schedule.css" />
+  <link rel="stylesheet" href="settings.css" />
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script type="text/javascript">
     (function(){ emailjs.init({ publicKey: "v1GO4hYhLibhbnt_N" }); })();
@@ -199,7 +203,10 @@
 
   <div id="toastHost"></div>
   <script type="module" src="./app.js"></script>
+  <script type="module" src="./theme.js"></script>
 
-<script type="module" src="./admin.js"></script>
+<script>
+  initSettings();
+</script>
 </body>
 </html>

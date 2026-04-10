@@ -2,84 +2,123 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>My Account | DKCleanedit</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>My Account | DKcleanedit</title>
+  <script>if(localStorage.getItem("theme")==="dark")document.documentElement.classList.add("dark-mode");</script>
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="customer.css" />
+  <link rel="stylesheet" href="darkmode.css" />
 </head>
-
 <body>
-  <nav class="navbar" aria-label="Primary">
-    <ul class="nav-links">
-      <img src="videos/logo.png" class="logo" alt="DKCleanEdit Logo" />
+  <nav class="navbar">
+    <ul class="nav-inner">
+      <li class="nav-logo"><a href="home.html"><img src="videos/logo.png" class="logo" alt="DKcleanedit" /></a></li>
       <li><a href="home.html" id="navHome">Home</a></li>
       <li><a href="booking.html" id="navBooking" data-requires-auth="true">Booking</a></li>
       <li><a href="track.html" id="navTracking" data-requires-auth="true">Tracking</a></li>
-      <li><a href="customer.html" id="navAccount" aria-current="page" data-requires-auth="true">My Account</a></li>
+      <li><a href="customer.html" id="navAccount" data-requires-auth="true" aria-current="page">My Account</a></li>
       <li><a href="admin.html" id="navAdmin" data-requires-auth="true">Admin</a></li>
       <li><a href="login.html" id="navLogin">Login</a></li>
       <li><a href="register.html" id="navRegister">Register</a></li>
       <li><a href="#" id="navLogout" hidden>Logout</a></li>
-      <li><span id="navPointsBadge" class="badge" hidden>Points: 0</span></li>
+      <li><span id="navPointsBadge" class="badge info" hidden>Points: 0</span></li>
+      <li><a href="settings.html"><img class="PicSettings" src="https://img.icons8.com/ios-filled/100/666666/settings.png" alt="Settings" /></a></li>
     </ul>
   </nav>
 
-  <main class="container customer-layout">
-    <section class="card">
-      <h1>Welcome back</h1>
-      <div class="stats-grid">
-        <div class="stat">
-          <div class="stat-title">Name</div>
-          <div class="stat-value" id="custName">-</div>
+  <main class="container acct-shell">
+
+    <!-- profile strip -->
+    <div class="card acct-strip">
+      <div class="acct-av-wrap">
+        <img id="custAvatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" class="acct-av" alt="Avatar" />
+        <div class="acct-av-badge" id="custTierBadge">Carbon</div>
+      </div>
+      <div>
+        <h1 id="custName" class="acct-name">—</h1>
+        <p id="custEmail" class="acct-email">—</p>
+      </div>
+      <a href="booking.html" class="btn primary acct-book-btn" data-requires-auth="true">Book a clean</a>
+    </div>
+
+    <!-- loyalty + stats -->
+    <div class="acct-mid">
+
+      <div class="card loyalty-card">
+        <div class="loyalty-hd">
+          <div>
+            <span class="loyalty-lbl">Loyalty points</span>
+            <div class="loyalty-pts" id="custPoints">0</div>
+          </div>
+          <div class="tier-chip" id="loyaltyTierChip">Carbon</div>
         </div>
 
-        <div class="stat">
-          <div class="stat-title">Email</div>
-          <div class="stat-value" id="custEmail">-</div>
+        <div class="tier-prog-lbl">
+          <span id="tierCurrentLabel">Carbon</span>
+          <span id="tierNextLabel">100 pts to Stone</span>
         </div>
+        <div class="tier-bar-track">
+          <div class="tier-bar-fill" id="tierBarFill" style="width:0%"></div>
+        </div>
+        <p class="tier-hint" id="tierHint">Keep booking to level up and unlock bigger rewards.</p>
 
-        <div class="stat">
-          <div class="stat-title">Loyalty Points</div>
-          <div class="stat-value" id="custPoints">0</div>
+        <div class="tier-items">
+          <div class="tier-item" id="tier-carbon">
+            <div class="ti-name">Carbon</div>
+            <div class="ti-req">50–99 pts</div>
+            <div class="ti-perk">£5 off next clean</div>
+          </div>
+          <div class="tier-item" id="tier-stone">
+            <div class="ti-name">Stone</div>
+            <div class="ti-req">100–499 pts</div>
+            <div class="ti-perk">£10 off + priority</div>
+          </div>
+          <div class="tier-item" id="tier-pearl">
+            <div class="ti-name">Pearl</div>
+            <div class="ti-req">500+ pts</div>
+            <div class="ti-perk">Free clean + shoe tree</div>
+          </div>
         </div>
       </div>
 
-      <div class="actions-row">
-        <a class="btn primary" href="booking.html" data-requires-auth="true">Book a service</a>
-        <a class="btn secondary" href="track.html" data-requires-auth="true">Track my orders</a>
+      <div class="stat-col">
+        <div class="card stat-box">
+          <div class="stat-lbl">Total cleans</div>
+          <div class="stat-val" id="custTotalOrders">0</div>
+        </div>
+        <div class="card stat-box">
+          <div class="stat-lbl">Completed</div>
+          <div class="stat-val" id="custCompleted">0</div>
+        </div>
+        <div class="card stat-box">
+          <div class="stat-lbl">Points earned</div>
+          <div class="stat-val" id="custPointsEarned">0</div>
+        </div>
+        <div class="card stat-box">
+          <div class="stat-lbl">Member since</div>
+          <div class="stat-val sm" id="custSince">—</div>
+        </div>
       </div>
+    </div>
 
-      <hr />
-
-      <h2>Change Password</h2>
-      <p class="sub"> Enter your current password first.</p>
-
-      <label class="sub" for="curPass">Current password</label>
-      <input id="curPass" type="password" autocomplete="current-password" />
-
-      <label class="sub" for="newPass">New password</label>
-      <input id="newPass" type="password" autocomplete="new-password" />
-
-      <button id="btnChangePass" class="btn primary full" type="button">Update password</button>
-      <p class="sub" id="passMsg"></p>
-
-      <p id="msg"></p>
-    </section>
-
-    <section class="card">
-      <div class="card-header">
+    <!-- order history -->
+    <div class="card acct-orders">
+      <div class="acct-orders-hd">
         <div>
-          <h2>Recent Orders</h2>
+          <h2>Order history</h2>
+          <p class="sub">All your cleans, most recent first.</p>
         </div>
-
-        <button class="btn secondary" type="button" id="btnCustRefresh">Refresh</button>
+        <button class="btn secondary" id="btnCustRefresh" type="button">Refresh</button>
       </div>
+      <div id="custOrders" class="acct-order-rows" aria-live="polite">
+        <p class="acct-empty">Loading orders…</p>
+      </div>
+    </div>
 
-      <div id="custOrders" class="orders-grid"></div>
-    </section>
   </main>
 
   <script type="module" src="./app.js"></script>
-
-
+  <script type="module" src="./theme.js"></script>
+  <script type="module" src="./customer.js"></script>
 </body>
 </html>

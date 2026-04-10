@@ -4,14 +4,21 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>DKcleanedit | Luxury Sneaker Cleaning</title>
+  <script>
+    if (localStorage.getItem("theme") === "dark") {
+      document.documentElement.classList.add("dark-mode");
+    }
+  </script>
   <meta
     name="description"
     content="Book sneaker cleaning in Leicester & London. Track orders in real time and earn loyalty points."
   />
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="darkmode.css" />
+
 </head>
 
-<body>
+<
   <nav class="navbar" aria-label="Primary">
     <ul class="nav-links">
       <li class="nav-logo">
@@ -36,7 +43,6 @@
   <main class="container page-shell">
     <section class="hero card" aria-labelledby="heroTitle">
       <div class="hero-copy">
-        <span class="eyebrow">Premium sneaker care platform</span>
         <h1 id="heroTitle">Luxury Sneaker Cleaning &amp; Restoration</h1>
         <p class="sub">
           Book in minutes, follow progress in real time, and earn loyalty rewards through a
@@ -122,31 +128,30 @@
         </div>
       </div>
 
-      <div class="steps-grid" aria-label="Booking steps">
-        <article class="step-card">
-          <span class="step-number">01</span>
+      <div class = "BookingCard">
+          <span class="Numbers">01</span>
           <h3>Choose your service</h3>
           <p>Choose the cleaning or restoration service and add ons  that matches your pair  and needs.</p>
-        </article>
 
-        <article class="step-card">
-          <span class="step-number">02</span>
+
+          <span class="Numbers">02</span>
           <h3>Book your slot</h3>
           <p>Log in, Pick a booking time, and submit your request.</p>
-        </article>
 
-        <article class="step-card">
+
+
+
           <span class="step-number">03</span>
           <h3>Track progress</h3>
           <p>Follow the progress of your pair through our real time tracking updates.</p>
-        </article>
 
-        <article class="step-card">
-          <span class="step-number">04</span>
+
+          <span class="Numbers3-4">04</span>
           <h3>Collect and earn rewards</h3>
           <p>Receive your refreshed sneakers and accumaulate loyalty points to get discounts and free future cleans.</p>
-        </article>
       </div>
+
+
 
       <div class="hero-actions">
         <a class="btn primary" href="booking.html" data-requires-auth="true">Book our services</a>
@@ -154,62 +159,88 @@
       </div>
     </section>
 
-    <section class="card stack-md" aria-labelledby="whyChooseTitle">
-      <div class="section-head">
+    <section class="card stack-md" aria-labelledby="EarnRewarditle">
+      <div class="EarnRewardtitle">
         <div>
-          <span class="eyebrow">Why customers use DKcleanedit</span>
-          <h2 id="whyChooseTitle">Designed for trust, clarity and convenience</h2>
+
+          <h2 id="EarnReardsTitle">Clean more, Earn more </h2>
         </div>
       </div>
 
-      <div class="grid-3">
-        <article class="card compact soft">
-          <h3>Professional booking flow</h3>
-          <p>Focused actions and a clearer route from service selection to confirmation.</p>
+      <div class="earnmoretext"> Every clean earns points.
+        Points unlock discounts, free services and exclusive perks for members who keep coming back.</div>
+
+      <div class="EarnpointGrid">
+        <article class="CardEarn1 ">
+          <h3>carbon</h3>
+          <p>50 - 100 pts </p>
+          <p>£5 point off clean  </p>
+
         </article>
 
-        <article class="card compact soft">
-          <h3>Better order visibility</h3>
-          <p>Customers can track progress instead of waiting without updates.</p>
+        <article class="EarnpointGrid">
+          <h3>Stone </h3>
+          <p>100 - 300 points </p>
+          <p> £10 off shoe clean </p>
         </article>
 
-        <article class="card compact soft">
-          <h3>Reward-based retention</h3>
-          <p>Loyalty points encourage repeat use while supporting a premium service model.</p>
+        <article class="EarnpointGrid">
+          <h3>Pearl </h3>
+          <p> 500 points +.</p>
+          <p> 1 free shoe clean plus shoe tree  </p>
         </article>
       </div>
     </section>
 
-    <hr class="gradient-line" />
+  <section class="card stack-Tutorials" aria-labelledby="EarnRewarditle">
+      <div class="Theturtiroals ">
+        <div>
 
+          <h2 id="Videos">Tutorials of DK cleaning shoes </h2>
+        </div>
+      </div>
+
+      <div class="earnmoretext"> Every clean earns points.
+        Points unlock discounts, free services and exclusive perks for members who keep coming back.</div>
+
+      <div class="Video1">
+        <article class="VideoCard1 ">
+          <h3>how to clean jordan 4s.</h3>
+          <img src="videos/jordan1.jpg" alt="Jordan sneaker restoration example 1" loading="lazy" />
+        </article>
+      </div>
+    </section>
+
+
+    <hr class="gradient-line" />
     <section class="testimonials card" aria-labelledby="testimonialsTitle">
       <div class="section-head">
         <div>
-          <span class="eyebrow">Customer feedback</span>
-          <h2 id="testimonialsTitle">Client testimonials</h2>
+           <h1 id="testimonialsTitle">What the Client says</h1>
+          <h2 id="testimonialsSubtitle">Client testimonials</h2>
         </div>
       </div>
 
       <div class="testimonials-grid">
         <article class="testimonial-card">
-          <img src="videos/IMG_C8345467AB89-1.jpeg" alt="Sarah testimonial" class="testimonial-img" />
-          <p class="testimonial-quote">“FAST AND EFFICIENT”</p>
-          <p class="testimonial-name">Ezelicket the first</p>
           <img src="videos/yellow tesmonial png_.png" alt="Five star rating" class="testimonial-stars" />
+          <span class="testimonial-quote">"I gave my Dior b30s off looking wrecked. Got them back looking like they just came out fresh out of the box .
+            Tracking updates gave me more clarity."</span>
+          <span class="testimonial-name">"Ezechiel.N"</span>
+          <span class="memeber">Gold Memeber</span>
         </article>
 
         <article class="testimonial-card">
-          <img src="videos/IMG_2932.PNG" alt="Deezy testimonial" class="testimonial-img" />
-          <p class="testimonial-quote">“PAYS ATTENTION TO EVERY DETAIL”</p>
-          <p class="testimonial-name">Deezy</p>
-          <img src="videos/yellow tesmonial png_.png" alt="Five star rating" class="testimonial-stars" />
+           <img src="videos/yellow tesmonial png_.png" alt="Five star rating" class="testimonial-stars" />
+          <p class="testimonial-quote">"As a sneakerhead I'm very particular.
+            DK handled my Jordan 1 Highs perfectly — I could watch every update in real time. Worth every penny."</p>
+          <p class="testimonial-name">Jordan.A</p>
         </article>
 
         <article class="testimonial-card">
-          <img src="videos/IMG_2155.JPG" alt="Rali testimonial" class="testimonial-img" />
-          <p class="testimonial-quote">“BROUGHT MY SHOE BACK TO LIFE”</p>
-          <p class="testimonial-name">Rali</p>
-          <img src="videos/yellow tesmonial png_.png" alt="Five star rating" class="testimonial-stars" />
+           <img src="videos/yellow tesmonial png_.png" alt="Five star rating" class="testimonial-stars" />
+          <p class="testimonial-quote">“"Easiest booking I've done. Picked my service, got a confirmation text straight away, then updates as it went through. Shoes came back immaculate."</p>
+          <p class="testimonial-name">Rali.N</p>
         </article>
       </div>
     </section>
@@ -218,31 +249,26 @@
   <footer class="footer1">
     <p class="contact-title">Contact us</p>
 
-    <div class="social-row" aria-label="Social media links">
-      <button class="social-btn" type="button" aria-label="Instagram">
-        <img
-          src="videos/instagram-logo-instagram-logo-transparent-instagram-icon-transparent-free-free-png.png"
-          alt="Instagram"
-          class="socials"
-        />
-      </button>
 
-      <button class="social-btn" type="button" aria-label="Snapchat">
-        <img src="videos/snapchat logo.png" alt="Snapchat" class="socials" />
-      </button>
+      <div class="footer-col">
+        <h4>Services</h4>
 
-      <button class="social-btn" type="button" aria-label="TikTok">
-        <img
-          src="videos/tiktok-logo-tikok-icon-transparent-tikok-app-logo-free-png.png"
-          alt="TikTok"
-          class="socials"
-        />
-      </button>
-    </div>
-  </footer>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#">About DK</a></li>
+          <li><a href="#">Instagram</a></li>
+          <li><a href="#">TikTok</a></li>
+          <li><a href="#">Contact</a></li>
+           <p>© 2025 DKcleanedit. All rights reserved.</p>
+        </ul>
+      </div>
 
 
   <script type="module" src="./app.js"></script>
+<script type="module" src="./theme.js"></script>
 
+<script>
+  initSettings();
 </body>
 </html>

@@ -3,59 +3,115 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Register | DKCleanEdit</title>
+  <title>Register | DKcleanedit</title>
+
+  <script>
+    if (localStorage.getItem("theme") === "dark") {
+      document.documentElement.classList.add("dark-mode");
+    }
+  </script>
+
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="darkmode.css" />
+
 </head>
-
 <body>
-  <nav class="navbar" aria-label="Primary">
-    <ul class="nav-links">
+  <nav class="navbar" aria-label="Main navigation">
+    <ul class="nav-inner">
+      <li class="nav-logo">
+        <a href="home.html">
+          <img src="videos/logo.png" class="logo" alt="DKcleanedit logo" />
+        </a>
+      </li>
       <li><a href="home.html" id="navHome">Home</a></li>
-
       <li><a href="booking.html" id="navBooking" data-requires-auth="true">Booking</a></li>
       <li><a href="track.html" id="navTracking" data-requires-auth="true">Tracking</a></li>
       <li><a href="customer.html" id="navAccount" data-requires-auth="true">My Account</a></li>
       <li><a href="admin.html" id="navAdmin" data-requires-auth="true">Admin</a></li>
-
-
       <li><a href="login.html" id="navLogin">Login</a></li>
       <li><a href="register.html" id="navRegister" aria-current="page">Register</a></li>
-
       <li><a href="#" id="navLogout" hidden>Logout</a></li>
-      <li><span id="navPointsBadge" class="badge" hidden>Points: 0</span></li>
+      <li><span id="navPointsBadge" class="badge info" hidden>Points: 0</span></li>
     </ul>
   </nav>
 
-  <main class="container">
-    <section class="card" aria-label="Register form">
-      <h1>Create account</h1>
+  <main class="auth-wrap">
+    <section class="auth-card" aria-labelledby="registerTitle">
+      <p class="auth-eyebrow">DKcleanedit</p>
+      <h1 class="auth-title" id="registerTitle">Create account</h1>
 
-      <label class="sub" for="regName">Name</label>
-      <input id="regName" type="text" autocomplete="name" placeholder="Your full name" />
+      <form id="registerForm" novalidate>
+        <div class="field">
+          <label class="auth-lbl" for="regName">Full name</label>
+          <input
+            id="regName"
+            class="auth-in"
+            name="fullName"
+            type="text"
+            autocomplete="name"
+            placeholder="Your full name"
+            required
+          />
+        </div>
 
-      <label class="sub" for="regEmail">Email</label>
-      <input id="regEmail" type="email" autocomplete="email" placeholder="name@example.com" />
+        <div class="field">
+          <label class="auth-lbl" for="regEmail">Email address</label>
+          <input
+            id="regEmail"
+            class="auth-in"
+            name="email"
+            type="email"
+            autocomplete="email"
+            placeholder="you@email.com"
+            required
+          />
+        </div>
 
-      <label class="sub" for="regPhone">Phone number</label>
-      <input id="regPhone" type="tel" placeholder="+447123456789" autocomplete="tel" />
+        <div class="field">
+          <label class="auth-lbl" for="regPhone">Phone number</label>
+          <input
+            id="regPhone"
+            class="auth-in"
+            name="phone"
+            type="tel"
+            autocomplete="tel"
+            placeholder="+44 7700 000000"
+            required
+          />
+        </div>
 
-      <label class="sub" for="regPass">Password</label>
-      <input id="regPass" type="password" autocomplete="new-password" placeholder="Create a strong password" />
+        <div class="field">
+          <label class="auth-lbl" for="regPass">Password</label>
+          <input
+            id="regPass"
+            class="auth-in"
+            name="password"
+            type="password"
+            autocomplete="new-password"
+            placeholder="Create a strong password"
+            minlength="8"
+            required
+          />
+        </div>
 
-      <p class="sub">You agree to receive booking/order notifications by email/SMS.</p>
+        <p class="sub" style="margin-bottom: 14px;">
+          By registering you agree to receive booking and order updates by email and SMS.
+        </p>
 
-      <button id="btnRegister" class="btn primary full" type="button">Register</button>
-      <p id="msg" class="sub"></p>
+        <button id="btnRegister" class="btn primary full" type="submit" style="min-height: 48px;">
+          Create account
+        </button>
+
+        <p id="msg" class="auth-msg" role="alert" aria-live="polite"></p>
+      </form>
     </section>
   </main>
 
-  <!-- Keep EmailJS for later -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script>
     emailjs.init("VUzWxUmzFlF9zCMUY");
   </script>
-
-<script type="module" src="./app.js"></script>
-
+  <script type="module" src="./app.js"></script>
+  <script type="module" src="./theme.js"></script>
 </body>
 </html>

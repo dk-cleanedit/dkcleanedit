@@ -1,15 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>setting</title>
-  <link rel="stylesheet" href="styles.css" />
-</head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings</title>
 
+  <script>
+    if (localStorage.getItem("theme") === "dark") {
+      document.documentElement.classList.add("dark-mode");
+    }
+  </script>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="darkmode.css" />
+</head>
 <body>
   <nav class="navbar" aria-label="Primary">
     <ul class="nav-links">
-      <img src="videos/logo.png" class="logo" alt="DKCleanEdit Logo" />
+      <li class="nav-logo">
+        <a href="home.html" aria-label="Go to home">
+          <img src="videos/logo.png" class="logo" alt="DKCleanEdit Logo" />
+        </a>
+      </li>
+
       <li><a href="home.html" id="navHome">Home</a></li>
       <li><a href="booking.html" id="navBooking" data-requires-auth="true">Booking</a></li>
       <li><a href="track.html" id="navTracking" data-requires-auth="true">Tracking</a></li>
@@ -18,45 +30,120 @@
       <li><a href="register.html" id="navRegister">Register</a></li>
       <li><a href="#" id="navLogout" hidden>Logout</a></li>
       <li><span id="navPointsBadge" class="badge" hidden>Points: 0</span></li>
-
-      <li><a href="settings.html"><img class="PicSettings" src="https://img.icons8.com/ios-filled/100/666666/settings.png"></a></li>
+      <li>
+        <a href="settings.html" aria-current="page" aria-label="Settings">
+          <img
+            class="PicSettings"
+            src="https://img.icons8.com/ios-filled/100/666666/settings.png"
+            alt="Settings"
+          />
+        </a>
+      </li>
     </ul>
   </nav>
 
-  <div class="Switch box">
-    <div class="Swittext">Background colour</div>
-    <input type="checkbox" class="switch" id="themeToggle">
-    <label for="themeToggle" class="Darkmode"></label>
-  </div>
-
-  <main class="container customer-layout">
+  <main class="container page-shell settings-page">
     <section class="card account-card">
-      <h1>Welcome back</h1>
+      <div class="stack-sm">
+        <span class="eyebrow">Account Settings</span>
+        <h1>Change your settings</h1>
+        <p class="sub">
+          Update your profile information, manage your password, and customise your appearance.
+        </p>
+      </div>
 
-      <div class="stats-grid">
-        <div class="stat">
+      <div class="stats-grid profile-grid">
+        <article class="stat">
           <div class="stat-title">Name</div>
           <div class="stat-value" id="custName">-</div>
-        </div>
+        </article>
 
-        <div class="stat">
+        <article class="stat stat-avatar">
           <div class="stat-title">Profile picture</div>
-          <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" class="img" alt="Profile picture" />
-          <input type="file" class="profile-upload" />
-          <div class="stat-value" id="custPicture">-</div>
-        </div>
 
-        <div class="stat">
+          <div class="avatar-wrap">
+            <img
+              id="custAvatar"
+              src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+              class="profile-avatar"
+              alt="Profile picture"
+            />
+          </div>
+
+          <label for="avatarUpload" class="btn secondary upload-btn">Upload picture</label>
+          <input
+            type="file"
+            accept="image/*"
+            class="profile-upload"
+            id="avatarUpload"
+          />
+
+          <div class="stat-meta" id="custPicture">No file selected</div>
+        </article>
+
+        <article class="stat">
           <div class="stat-title">Email</div>
           <div class="stat-value" id="custEmail">-</div>
-        </div>
+        </article>
 
-        <div class="stat">
+        <article class="stat">
           <div class="stat-title">Loyalty Points</div>
           <div class="stat-value" id="custPoints">0</div>
-        </div>
+        </article>
       </div>
     </section>
+
+    <section class="card password-card">
+      <div class="stack-sm">
+        <h2>Change password</h2>
+        <p class="sub">Enter your current password first, then choose a new one.</p>
+      </div>
+
+      <form class="settings-form" id="passwordForm" novalidate>
+        <div class="form-group">
+          <label for="curPass">Current password</label>
+          <input
+            id="curPass"
+            type="password"
+            name="currentPassword"
+            autocomplete="current-password"
+            placeholder="Enter current password"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="newPass">New password</label>
+          <input
+            id="newPass"
+            type="password"
+            name="newPassword"
+            autocomplete="new-password"
+            placeholder="Enter new password"
+          />
+        </div>
+
+        <button id="btnChangePass" class="btn primary full" type="button">
+          Update password
+        </button>
+
+        <p class="form-message sub" id="passMsg" aria-live="polite"></p>
+        <p class="form-message" id="msg" aria-live="polite"></p>
+      </form>
+    </section>
   </main>
+
+  <aside class="theme-switcher">
+    <div class="theme-switcher__text">Background colour</div>
+    <input type="checkbox" class="switch" id="themeToggle" />
+    <label for="themeToggle" class="Darkmode" aria-label="Toggle dark mode"></label>
+  </aside>
+
+  <script type="module" src="./app.js"></script>
+  <script type="module" src="./theme.js"></script>
+  <script>
+    if (typeof initSettings === "function") {
+      initSettings();
+    }
+  </script>
 </body>
 </html>
