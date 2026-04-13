@@ -1,30 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<script>
-  const functions = require("firebase-functions");
-const twilio = require("twilio");
+const functions = require("firebase-functions");
+const admin     = require("firebase-admin");
+const twilio    = require("twilio");
+const emailjs   = require("@emailjs/nodejs");
+
+admin.initializeApp();
+
+// ── Twilio helper ──────────────────────────────────────────
+function getTwilioClient() {
+  const sid   = functions.config().twilio.sid;
+  const token = functions.config().twilio.token;
+  const from  = functions.config().twilio.from;
+  if (!sid || !token || !from) throw new Error("Twilio config missing");
+  return { client: twilio(sid, token), from };
+}
 
 function cors(req, res) {
   res.set("Access-Control-Allow-Origin", "*");
   res.set("Access-Control-Allow-Headers", "Content-Type");
   res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
   if (req.method === "OPTIONS") return res.status(204).send("");
-  if (req.method !== "POST") return res.status(405).send("Use POST");
+  if (req.method !== "POST")   return res.status(405).send("Use POST");
   return null;
 }
 
-function getTwilioClient() {
-  const sid = functions.config().twilio.sid;
-  const token = functions.config().twilio.token;
-  const from = functions.config().twilio.from;
-  if (!sid || !token || !from) throw new Error("Twilio config missing");
-  return { client: twilio(sid, token), from };
-}
-
+// ── SMS — Welcome ──────────────────────────────────────────
 exports.sendSmsWelcome = functions.https.onRequest(async (req, res) => {
   const early = cors(req, res);
   if (early) return early;
@@ -35,9 +34,9 @@ exports.sendSmsWelcome = functions.https.onRequest(async (req, res) => {
   try {
     const { client, from } = getTwilioClient();
     await client.messages.create({
-      to: phone,
+      to:   phone,
       from,
-      body: `Welcome to DKcleanedit ${name || ""}! 👟 Your account is ready.`
+      body: `Welcome to DKcleanedit ${name || ""}! 👟 Your account is ready.`,
     });
     return res.status(200).send("Welcome SMS sent");
   } catch (err) {
@@ -46,6 +45,7 @@ exports.sendSmsWelcome = functions.https.onRequest(async (req, res) => {
   }
 });
 
+// ── SMS — Booking confirmation ─────────────────────────────
 exports.sendSmsBooking = functions.https.onRequest(async (req, res) => {
   const early = cors(req, res);
   if (early) return early;
@@ -56,14 +56,14 @@ exports.sendSmsBooking = functions.https.onRequest(async (req, res) => {
   try {
     const { client, from } = getTwilioClient();
     await client.messages.create({
-      to: phone,
+      to:   phone,
       from,
       body:
         `DKcleanedit booking confirmed ✅\n` +
         `Name: ${name || ""}\n` +
         `Ref: ${bookingId}\n` +
         `${date || ""} ${timeSlot || ""} • ${location || ""}\n` +
-        `Track: https://fir-eef36.web.app/tracking.html`
+        `Track: https://fir-eef36.web.app/tracking.html`,
     });
     return res.status(200).send("Booking SMS sent");
   } catch (err) {
@@ -72,23 +72,24 @@ exports.sendSmsBooking = functions.https.onRequest(async (req, res) => {
   }
 });
 
+// ── SMS — Status update ────────────────────────────────────
 exports.sendSmsStage = functions.https.onRequest(async (req, res) => {
   const early = cors(req, res);
   if (early) return early;
 
   const { phone, bookingId, stage } = req.body || {};
-  if (!phone || !bookingId || !stage) return res.status(400).send("Missing phone/bookingId/stage");
+  if (!phone || !bookingId || !stage) return res.status(400).send("Missing fields");
 
   try {
     const { client, from } = getTwilioClient();
     await client.messages.create({
-      to: phone,
+      to:   phone,
       from,
       body:
         `DKcleanedit update 📦\n` +
         `Ref: ${bookingId}\n` +
         `New stage: ${stage}\n` +
-        `Track: https://fir-eef36.web.app/tracking.html`
+        `Track: https://fir-eef36.web.app/tracking.html`,
     });
     return res.status(200).send("Stage SMS sent");
   } catch (err) {
@@ -97,32 +98,125 @@ exports.sendSmsStage = functions.https.onRequest(async (req, res) => {
   }
 });
 
-(() => {
-  const overlay = document.getElementById("signupOverlay");
-  const closeBtn = document.getElementById("closePopupBtn");
-  if (!overlay) return;
+// ── Scheduled — 24hr booking reminder (runs 9am daily) ────
+exports.sendDailyReminders = functions.pubsub
+  .schedule("0 9 * * *")
+  .timeZone("Europe/London")
+  .onRun(async () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const iso = tomorrow.toISOString().split("T")[0];
 
-  const hide = () => { overlay.hidden = true; };
+    const snap = await admin.firestore()
+      .collection("orders")
+      .where("date",   "==", iso)
+      .where("status", "==", "Booked")
+      .get();
 
-  // Close button
-  if (closeBtn) closeBtn.addEventListener("click", hide);
+    if (snap.empty) { console.log("No reminders to send"); return; }
 
-  // Click outside popup closes
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) hide();
+    await Promise.allSettled(snap.docs.map(async (doc) => {
+      const order = doc.data();
+      if (!order.customerEmail) return;
+      try {
+        await emailjs.send(
+          "service_6ep5ahh",
+          "template_reminder",
+          {
+            to_email:      order.customerEmail,
+            customer_name: order.customerName || "Customer",
+            order_id:      doc.id,
+            booking_date:  iso,
+            booking_time:  order.timeSlot     || "",
+            location:      order.location     || "DKcleanedit",
+            service:       order.serviceLabel || order.service || "",
+          },
+          { publicKey: "v1GO4hYhLibhbnt_N", privateKey: "YOUR_EMAILJS_PRIVATE_KEY" }
+        );
+        console.log(`Reminder sent to ${order.customerEmail}`);
+      } catch (err) {
+        console.error(`Reminder failed for ${order.customerEmail}:`, err);
+      }
+    }));
   });
 
-  // ESC closes
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") hide();
+// ── Scheduled — Pickup reminder (runs 11am daily) ─────────
+exports.sendPickupReminders = functions.pubsub
+  .schedule("0 11 * * *")
+  .timeZone("Europe/London")
+  .onRun(async () => {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const iso = yesterday.toISOString().split("T")[0];
+
+    const snap = await admin.firestore()
+      .collection("orders")
+      .where("completedAt",        "==", iso)
+      .where("pickedUp",           "==", false)
+      .where("pickupReminderSent", "==", false)
+      .get();
+
+    if (snap.empty) { console.log("No pickup reminders to send"); return; }
+
+    await Promise.allSettled(snap.docs.map(async (doc) => {
+      const order = doc.data();
+      if (!order.customerEmail) return;
+      try {
+        await emailjs.send(
+          "service_6ep5ahh",
+          "template_pickup_reminder",
+          {
+            to_email:      order.customerEmail,
+            customer_name: order.customerName || "Customer",
+            order_id:      doc.id,
+            location:      order.location     || "DKcleanedit",
+            service:       order.serviceLabel || order.service || "",
+          },
+          { publicKey: "v1GO4hYhLibhbnt_N", privateKey: "YOUR_EMAILJS_PRIVATE_KEY" }
+        );
+        await doc.ref.update({ pickupReminderSent: true });
+        console.log(`Pickup reminder sent to ${order.customerEmail}`);
+      } catch (err) {
+        console.error(`Pickup reminder failed for ${order.customerEmail}:`, err);
+      }
+    }));
   });
-})();
-</script>
 
-<body>
+// ── Scheduled — Follow-up (runs 10am daily) ───────────────
+exports.sendFollowUps = functions.pubsub
+  .schedule("0 10 * * *")
+  .timeZone("Europe/London")
+  .onRun(async () => {
+    const threeDaysAgo = new Date();
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+    const iso = threeDaysAgo.toISOString().split("T")[0];
 
-<script type="module" src="firebase.js"></script>
-<script type="module" src="app.js"></script>
+    const snap = await admin.firestore()
+      .collection("orders")
+      .where("completedAt",   "==", iso)
+      .where("followUpSent",  "==", false)
+      .get();
 
-</body>
-</html>
+    if (snap.empty) { console.log("No follow-ups to send"); return; }
+
+    await Promise.allSettled(snap.docs.map(async (doc) => {
+      const order = doc.data();
+      if (!order.customerEmail) return;
+      try {
+        await emailjs.send(
+          "service_6ep5ahh",
+          "template_follow_up",
+          {
+            to_email:      order.customerEmail,
+            customer_name: order.customerName || "Customer",
+            order_id:      doc.id,
+          },
+          { publicKey: "v1GO4hYhLibhbnt_N", privateKey: "YOUR_EMAILJS_PRIVATE_KEY" }
+        );
+        await doc.ref.update({ followUpSent: true });
+        console.log(`Follow-up sent to ${order.customerEmail}`);
+      } catch (err) {
+        console.error(`Follow-up failed for ${order.customerEmail}:`, err);
+      }
+    }));
+  });

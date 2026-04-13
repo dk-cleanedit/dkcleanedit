@@ -10,10 +10,12 @@
       document.documentElement.classList.add("dark-mode");
     }
   </script>
+    <!-- EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>(function(){ emailjs.init({ publicKey: "v1GO4hYhLibhbnt_N" }); })();</script>
+</head>
 
   <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="track.css" />
-  <link rel="stylesheet" href="darkmode.css" />
 </head>
 <body>
   <nav class="navbar">
@@ -145,5 +147,6 @@
 
   <script type="module" src="./app.js"></script>
   <script type="module" src="./theme.js"></script>
+
 </body>
 </html>

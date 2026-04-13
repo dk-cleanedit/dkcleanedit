@@ -10,10 +10,15 @@
       document.documentElement.classList.add("dark-mode");
     }
   </script>
+
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="auth.css" />
   <link rel="stylesheet" href="darkmode.css" />
 </head>
-<body class="login-page">
+
+<body class="auth-page">
+
+  <!-- NAVBAR -->
   <nav class="navbar" aria-label="Primary">
     <ul class="nav-links">
       <li class="nav-logo">
@@ -21,31 +26,40 @@
           <img src="videos/logo.png" class="logo" alt="DKcleanedit logo" />
         </a>
       </li>
-
-      <li><a href="home.html" id="navHome">Home</a></li>
-      <li><a href="booking.html" id="navBooking" data-requires-auth="true">Booking</a></li>
-      <li><a href="track.html" id="navTracking" data-requires-auth="true">Tracking</a></li>
-      <li><a href="customer.html" id="navAccount" data-requires-auth="true">My Account</a></li>
-      <li><a href="admin.html" id="navAdmin" data-requires-auth="true">Admin</a></li>
-      <li><a href="login.html" id="navLogin" aria-current="page">Login</a></li>
+      <li><a href="home.html"     id="navHome">Home</a></li>
+      <li><a href="booking.html"  id="navBooking"  data-requires-auth="true">Booking</a></li>
+      <li><a href="track.html"    id="navTracking" data-requires-auth="true">Tracking</a></li>
+      <li><a href="customer.html" id="navAccount"  data-requires-auth="true">My Account</a></li>
+      <li><a href="admin.html"    id="navAdmin"    data-requires-auth="true">Admin</a></li>
+      <li><a href="login.html"    id="navLogin"    aria-current="page">Login</a></li>
       <li><a href="register.html" id="navRegister">Register</a></li>
-      <li><a href="#" id="navLogout" hidden>Logout</a></li>
-      <li><span id="navPointsBadge" class="badge info" hidden>Points: 0</span></li>
+      <li><a href="#"             id="navLogout"   hidden>Logout</a></li>
+      <li><span id="navPointsBadge" class="badge info points-badge" hidden>Points: 0</span></li>
+      <li>
+        <a href="settings.html" aria-label="Settings">
+          <img class="PicSettings"
+               src="https://img.icons8.com/ios-filled/100/666666/settings.png"
+               alt="Settings" />
+        </a>
+      </li>
     </ul>
   </nav>
 
-  <main class="login-container">
-    <section class="login-card" aria-labelledby="loginTitle">
-      <p class="login-sub">DKcleanedit</p>
-      <h1 class="login-title" id="loginTitle">Welcome back</h1>
-      <p class="login-text">Sign in to manage bookings, track orders, and view your account details.</p>
+  <!-- LOGIN FORM -->
+  <main class="auth-container">
+    <section class="auth-card" aria-labelledby="loginTitle">
+
+
+      <h1 class="auth-title" id="loginTitle">Welcome back</h1>
+      <p class="auth-sub">Sign in to manage bookings, track orders and view your account.</p>
 
       <form id="loginForm" novalidate>
-        <div class="form-group">
-          <label class="login-label" for="logEmail">Email address</label>
+
+        <div class="auth-field">
+          <label class="auth-label" for="logEmail">Email address</label>
           <input
             id="logEmail"
-            class="login-input"
+            class="auth-input"
             type="email"
             autocomplete="email"
             placeholder="you@email.com"
@@ -53,11 +67,11 @@
           />
         </div>
 
-        <div class="form-group">
-          <label class="login-label" for="logPass">Password</label>
+        <div class="auth-field">
+          <label class="auth-label" for="logPass">Password</label>
           <input
             id="logPass"
-            class="login-input"
+            class="auth-input"
             type="password"
             autocomplete="current-password"
             placeholder="Your password"
@@ -65,15 +79,17 @@
           />
         </div>
 
-        <button id="btnLogin" class="btn primary full login-btn" type="button">
+        <button id="btnLogin" class="btn primary full auth-submit" type="button">
           Login
         </button>
-
-        <button id="btnRegisterGo" class="btn secondary full register-btn" type="button">
+<p><a class="ForgotPass" href="register.html">Forgot password</a></p>
+        <button id="btnRegisterGo" class="btn secondary full auth-alt" type="button">
           Create account
         </button>
 
-        <p id="msg" class="login-message" aria-live="polite"></p>
+
+        <p id="msg" class="auth-msg" role="alert" aria-live="polite"></p>
+
       </form>
     </section>
   </main>

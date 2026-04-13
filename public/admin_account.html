@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Staff | DKcleanedit</title>
+
+  <script>
+    if (localStorage.getItem("theme") === "dark") {
+      document.documentElement.classList.add("dark-mode");
+    }
+  </script>
+  <link rel="stylesheet" href="staff.css" />
+  <link rel="stylesheet" href="styles.css" />
+
+
+  <!-- ── EmailJS ──────────────────────────────────────────────────
+       Must load here in <head>, BEFORE app.js, so that window.emailjs
+       exists when app.js runs and sets window.sendStaffShiftEmail.
+       If this loads after app.js the shift email function will throw
+       "EmailJS not loaded" on the first click.
+       📺 EmailJS setup → https://www.youtube.com/watch?v=RPhHqEBjCOk
+  ── -->
+  <script type="text/javascript"
+          src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
+  </script>
+  <script type="text/javascript">
+    // Initialise EmailJS with our public key.
+    // Runs synchronously so emailjs is ready before the page scripts execute.
+    (function(){ emailjs.init({ publicKey: "v1GO4hYhLibhbnt_N" }); })();
+  </script>
+</head>
+
+<body class="staff-body">
+
+  <!-- NAVBAR -->
+  <nav class="navbar" aria-label="Primary">
+    <ul class="nav-links">
+      <li class="nav-logo">
+        <a href="home.html" aria-label="DKcleanedit home">
+          <img src="videos/logo.png" class="logo" alt="DKcleanedit logo" />
+        </a>
+      </li>
+      <li><a href="home.html"     id="navHome">Home</a></li>
+      <li><a href="booking.html"  id="navBooking"  data-requires-auth="true">Booking</a></li>
+      <li><a href="track.html"    id="navTracking" data-requires-auth="true">Tracking</a></li>
+      <li><a href="customer.html" id="navAccount"  data-requires-auth="true">My Account</a></li>
+      <li><a href="admin.html"    id="navAdmin"    data-requires-auth="true">Admin</a></li>
+      <li><a href="schedule.html" id="navSchedule" data-requires-auth="true">Schedule</a></li>
+      <li><a href="staff.html"    id="navStaff"    data-requires-auth="true" aria-current="page">Staff</a></li>
+      <li><a href="login.html"    id="navLogin">Login</a></li>
+      <li><a href="register.html" id="navRegister">Register</a></li>
+      <li><a href="#"             id="navLogout" hidden>Logout</a></li>
+      <li><span id="navPointsBadge" class="badge info points-badge" hidden>Points: 0</span></li>
+      <li>
+        <a href="settings.html" aria-label="Settings">
+          <img class="settings-icon"
+               src="https://img.icons8.com/ios-filled/100/666666/settings.png"
+               alt="Settings" />
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <main class="staff-shell">
+
+    <!-- PAGE HEADER -->
+    <header class="staff-hero">
+      <div class="staff-hero-text">
+        <h1 class="staff-title">Staff Management</h1>
+        <p class="staff-subtitle">Assign roles, locations, and shifts for your team.</p>
+      </div>
+      <div class="staff-hero-links">
+        <a href="admin.html"    class="btn primary">Admin panel</a>
+        <a href="schedule.html" class="btn secondary">View schedule</a>
+      </div>
+    </header>
+
+    <!-- QUICK STATS -->
+    <div class="staff-stats-row">
+      <div class="staff-stat">
+        <span class="stat-number" id="statTotalStaff">0</span>
+        <span class="stat-label">Total staff</span>
+      </div>
+      <div class="staff-stat">
+        <span class="stat-number" id="statActiveStaff">0</span>
+        <span class="stat-label">Active today</span>
+      </div>
+      <div class="staff-stat">
+        <span class="stat-number" id="statOffStaff">0</span>
+        <span class="stat-label">Off today</span>
+      </div>
+      <div class="staff-stat">
+        <span class="stat-number" id="statShiftsToday">0</span>
+        <span class="stat-label">Shifts assigned</span>
+      </div>
+    </div>
+
+    <div class="staff-layout">
+
+      <!-- LEFT: Admin card + add staff -->
+      <aside class="staff-sidebar">
+
+        <!-- Admin profile card -->
+        <section class="admin-card card" id="adminCard">
+          <h2 class="section-title">Admin</h2>
+          <div class="admin-profile">
+            <img class="avatar-img"
+                 src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                 alt="Admin avatar"
+                 width="60" height="60" />
+            <div class="admin-info">
+              <h3 class="admin-name" id="adminName">—</h3>
+              <p class="admin-email" id="adminEmail">—</p>
+              <p class="admin-access">All locations · Full access</p>
+            </div>
+          </div>
+          <div class="admin-btn-row">
+            <button type="button" id="btnEditAdmin" class="btn secondary">Edit profile</button>
+            <a href="admin.html"    class="btn primary">Orders</a>
+            <a href="schedule.html" class="btn secondary">Schedule</a>
+          </div>
+        </section>
+
+        <!-- Add staff form -->
+        <section class="add-staff-card card" id="addStaffCard">
+          <h2 class="section-title">Add new staff</h2>
+
+          <label for="newStaffName">Full name</label>
+          <input type="text"  id="newStaffName"  name="staff_name"  placeholder="e.g. Sam Jones" />
+
+          <label for="newStaffEmail">Email</label>
+          <input type="email" id="newStaffEmail" name="staff_email" placeholder="e.g. sam@kicksco.com" />
+
+          <label for="newStaffRole">Role</label>
+          <select id="newStaffRole" name="staff_role">
+            <option value="pickup">Shoe pickup</option>
+            <option value="delivery">Deliver a pair of shoes</option>
+            <option value="cleaning" selected>Shoe cleaning</option>
+            <option value="both">Pickup + cleaning</option>
+            <option value="manager">Floor manager</option>
+          </select>
+
+          <label for="newStaffLocation">Location</label>
+          <select id="newStaffLocation" name="staff_location">
+            <option value="leicester">Leicester</option>
+            <option value="canada-water">Canada Water</option>
+          </select>
+
+          <label for="newStaffStatus">Status</label>
+          <select id="newStaffStatus" name="staff_status">
+            <option value="active">Active</option>
+            <option value="off">Off today</option>
+          </select>
+
+          <button type="button" id="btnAddStaff" class="btn primary">Add staff member</button>
+        </section>
+
+      </aside>
+
+      <!-- RIGHT: Staff list -->
+      <section class="staff-main">
+
+        <div class="staff-list-header">
+          <h2 class="section-title">Staff</h2>
+          <div class="staff-list-controls">
+            <input type="text" id="staffSearch" placeholder="Search by name or email…" />
+            <select id="staffFilterRole">
+              <option value="all">All roles</option>
+              <option value="pickup">Shoe pickup</option>
+              <option value="delivery">Delivery</option>
+              <option value="cleaning">Shoe cleaning</option>
+              <option value="both">Pickup + cleaning</option>
+              <option value="manager">Floor manager</option>
+            </select>
+            <select id="staffFilterLocation">
+              <option value="all">All locations</option>
+              <option value="leicester">Leicester</option>
+              <option value="canada-water">Canada Water</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Staff cards are injected here by staff.js -->
+        <!-- Starting empty is intentional — the Firestore listener fills it -->
+        <div id="staffList"></div>
+
+        <!-- Shown when search/filter returns no results -->
+        <p class="staff-empty" id="staffEmpty" hidden>No staff members match your search.</p>
+
+      </section>
+
+    </div>
+  </main>
+
+
+  <!-- ── ASSIGN SHIFT MODAL ──────────────────────────────────────── -->
+  <div id="shiftModal" class="modal-overlay" hidden
+       role="dialog" aria-modal="true" aria-labelledby="shiftModalTitle">
+    <div class="modal-box">
+      <h2 class="modal-title" id="shiftModalTitle">Assign shift</h2>
+
+      <label for="shiftRole">Role</label>
+      <select id="shiftRole" name="role">
+        <option value="pickup">Shoe pickup</option>
+        <option value="delivery">Deliver a pair of shoes</option>
+        <option value="cleaning">Shoe cleaning</option>
+        <option value="both">Pickup + cleaning</option>
+        <option value="manager">Floor manager</option>
+      </select>
+
+      <label for="shiftLocation">Location</label>
+      <select id="shiftLocation" name="location">
+        <option value="leicester">Leicester</option>
+        <option value="canada-water">Canada Water</option>
+      </select>
+
+      <label for="shiftStart">Shift start</label>
+      <input type="time" id="shiftStart" name="shift_start" value="09:00" />
+
+      <label for="shiftEnd">Shift end</label>
+      <input type="time" id="shiftEnd" name="shift_end" value="17:00" />
+
+      <label for="shiftDate">Date</label>
+      <input type="date" id="shiftDate" name="shift_date" />
+
+      <div class="modal-btn-row">
+        <button type="button" id="btnSaveShift"   class="btn primary">Save shift</button>
+        <button type="button" id="btnCancelShift" class="btn secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ── STAFF HISTORY MODAL ─────────────────────────────────────── -->
+  <div id="historyModal" class="modal-overlay" hidden
+       role="dialog" aria-modal="true" aria-labelledby="historyModalTitle">
+    <div class="modal-box">
+      <h2 class="modal-title" id="historyModalTitle">Shift history</h2>
+      <!-- Content injected by openHistoryModal() in staff.js -->
+      <div id="historyContent">
+        <p class="history-empty">No history available yet.</p>
+      </div>
+      <div class="modal-btn-row">
+        <button type="button" id="btnCloseHistory" class="btn secondary">Close</button>
+      </div>
+    </div>
+  </div>
+
+
+  <div id="toastHost"></div>
+
+  <!-- ── SCRIPT LOAD ORDER (this order matters) ────────────────────
+       1. EmailJS SDK + init  ← already loaded in <head> above
+       2. app.js              ← sets window.sendStaffShiftEmail and window._staffList
+       3. staff.js            ← uses window.sendStaffShiftEmail for shift emails
+       4. theme.js            ← dark mode toggle, independent of the others
+
+       ES modules are deferred by default so they run after the HTML is parsed,
+       but they run in the order they appear in the document.
+       📺 Script loading order → https://www.youtube.com/watch?v=BMuFBYw91UQ
+  ── -->
+  <script type="module" src="./app.js"></script>
+  <script type="module" src="./staff.js"></script>
+  <script type="module" src="./theme.js"></script>
+
+</body>
+</html>

@@ -5,16 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Admin | DKCleanEdit</title>
   <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="darkmode.css" />
-  <link rel="stylesheet" href="booking.css" />
-  <link rel="stylesheet" href="tracking.css" />
-   <link rel="stylesheet" href="schedule.css" />
-  <link rel="stylesheet" href="settings.css" />
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <script type="text/javascript">
-    (function(){ emailjs.init({ publicKey: "v1GO4hYhLibhbnt_N" }); })();
-  </script>
+
+  <!-- EmailJS — must load BEFORE app.js so window.emailjs exists when emails fire -->
+  <!-- 📺 EmailJS setup guide → https://www.youtube.com/watch?v=RPhHqEBjCOk        -->
+   <!-- EmailJS -->
+   <!-- EmailJS -->
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<script>
+  (function(){
+    emailjs.init("v1GO4hYhLibhbnt_N");
+  })();
+</script>
 </head>
+
+
 
 <body class="admin-body">
   <nav class="navbar" aria-label="Primary">
@@ -116,7 +120,6 @@
         <!-- Legend -->
         <div class="avail-legend">
           <div class="legend-item"><div class="legend-dot legend-dot--open"></div>Open</div>
-          <div class="legend-dot legend-dot--closed"></div>
           <div class="legend-item"><div class="legend-dot legend-dot--closed"></div>Closed</div>
           <div class="legend-item"><div class="legend-dot legend-dot--today"></div>Today</div>
         </div>
@@ -158,40 +161,75 @@
       </header>
 
       <!-- Tabs -->
-      <div class="admin-tabs">
-        <button class="admin-tab active" type="button" data-tab="orders">Orders</button>
-        <button class="admin-tab" type="button" data-tab="conflicts">Conflicts <span id="conflictCount" class="badge info" style="margin-left:4px;font-size:0.7rem;min-height:0;padding:2px 7px;">0</span></button>
-        <button class="admin-tab" type="button" data-tab="schedule">Today's Schedule</button>
-        <button class="admin-tab" type="button" data-tab="appointment">Missed Appointment</button>
+      <!-- Each tab button has data-tab matching the panel id suffix below -->
+      <!-- e.g. data-tab="orders" maps to id="tabOrders" in activateTab()  -->
+      <div class="admin-tabs" role="tablist">
+        <button class="admin-tab active" type="button" data-tab="orders"
+                role="tab" aria-selected="true"  aria-controls="tabOrders">
+          Orders
+        </button>
+        <button class="admin-tab" type="button" data-tab="conflicts"
+                role="tab" aria-selected="false" aria-controls="tabConflicts">
+          Conflicts
+          <span id="conflictCount" class="badge info"
+                style="margin-left:4px;font-size:0.7rem;min-height:0;padding:2px 7px;">0</span>
+        </button>
+        <button class="admin-tab" type="button" data-tab="schedule"
+                role="tab" aria-selected="false" aria-controls="tabSchedule">
+          Today's Schedule
+        </button>
+        <!-- Missed Appointment tab — renderMissedTab() in app.js populates #tabAppointment -->
+        <button class="admin-tab" type="button" data-tab="appointment"
+                role="tab" aria-selected="false" aria-controls="tabAppointment">
+          Missed Appointment
+        </button>
       </div>
 
-      <!-- Orders tab -->
-      <div class="admin-tab-panel active" id="tabOrders">
+      <!-- ── Orders tab — the main order list ── -->
+      <div class="admin-tab-panel active" id="tabOrders" role="tabpanel">
         <div id="adminOrders" class="admin-orders"></div>
       </div>
 
-      // missed appointment
-      <div class=" admin-tab-panel active" id="tabAppointment">
-        <button class = misssedbutton> NOTIFY USER about missed appointment </button>
+      <!-- ── Missed Appointment tab ────────────────────────────────────────────
+           This panel is populated entirely by renderMissedTab() in app.js.
+           It finds orders that are still "Booked" but whose date has passed,
+           then injects "Notify customer" and "Cancel order" buttons for each one.
+
+           HOW THE NOTIFY EMAIL WORKS:
+             1. Admin clicks "Notify customer" on a missed order card
+             2. app.js calls sendMissedEmail() which uses EmailJS template:
+                Template ID: template_missed_appt
+             3. EmailJS sends the no-show reminder to the customer's email
+             4. If no email is on record, a toast tells the admin
+
+           WHY THIS PANEL STARTS EMPTY:
+             renderMissedTab() runs inside renderAll() which fires after the
+             Firestore onSnapshot listener delivers data. Starting it empty
+             avoids showing stale HTML before data arrives.
+      ── -->
+      <div class="admin-tab-panel" id="tabAppointment" role="tabpanel">
+        <!-- Content injected by renderMissedTab() in app.js -->
       </div>
 
-
-
-      <div class="admin-tab-panel" id="tabConflicts">
+      <!-- ── Conflicts tab ── -->
+      <div class="admin-tab-panel" id="tabConflicts" role="tabpanel">
         <div class="card soft" style="margin-bottom:16px; padding:14px 18px;">
           <div class="card-title" style="font-size:0.95rem;">Double-booking conflicts</div>
           <p class="sub" style="margin-top:4px; font-size:0.88rem;">
-            These are orders that share the same date, time slot, and location. Resolve by rescheduling or cancelling one.
+            These are orders that share the same date, time slot, and location.
+            Resolve by rescheduling or cancelling one.
           </p>
         </div>
         <div id="conflictsList"></div>
       </div>
 
-      <!-- Today's schedule tab -->
-      <div class="admin-tab-panel" id="tabSchedule">
+      <!-- ── Today's schedule tab ── -->
+      <div class="admin-tab-panel" id="tabSchedule" role="tabpanel">
         <div class="card soft" style="margin-bottom:16px; padding:14px 18px;">
           <div class="card-title" style="font-size:0.95rem;" id="todayLabel">Today's bookings</div>
-          <p class="sub" style="margin-top:4px; font-size:0.88rem;">All orders booked for today across all locations.</p>
+          <p class="sub" style="margin-top:4px; font-size:0.88rem;">
+            All orders booked for today across all locations.
+          </p>
         </div>
         <div id="scheduleList"></div>
       </div>
@@ -202,11 +240,12 @@
   </main>
 
   <div id="toastHost"></div>
+
+  <!-- app.js handles all page logic including email sends -->
   <script type="module" src="./app.js"></script>
   <script type="module" src="./theme.js"></script>
+<script type="module" src="./tracking.js"></script>
 
-<script>
-  initSettings();
-</script>
+
 </body>
 </html>

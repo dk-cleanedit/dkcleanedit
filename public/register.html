@@ -12,40 +12,60 @@
   </script>
 
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="auth.css" />
   <link rel="stylesheet" href="darkmode.css" />
 
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>(function(){ emailjs.init("VUzWxUmzFlF9zCMUY"); })();</script>
 </head>
-<body>
-  <nav class="navbar" aria-label="Main navigation">
-    <ul class="nav-inner">
+
+<body class="auth-page">
+
+  <!-- NAVBAR -->
+  <nav class="navbar" aria-label="Primary">
+    <ul class="nav-links">
       <li class="nav-logo">
-        <a href="home.html">
+        <a href="home.html" aria-label="Go to home page">
           <img src="videos/logo.png" class="logo" alt="DKcleanedit logo" />
         </a>
       </li>
-      <li><a href="home.html" id="navHome">Home</a></li>
-      <li><a href="booking.html" id="navBooking" data-requires-auth="true">Booking</a></li>
-      <li><a href="track.html" id="navTracking" data-requires-auth="true">Tracking</a></li>
-      <li><a href="customer.html" id="navAccount" data-requires-auth="true">My Account</a></li>
-      <li><a href="admin.html" id="navAdmin" data-requires-auth="true">Admin</a></li>
-      <li><a href="login.html" id="navLogin">Login</a></li>
+      <li><a href="home.html"     id="navHome">Home</a></li>
+      <li><a href="booking.html"  id="navBooking"  data-requires-auth="true">Booking</a></li>
+      <li><a href="track.html"    id="navTracking" data-requires-auth="true">Tracking</a></li>
+      <li><a href="customer.html" id="navAccount"  data-requires-auth="true">My Account</a></li>
+      <li><a href="admin.html"    id="navAdmin"    data-requires-auth="true">Admin</a></li>
+      <li><a href="login.html"    id="navLogin">Login</a></li>
       <li><a href="register.html" id="navRegister" aria-current="page">Register</a></li>
-      <li><a href="#" id="navLogout" hidden>Logout</a></li>
-      <li><span id="navPointsBadge" class="badge info" hidden>Points: 0</span></li>
+      <li><a href="#"             id="navLogout"   hidden>Logout</a></li>
+      <li><span id="navPointsBadge" class="badge info points-badge" hidden>Points: 0</span></li>
+      <li>
+        <a href="settings.html" aria-label="Settings">
+          <img class="PicSettings"
+               src="https://img.icons8.com/ios-filled/100/666666/settings.png"
+               alt="Settings" />
+        </a>
+      </li>
     </ul>
   </nav>
 
-  <main class="auth-wrap">
+  <!-- REGISTER FORM -->
+  <main class="auth-container">
     <section class="auth-card" aria-labelledby="registerTitle">
-      <p class="auth-eyebrow">DKcleanedit</p>
+
+      <div class="auth-brand">
+        <span class="auth-eyebrow">DKcleanedit</span>
+      </div>
+
       <h1 class="auth-title" id="registerTitle">Create account</h1>
+      <p class="auth-sub">Join to book services, track orders and earn loyalty points.</p>
 
       <form id="registerForm" novalidate>
-        <div class="field">
-          <label class="auth-lbl" for="regName">Full name</label>
+
+        <div class="auth-field">
+          <label class="auth-label" for="regName">Full name</label>
           <input
             id="regName"
-            class="auth-in"
+            class="auth-input"
             name="fullName"
             type="text"
             autocomplete="name"
@@ -54,11 +74,11 @@
           />
         </div>
 
-        <div class="field">
-          <label class="auth-lbl" for="regEmail">Email address</label>
+        <div class="auth-field">
+          <label class="auth-label" for="regEmail">Email address</label>
           <input
             id="regEmail"
-            class="auth-in"
+            class="auth-input"
             name="email"
             type="email"
             autocomplete="email"
@@ -67,11 +87,11 @@
           />
         </div>
 
-        <div class="field">
-          <label class="auth-lbl" for="regPhone">Phone number</label>
+        <div class="auth-field">
+          <label class="auth-label" for="regPhone">Phone number</label>
           <input
             id="regPhone"
-            class="auth-in"
+            class="auth-input"
             name="phone"
             type="tel"
             autocomplete="tel"
@@ -80,37 +100,39 @@
           />
         </div>
 
-        <div class="field">
-          <label class="auth-lbl" for="regPass">Password</label>
+        <div class="auth-field">
+          <label class="auth-label" for="regPass">Password</label>
           <input
             id="regPass"
-            class="auth-in"
+            class="auth-input"
             name="password"
             type="password"
             autocomplete="new-password"
-            placeholder="Create a strong password"
+            placeholder="Minimum 8 characters"
             minlength="8"
             required
           />
         </div>
 
-        <p class="sub" style="margin-bottom: 14px;">
+        <p class="auth-notice">
           By registering you agree to receive booking and order updates by email and SMS.
         </p>
 
-        <button id="btnRegister" class="btn primary full" type="submit" style="min-height: 48px;">
+        <button id="btnRegister" class="btn primary full auth-submit" type="submit">
           Create account
         </button>
 
         <p id="msg" class="auth-msg" role="alert" aria-live="polite"></p>
+
       </form>
+
+      <p class="auth-switch">
+        Already have an account? <a href="login.html">Sign in</a>
+      </p>
+
     </section>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <script>
-    emailjs.init("VUzWxUmzFlF9zCMUY");
-  </script>
   <script type="module" src="./app.js"></script>
   <script type="module" src="./theme.js"></script>
 </body>

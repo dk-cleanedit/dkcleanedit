@@ -1,52 +1,71 @@
-<!doctype html>
+<<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>DKcleanedit | Luxury Sneaker Cleaning</title>
+  <meta name="description" content="Professional sneaker cleaning and restoration in Leicester and London. Book online, track in real time, earn loyalty rewards." />
+
   <script>
     if (localStorage.getItem("theme") === "dark") {
       document.documentElement.classList.add("dark-mode");
     }
   </script>
-  <meta
-    name="description"
-    content="Book sneaker cleaning in Leicester & London. Track orders in real time and earn loyalty points."
-  />
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="darkmode.css" />
 
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="home.css" />
+  <link rel="stylesheet" href="darkmode.css" />
 </head>
 
-<
-  <nav class="navbar" aria-label="Primary">
+<body>
+
+  <!-- ─── Navbar ──────────────────────────────────────────────────────────── -->
+  <nav class="navbar" aria-label="Primary navigation">
     <ul class="nav-links">
       <li class="nav-logo">
-        <a href="home.html" aria-label="DKcleanedit home">
-          <img src="videos/logo.png" class="logo" alt="DKcleanedit logo" />
+        <a href="home.html" aria-label="DKcleanedit — go to homepage">
+          <img src="videos/logo.png" class="logo" alt="DKcleanedit" />
         </a>
       </li>
-
-      <li><a href="home.html" id="navHome" aria-current="page">Home</a></li>
-      <li><a href="booking.html" id="navBooking" data-requires-auth="true">Booking</a></li>
-      <li><a href="track.html" id="navTracking" data-requires-auth="true">Tracking</a></li>
-      <li><a href="customer.html" id="navAccount" data-requires-auth="true">My Account</a></li>
-      <li><a href="admin.html" id="navAdmin" data-requires-auth="true">Admin</a></li>
-      <li><a href="login.html" id="navLogin">Login</a></li>
+      <li><a href="home.html"     id="navHome"     aria-current="page">Home</a></li>
+      <li><a href="booking.html"  id="navBooking"  data-requires-auth="true">Booking</a></li>
+      <li><a href="track.html"    id="navTracking" data-requires-auth="true">Tracking</a></li>
+      <li><a href="customer.html" id="navAccount"  data-requires-auth="true">My Account</a></li>
+      <li><a href="admin.html"    id="navAdmin"    data-requires-auth="true" hidden>Admin</a></li>
+      <li><a href="login.html"    id="navLogin">Login</a></li>
       <li><a href="register.html" id="navRegister">Register</a></li>
-      <li><a href="#" id="navLogout" hidden>Logout</a></li>
-      <li><span id="navPointsBadge" class="badge info" hidden>Points: 0</span></li>
-       <li><a href="settings.html"><img class="PicSettings" src="https://img.icons8.com/ios-filled/100/666666/settings.png"></a></li>
+      <li><a href="#"             id="navLogout" hidden>Logout</a></li>
+      <li>
+        <span id="navPointsBadge" class="badge info points-badge" hidden aria-live="polite">
+          0 pts
+        </span>
+      </li>
+      <li>
+        <a href="settings.html" aria-label="Settings">
+          <img class="PicSettings"
+               src="https://img.icons8.com/ios-filled/100/666666/settings.png"
+               alt="" aria-hidden="true" />
+        </a>
+      </li>
     </ul>
   </nav>
 
+  <!-- ─── Main ────────────────────────────────────────────────────────────── -->
   <main class="container page-shell">
-    <section class="hero card" aria-labelledby="heroTitle">
+
+    <!-- ══ HERO ══════════════════════════════════════════════════════════ -->
+    <section class="hero" aria-labelledby="heroHeading">
+
       <div class="hero-copy">
-        <h1 id="heroTitle">Luxury Sneaker Cleaning &amp; Restoration</h1>
-        <p class="sub">
-          Book in minutes, follow progress in real time, and earn loyalty rewards through a
-          cleaner, more professional customer journey.
+
+        <h1 id="heroHeading">
+          Luxury Sneaker<br />
+          Cleaning &amp; Restoration
+        </h1>
+
+        <p class="hero-sub">
+          Book in minutes, follow your order through every stage in real time,
+          and earn loyalty rewards — all through one clean platform.
         </p>
 
         <div class="hero-actions">
@@ -54,204 +73,289 @@
           <a class="btn secondary" href="track.html" data-requires-auth="true">Track my order</a>
         </div>
 
-        <div class="hero-metrics" aria-label="Key platform highlights">
+        <div class="hero-metrics" aria-label="Service highlights">
           <div class="metric-pill">
-            <strong>Leicester &amp; London</strong>
-            <span>Two service locations</span>
+            <strong>2 locations</strong>
+            <span>Leicester &amp; London</span>
           </div>
           <div class="metric-pill">
-            <strong>Live order updates</strong>
-            <span>Track cleaning progress</span>
+            <strong>Live updates</strong>
+            <span>Real-time tracking</span>
           </div>
           <div class="metric-pill">
-            <strong>Loyalty rewards</strong>
-            <span>Earn points on bookings</span>
+            <strong>Loyalty points</strong>
+            <span>Earn on every clean</span>
           </div>
         </div>
       </div>
 
-      <div class="hero-media card soft">
-        <video class="hero-video" controls preload="metadata" aria-label="DKcleanedit promotional video">
+      <div class="hero-media">
+        <video
+          class="hero-video"
+          controls
+          preload="metadata"
+          aria-label="DKcleanedit service showcase video"
+        >
           <source src="videos/video.mp4" type="video/mp4" />
-          Your browser does not support the video tag.
+          Your browser does not support video playback.
         </video>
       </div>
+
     </section>
 
-    <section class="grid-2 home-overview" aria-label="About DKcleanedit">
-      <article class="card stack-md">
+    <!-- ══ ABOUT + CAROUSEL ═══════════════════════════════════════════════ -->
+    <div class="grid-2 home-overview">
+
+      <article class="card home-about stack-md" aria-label="About DKcleanedit">
         <div class="section-head">
           <div>
-            <span class="eyebrow">About the service</span>
-            <h2>Premium care for valuable pairs</h2>
+            <h2>Premium care for every pair</h2>
           </div>
         </div>
-
         <p>
-          DKcleanedit is a premium  shoe cleaning and restoration service based in London and Leicetser focused on deep
-          cleaning, stain removal, Unyellowing of soles, and high qualit cleaning refreshes that protect the
-          appearance and longevity of every pair of shoes.
+          DKcleanedit is a professional shoe cleaning and restoration service
+          based in London and Leicester. We specialise in deep cleaning, stain
+          removal, sole unyellowing, and high-quality refreshes that protect
+          the look and longevity of your footwear.
         </p>
         <p>
-          The  Dkcleanedit platform is created to give you a better booking experience, better order
-          visibility, and a clariable service that journeys from booking to collection.
+          The platform gives you full order visibility and a smooth journey
+          from booking right through to collection — no chasing, no guessing.
         </p>
+        <div class="hero-actions">
+          <a class="btn primary" href="booking.html" data-requires-auth="true">Book a clean</a>
+          <a class="btn" href="register.html" id="homeCtaAuth">Create account</a>
+        </div>
       </article>
 
-      <aside class="card carousel" aria-label="Jordan examples">
+      <aside class="card carousel" aria-label="Restoration examples">
         <div class="card-header">
-          <div>
-            <h2 class="card-title">Restoration examples</h2>
-          </div>
+          <h2 class="card-title">Restoration examples</h2>
         </div>
-
         <div class="carousel-viewport">
-          <div class="carousel-track" id="carouselTrack">
-            <img src="videos/jordan1.jpg" alt="Jordan sneaker restoration example 1" loading="lazy" />
-            <img src="videos/jordan2.jpg" alt="Jordan sneaker restoration example 2" loading="lazy" />
-            <img src="videos/jordan3.jpg" alt="Jordan sneaker restoration example 3" loading="lazy" />
-            <img src="videos/jordan4.jpg" alt="Jordan sneaker restoration example 4" loading="lazy" />
+          <div class="carousel-track" id="carouselTrack" role="region" aria-label="Image carousel" aria-live="polite">
+            <img src="videos/jordan1.jpg" alt="Before and after restoration — example 1" loading="lazy" />
+            <img src="videos/jordan2.jpg" alt="Before and after restoration — example 2" loading="lazy" />
+            <img src="videos/jordan3.jpg" alt="Before and after restoration — example 3" loading="lazy" />
+            <img src="videos/jordan4.jpg" alt="Before and after restoration — example 4" loading="lazy" />
           </div>
         </div>
-
-        <button class="carousel-btn prev" type="button" id="prevBtn" aria-label="Previous image">‹</button>
-        <button class="carousel-btn next" type="button" id="nextBtn" aria-label="Next image">›</button>
-        <div class="carousel-dots" id="carouselDots" aria-label="Carousel pagination"></div>
+        <button class="carousel-btn prev" type="button" id="prevBtn" aria-label="Previous image">&#8249;</button>
+        <button class="carousel-btn next" type="button" id="nextBtn" aria-label="Next image">&#8250;</button>
+        <div class="carousel-dots" id="carouselDots" role="tablist" aria-label="Carousel navigation"></div>
       </aside>
-    </section>
 
-    <section class="card stack-lg" aria-labelledby="howItWorksTitle">
+    </div>
+
+    <!-- ══ HOW IT WORKS ═══════════════════════════════════════════════════ -->
+    <section class="card how-section" aria-labelledby="howHeading">
+
       <div class="section-head">
         <div>
           <span class="eyebrow">Clearer booking journey</span>
-          <h2 id="howItWorksTitle">How it works</h2>
+          <h2 id="howHeading">How it works</h2>
         </div>
       </div>
 
-      <div class = "BookingCard">
-          <span class="Numbers">01</span>
+      <ol class="steps-grid" aria-label="Booking process steps">
+        <li class="step-card">
+          <div class="step-num" aria-hidden="true">01</div>
           <h3>Choose your service</h3>
-          <p>Choose the cleaning or restoration service and add ons  that matches your pair  and needs.</p>
-
-
-          <span class="Numbers">02</span>
+          <p>Select the cleaning or restoration package that matches your pair and needs.</p>
+        </li>
+        <li class="step-card">
+          <div class="step-num" aria-hidden="true">02</div>
           <h3>Book your slot</h3>
-          <p>Log in, Pick a booking time, and submit your request.</p>
-
-
-
-
-          <span class="step-number">03</span>
+          <p>Log in, pick a date and time slot, then confirm your booking in seconds.</p>
+        </li>
+        <li class="step-card">
+          <div class="step-num" aria-hidden="true">03</div>
           <h3>Track progress</h3>
-          <p>Follow the progress of your pair through our real time tracking updates.</p>
+          <p>Follow your pair through every cleaning stage with live status updates.</p>
+        </li>
+        <li class="step-card">
+          <div class="step-num" aria-hidden="true">04</div>
+          <h3>Collect and earn</h3>
+          <p>Receive your refreshed sneakers and collect loyalty points for future rewards.</p>
+        </li>
+      </ol>
 
-
-          <span class="Numbers3-4">04</span>
-          <h3>Collect and earn rewards</h3>
-          <p>Receive your refreshed sneakers and accumaulate loyalty points to get discounts and free future cleans.</p>
+      <div class="hero-actions" style="margin-top: 8px;">
+        <a class="btn primary" href="booking.html" data-requires-auth="true">Book now</a>
+        <a class="btn" href="register.html">Log in / Register</a>
       </div>
 
-
-
-      <div class="hero-actions">
-        <a class="btn primary" href="booking.html" data-requires-auth="true">Book our services</a>
-        <a class="btn" href="register.html" id="homeCtaAuth">Log in / Register</a>
-      </div>
     </section>
 
-    <section class="card stack-md" aria-labelledby="EarnRewarditle">
-      <div class="EarnRewardtitle">
-        <div>
+    <!-- ══ LOYALTY TIERS ══════════════════════════════════════════════════ -->
+    <section class="card earn-section" aria-labelledby="earnHeading">
 
-          <h2 id="EarnReardsTitle">Clean more, Earn more </h2>
-        </div>
-      </div>
-
-      <div class="earnmoretext"> Every clean earns points.
-        Points unlock discounts, free services and exclusive perks for members who keep coming back.</div>
-
-      <div class="EarnpointGrid">
-        <article class="CardEarn1 ">
-          <h3>carbon</h3>
-          <p>50 - 100 pts </p>
-          <p>£5 point off clean  </p>
-
-        </article>
-
-        <article class="EarnpointGrid">
-          <h3>Stone </h3>
-          <p>100 - 300 points </p>
-          <p> £10 off shoe clean </p>
-        </article>
-
-        <article class="EarnpointGrid">
-          <h3>Pearl </h3>
-          <p> 500 points +.</p>
-          <p> 1 free shoe clean plus shoe tree  </p>
-        </article>
-      </div>
-    </section>
-
-  <section class="card stack-Tutorials" aria-labelledby="EarnRewarditle">
-      <div class="Theturtiroals ">
-        <div>
-
-          <h2 id="Videos">Tutorials of DK cleaning shoes </h2>
-        </div>
-      </div>
-
-      <div class="earnmoretext"> Every clean earns points.
-        Points unlock discounts, free services and exclusive perks for members who keep coming back.</div>
-
-      <div class="Video1">
-        <article class="VideoCard1 ">
-          <h3>how to clean jordan 4s.</h3>
-          <img src="videos/jordan1.jpg" alt="Jordan sneaker restoration example 1" loading="lazy" />
-        </article>
-      </div>
-    </section>
-
-
-    <hr class="gradient-line" />
-    <section class="testimonials card" aria-labelledby="testimonialsTitle">
       <div class="section-head">
         <div>
-           <h1 id="testimonialsTitle">What the Client says</h1>
-          <h2 id="testimonialsSubtitle">Client testimonials</h2>
+          <span class="eyebrow">Loyalty programme</span>
+          <h2 id="earnHeading">Clean more, earn more</h2>
+        </div>
+      </div>
+
+      <p class="sub" style="margin-bottom: 28px;">
+        Every clean earns you points. Accumulate them to unlock discounts,
+        free services, and exclusive perks.
+      </p>
+
+      <div class="tier-cards">
+        <div class="tier-card tier--carbon">
+          <div class="tier-icon" aria-hidden="true">⚫</div>
+          <h3>Carbon</h3>
+          <span class="tier-pts">50 – 99 pts</span>
+          <p class="tier-perk">£5 off your next clean</p>
+        </div>
+        <div class="tier-card tier--stone">
+          <div class="tier-icon" aria-hidden="true">🪨</div>
+          <h3>Stone</h3>
+          <span class="tier-pts">100 – 499 pts</span>
+          <p class="tier-perk">£10 off + priority booking</p>
+        </div>
+        <div class="tier-card tier--pearl">
+          <div class="tier-icon" aria-hidden="true">🤍</div>
+          <h3>Pearl</h3>
+          <span class="tier-pts">500+ pts</span>
+          <p class="tier-perk">1 free clean + shoe tree included</p>
+        </div>
+      </div>
+
+      <div class="hero-actions">
+        <a class="btn primary" href="register.html">Join now — it's free</a>
+        <a class="btn secondary" href="customer.html" data-requires-auth="true">View my points</a>
+      </div>
+
+    </section>
+
+    <!-- ══ TUTORIALS ══════════════════════════════════════════════════════ -->
+    <section class="card tutorials-section" aria-labelledby="tutHeading">
+
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Behind the scenes</span>
+          <h2 id="tutHeading">DK cleaning tutorials</h2>
+        </div>
+      </div>
+
+      <div class="tutorial-grid">
+        <article class="tutorial-card">
+          <div class="tutorial-thumb">
+            <img src="videos/jordan1.jpg" alt="How to clean Jordan 4s" loading="lazy" />
+          </div>
+          <div class="tutorial-info">
+            <h3>How to clean Jordan 4s</h3>
+          </div>
+        </article>
+        <article class="tutorial-card">
+          <div class="tutorial-thumb">
+            <img src="videos/jordan2.jpg" alt="Sole unyellowing guide" loading="lazy" />
+          </div>
+          <div class="tutorial-info">
+            <h3>Sole unyellowing guide</h3>
+          </div>
+        </article>
+        <article class="tutorial-card">
+          <div class="tutorial-thumb">
+            <img src="videos/jordan3.jpg" alt="White sneaker deep clean" loading="lazy" />
+          </div>
+          <div class="tutorial-info">
+            <h3>White sneaker deep clean</h3>
+          </div>
+        </article>
+      </div>
+
+    </section>
+
+    <hr class="gradient-line" aria-hidden="true" />
+
+    <!-- ══ TESTIMONIALS ═-->
+    <section class="card testimonials-section" aria-labelledby="testimonialsHeading">
+
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Client reviews</span>
+          <h2 id="testimonialsHeading">What our clients say</h2>
         </div>
       </div>
 
       <div class="testimonials-grid">
+
         <article class="testimonial-card">
-          <img src="videos/yellow tesmonial png_.png" alt="Five star rating" class="testimonial-stars" />
-          <span class="testimonial-quote">"I gave my Dior b30s off looking wrecked. Got them back looking like they just came out fresh out of the box .
-            Tracking updates gave me more clarity."</span>
-          <span class="testimonial-name">"Ezechiel.N"</span>
-          <span class="memeber">Gold Memeber</span>
+          <img
+            src="videos/yellow tesmonial png_.png"
+            alt="5 star rating"
+            class="testimonial-stars"
+          />
+          <p class="testimonial-quote">
+            "Gave my Dior B30s in looking wrecked — got them back looking
+            fresh out the box. The live tracking gave me full clarity throughout."
+          </p>
+          <div class="testimonial-attribution">
+            <p class="testimonial-name">Ezechiel N.</p>
+            <p class="testimonial-tier">Stone Member</p>
+          </div>
         </article>
 
         <article class="testimonial-card">
-           <img src="videos/yellow tesmonial png_.png" alt="Five star rating" class="testimonial-stars" />
-          <p class="testimonial-quote">"As a sneakerhead I'm very particular.
-            DK handled my Jordan 1 Highs perfectly — I could watch every update in real time. Worth every penny."</p>
-          <p class="testimonial-name">Jordan.A</p>
+          <img
+            src="videos/yellow tesmonial png_.png"
+            alt="5 star rating"
+            class="testimonial-stars"
+          />
+          <p class="testimonial-quote">
+            "As a sneakerhead I'm very particular. DK handled my Jordan 1
+            Highs perfectly — every update in real time. Worth every penny."
+          </p>
+          <div class="testimonial-attribution">
+            <p class="testimonial-name">Jordan A.</p>
+            <p class="testimonial-tier">Carbon Member</p>
+          </div>
         </article>
 
         <article class="testimonial-card">
-           <img src="videos/yellow tesmonial png_.png" alt="Five star rating" class="testimonial-stars" />
-          <p class="testimonial-quote">“"Easiest booking I've done. Picked my service, got a confirmation text straight away, then updates as it went through. Shoes came back immaculate."</p>
-          <p class="testimonial-name">Rali.N</p>
+          <img
+            src="videos/yellow tesmonial png_.png"
+            alt="5 star rating"
+            class="testimonial-stars"
+          />
+          <p class="testimonial-quote">
+            "Easiest booking I've done. Picked my service, got confirmation
+            instantly, then updates as it progressed. Came back immaculate."
+          </p>
+          <div class="testimonial-attribution">
+            <p class="testimonial-name">Rali N.</p>
+            <p class="testimonial-tier">Carbon Member</p>
+          </div>
         </article>
+
       </div>
+
     </section>
+
   </main>
 
-  <footer class="footer1">
-    <p class="contact-title">Contact us</p>
+  <!-- ─── Footer ─── -->
+  <footer class="site-footer" aria-label="Site footer">
+    <div class="footer-grid">
 
+      <div class="footer-brand">
+        <img src="videos/logo.png" class="footer-logo" alt="DKcleanedit" />
+        <p class="footer-tagline">
+          Professional sneaker cleaning and restoration in Leicester and London.
+        </p>
+      </div>
 
       <div class="footer-col">
         <h4>Services</h4>
+        <ul>
+          <li><a href="booking.html">Standard Cleaning</a></li>
+          <li><a href="booking.html">Express Service</a></li>
+          <li><a href="booking.html">Next Day</a></li>
+        </ul>
+      </div>
 
       <div class="footer-col">
         <h4>Company</h4>
@@ -260,15 +364,17 @@
           <li><a href="#">Instagram</a></li>
           <li><a href="#">TikTok</a></li>
           <li><a href="#">Contact</a></li>
-           <p>© 2025 DKcleanedit. All rights reserved.</p>
         </ul>
       </div>
 
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 DKcleanedit. All rights reserved.</span>
+    </div>
+  </footer>
 
   <script type="module" src="./app.js"></script>
-<script type="module" src="./theme.js"></script>
+  <script type="module" src="./theme.js"></script>
 
-<script>
-  initSettings();
 </body>
 </html>

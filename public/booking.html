@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Book | DKcleanedit</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Book a Service | DKcleanedit</title>
+  <meta name="description" content="Book a professional shoe cleaning service at DKcleanedit. Choose your service, location and time slot." />
 
   <script>
     if (localStorage.getItem("theme") === "dark") {
@@ -11,79 +12,122 @@
     }
   </script>
 
+  <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="booking.css" />
   <link rel="stylesheet" href="darkmode.css" />
 
+  <!-- EmailJS -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <script>
-    (function () {
-      emailjs.init({ publicKey: "v1GO4hYhLibhbnt_N" });
-    })();
-  </script>
+  <script>(function(){ emailjs.init({ publicKey: "v1GO4hYhLibhbnt_N" }); })();</script>
 </head>
+
 <body>
-  <nav class="navbar">
+
+  <!-- ─── Navbar ──────────────────────────────────────────────────────────── -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
     <ul class="nav-inner">
       <li class="nav-logo">
-        <a href="home.html">
+        <a href="home.html" aria-label="DKcleanedit — go to homepage">
           <img src="videos/logo.png" class="logo" alt="DKcleanedit" />
         </a>
       </li>
-      <li><a href="home.html" id="navHome">Home</a></li>
-      <li><a href="booking.html" id="navBooking" data-requires-auth="true" aria-current="page">Booking</a></li>
-      <li><a href="track.html" id="navTracking" data-requires-auth="true">Tracking</a></li>
-      <li><a href="customer.html" id="navAccount" data-requires-auth="true">My Account</a></li>
-      <li><a href="admin.html" id="navAdmin" data-requires-auth="true">Admin</a></li>
-      <li><a href="login.html" id="navLogin">Login</a></li>
+      <li><a href="home.html"     id="navHome">Home</a></li>
+      <li><a href="booking.html"  id="navBooking"  data-requires-auth="true" aria-current="page">Booking</a></li>
+      <li><a href="track.html"    id="navTracking" data-requires-auth="true">Tracking</a></li>
+      <li><a href="customer.html" id="navAccount"  data-requires-auth="true">My Account</a></li>
+      <li><a href="admin.html"    id="navAdmin"    data-requires-auth="true" hidden>Admin</a></li>
+      <li><a href="login.html"    id="navLogin">Login</a></li>
       <li><a href="register.html" id="navRegister">Register</a></li>
-      <li><a href="#" id="navLogout" hidden>Logout</a></li>
-      <li><span id="navPointsBadge" class="badge info points-badge" hidden>Points: 0</span></li>
+      <li><a href="#"             id="navLogout" hidden>Logout</a></li>
+      <li>
+        <span id="navPointsBadge" class="badge info points-badge" hidden aria-live="polite">
+          0 pts
+        </span>
+      </li>
       <li>
         <a href="settings.html" aria-label="Settings">
-          <img
-            class="PicSettings"
-            src="https://img.icons8.com/ios-filled/100/666666/settings.png"
-            alt="Settings"
-          />
+          <img class="PicSettings"
+               src="https://img.icons8.com/ios-filled/100/666666/settings.png"
+               alt="" aria-hidden="true" />
         </a>
       </li>
     </ul>
   </nav>
 
-  <div id="signupOverlay" class="overlay" hidden>
+  <!-- ─── Login Required Overlay ──────────────────────────────────────────── -->
+  <div id="signupOverlay" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="overlayHeading">
     <div class="popup">
-      <h2>Sign in to book</h2>
-      <p>Create an account to book services, track orders and check your points.</p>
+      <h2 id="overlayHeading">Sign in to book</h2>
+      <p>Create an account to book services, track your orders and earn loyalty points.</p>
       <div class="popup-actions">
-        <a class="btn primary" href="login.html">Log in</a>
-        <a class="btn secondary" href="register.html">Register</a>
-        <button id="closePopupBtn" class="btn" type="button">Close</button>
+        <a class="btn primary"   href="login.html">Log in</a>
+        <a class="btn secondary" href="register.html">Create account</a>
+        <button id="closePopupBtn" class="btn" type="button" aria-label="Close sign-in prompt">Close</button>
       </div>
     </div>
   </div>
 
-  <main class="container booking-page">
-    <section class="booking-hero">
-      <span class="eyebrow">Booking</span>
-      <h1>Book your cleaning service</h1>
+  <!-- ─── Main ────────────────────────────────────────────────────────────── -->
+  <main class="container booking-page" id="main" aria-label="Booking page">
+
+    <!-- HERO -->
+    <section class="booking-hero" aria-labelledby="bookingHeading">
+      <span class="eyebrow" aria-hidden="true">Booking</span>
+      <h1 id="bookingHeading">Book your cleaning service</h1>
       <p class="sub">
-        Fill in the form below to reserve your slot. You'll receive a confirmation by email and SMS.
+        Fill in the form below to reserve your slot.
+        You will receive a confirmation by email.
       </p>
-      <div class="hero-glow hero-glow--blue"></div>
-      <div class="hero-glow hero-glow--gold"></div>
+      <div class="hero-glow hero-glow--blue" aria-hidden="true"></div>
+      <div class="hero-glow hero-glow--gold"  aria-hidden="true"></div>
     </section>
 
     <div class="booking-layout">
-      <div class="card booking-form" id="bookingFormCard">
-        <div class="form-section">
-          <div class="section-label">1. Select service</div>
 
-          <div class="svc-opts">
+      <!-- ── FORM CARD ───────────────────────────────────────────────────── -->
+      <div class="card booking-form" id="bookingFormCard">
+
+        <!-- Step progress indicator -->
+        <nav class="booking-steps" aria-label="Booking steps">
+          <div class="booking-step active" aria-current="step">
+            <span class="step-num" aria-hidden="true">1</span>
+            <span class="step-label">Service</span>
+          </div>
+          <div class="booking-step">
+            <span class="step-num" aria-hidden="true">2</span>
+            <span class="step-label">Details</span>
+          </div>
+          <div class="booking-step">
+            <span class="step-num" aria-hidden="true">3</span>
+            <span class="step-label">Confirm</span>
+          </div>
+        </nav>
+
+        <!-- ────────────────────────────────────────────────────────────── -->
+        <!-- STEP 1 — SELECT SERVICE                                        -->
+        <!-- ────────────────────────────────────────────────────────────── -->
+        <section class="form-section" aria-labelledby="sectionServiceLabel">
+
+          <div class="form-section-head">
+            <span class="section-num" aria-hidden="true">1</span>
+            <span class="section-label" id="sectionServiceLabel">Select service</span>
+          </div>
+
+          <!-- Hidden select kept in sync for JS logic -->
+          <select id="service" hidden aria-hidden="true" tabindex="-1">
+            <option value="standard_clean" selected>Standard Cleaning</option>
+            <option value="express">Express Service</option>
+            <option value="next_day">Next Day</option>
+          </select>
+
+          <div class="svc-opts" role="radiogroup" aria-labelledby="sectionServiceLabel">
+
             <label class="svc-opt active" data-service-card="standard_clean">
-              <input type="radio" name="serviceCard" value="standard_clean" checked hidden />
+              <input type="radio" name="serviceCard" value="standard_clean" checked
+                     aria-label="Standard Cleaning — from £25" />
               <div class="svc-opt-top">
                 <strong>Standard Cleaning</strong>
-                <span class="badge info">From £25</span>
+                <span class="badge info" aria-label="Price from £25">From £25</span>
               </div>
               <p class="sub svc-opt-sub">
                 Deep clean, midsole, lace clean, deodorising, drying and finishing.
@@ -91,10 +135,11 @@
             </label>
 
             <label class="svc-opt" data-service-card="express">
-              <input type="radio" name="serviceCard" value="express" hidden />
+              <input type="radio" name="serviceCard" value="express"
+                     aria-label="Express Service — from £30" />
               <div class="svc-opt-top">
                 <strong>Express Service</strong>
-                <span class="badge warning">From £35</span>
+                <span class="badge warning" aria-label="Price from £30">From £30</span>
               </div>
               <p class="sub svc-opt-sub">
                 Same-day priority clean. Limited slots per day.
@@ -102,147 +147,307 @@
             </label>
 
             <label class="svc-opt" data-service-card="next_day">
-              <input type="radio" name="serviceCard" value="next_day" hidden />
+              <input type="radio" name="serviceCard" value="next_day"
+                     aria-label="Next Day service — from £40" />
               <div class="svc-opt-top">
                 <strong>Next Day</strong>
-                <span class="badge">From £30</span>
+                <span class="badge" aria-label="Price from £40">From £40</span>
               </div>
               <p class="sub svc-opt-sub">
-                Book today, collect tomorrow. Quick turnaround.
+                Book today, collect tomorrow. Quick turnaround guaranteed.
               </p>
             </label>
+
           </div>
 
-          <div style="display:none" id="standardPrices">
-            <div class="field">
-              <label for="standardPrice">Standard clean price (£)</label>
-              <input id="standardPrice" type="number" value="25" min="0" />
-            </div>
-          </div>
 
-          <div style="display:none" id="expressPrices">
-            <div class="field">
-              <label for="expressPrice">Express price (£)</label>
-              <input id="expressPrice" type="number" value="35" min="0" />
-            </div>
-          </div>
-
-          <div style="display:none" id="nextdayPrices">
-            <div class="field">
-              <label for="nextdayPrice">Next day price (£)</label>
-              <input id="nextdayPrice" type="number" value="30" min="0" />
-            </div>
-          </div>
-        </div>
+        </section>
 
         <hr class="section-sep" />
 
-        <div class="form-section">
-          <div class="section-label">2. Your details</div>
+        <!-- ────────────────────────────────────────────────────────────── -->
+        <!-- STEP 2 — YOUR DETAILS                                          -->
+        <!-- ────────────────────────────────────────────────────────────── -->
+        <section class="form-section" aria-labelledby="sectionDetailsLabel">
 
+          <div class="form-section-head">
+            <span class="section-num" aria-hidden="true">2</span>
+            <span class="section-label" id="sectionDetailsLabel">Your details</span>
+          </div>
+
+          <!-- Name + Location -->
           <div class="frow">
             <div class="field">
-              <label for="custNameB">Full name</label>
-              <input id="custNameB" type="text" autocomplete="name" />
+              <label for="customerName">Full name</label>
+              <input
+                id="customerName"
+                type="text"
+                autocomplete="name"
+                placeholder="Your name"
+                required
+                aria-required="true"
+              />
             </div>
 
             <div class="field">
-              <label for="location">Location</label>
-              <select id="location">
-                <option value="Leicester">Leicester</option>
-                <option value="London">London</option>
+              <label for="location">Branch location</label>
+              <select id="location" required aria-required="true">
+                <option value="charles_street_leicester">Charles Street, Leicester</option>
+                <option value="canada_water">Canada Water, London</option>
               </select>
             </div>
           </div>
 
-          <div class="frow">
-            <div class="field">
-              <label for="date">Date</label>
-              <input id="date" type="date" />
-            </div>
-
-            <div class="field">
-              <label for="timeSlot">Time slot</label>
-              <select id="timeSlot">
-                <option value="10:00">10:00</option>
-                <option value="12:00">12:00</option>
-                <option value="14:00">14:00</option>
-                <option value="16:00">16:00</option>
-                <option value="18:00">18:00</option>
-              </select>
-            </div>
-          </div>
-
+          <!-- Date Picker -->
           <div class="field">
-            <label for="shoeNotes">Shoe notes (brand, condition, special requests)</label>
+            <label id="datePickerLabel">Pick a date</label>
+            <div class="cal-wrap" role="group" aria-labelledby="datePickerLabel">
+
+              <div class="cal-head">
+                <button type="button" id="calPrev" class="btn" aria-label="Previous month">&#8249;</button>
+                <span id="calMonthLabel" aria-live="polite" aria-atomic="true"></span>
+                <button type="button" id="calNext" class="btn" aria-label="Next month">&#8250;</button>
+              </div>
+
+              <div class="cal-days-header" aria-hidden="true">
+                <span>Su</span><span>Mo</span><span>Tu</span>
+                <span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+              </div>
+
+              <div
+                id="calBody"
+                class="cal-body"
+                role="grid"
+                aria-label="Select a booking date"
+                aria-live="polite"
+              ></div>
+
+              <p id="selectedDateLabel" class="sub selected-date-label" aria-live="polite"></p>
+
+            </div>
+            <input id="date" type="hidden" aria-hidden="true" />
+          </div>
+
+          <!-- Time Slots -->
+          <div class="field">
+            <label id="timeSlotsLabel">
+              Time slot
+              <span class="sub" id="slotHint">— select a date first</span>
+            </label>
+            <div
+              class="time-slots"
+              role="group"
+              aria-labelledby="timeSlotsLabel"
+              aria-describedby="slotHint"
+            >
+              <button type="button" class="time-slot" data-time="10:00" aria-pressed="false">10:00</button>
+              <button type="button" class="time-slot" data-time="12:00" aria-pressed="false">12:00</button>
+              <button type="button" class="time-slot" data-time="14:00" aria-pressed="false">14:00</button>
+              <button type="button" class="time-slot" data-time="16:00" aria-pressed="false">16:00</button>
+              <button type="button" class="time-slot" data-time="18:00" aria-pressed="false">18:00</button>
+            </div>
+            <!-- Hidden select kept in sync for JS -->
+            <select id="timeSlot" hidden aria-hidden="true" tabindex="-1">
+              <option value=""></option>
+              <option value="10:00">10:00</option>
+              <option value="12:00">12:00</option>
+              <option value="14:00">14:00</option>
+              <option value="16:00">16:00</option>
+              <option value="18:00">18:00</option>
+            </select>
+          </div>
+
+          <!-- Branch Map -->
+          <div class="field">
+            <label id="mapLabel">Your selected branch</label>
+            <div class="map-card" aria-labelledby="mapLabel">
+              <div class="map-info">
+                <strong id="selectedBranchName">Charles Street, Leicester</strong>
+                <div class="sub" id="selectedBranchAddress">Charles Street, Leicester, UK</div>
+                <a
+                  id="openMapsBtn"
+                  class="btn secondary"
+                  href="#"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Open branch location in Google Maps (opens new tab)"
+                >
+                  Open in Google Maps ↗
+                </a>
+              </div>
+              <iframe
+                id="bookingMapFrame"
+                class="map-frame"
+                title="Selected branch map"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                aria-label="Map showing branch location"
+              ></iframe>
+            </div>
+          </div>
+
+        </section>
+
+        <hr class="section-sep" />
+
+        <!-- ────────────────────────────────────────────────────────────── -->
+        <!-- STEP 3 — CONFIRM BOOKING                                       -->
+        <!-- ────────────────────────────────────────────────────────────── -->
+        <section class="form-section" aria-labelledby="sectionConfirmLabel">
+
+          <div class="form-section-head">
+            <span class="section-num" aria-hidden="true">3</span>
+            <span class="section-label" id="sectionConfirmLabel">Notes &amp; confirm</span>
+          </div>
+
+          <!-- Shoe notes -->
+          <div class="field">
+            <label for="shoeNotes">
+              Shoe notes
+              <span class="sub">(brand, condition, special requests)</span>
+            </label>
             <textarea
               id="shoeNotes"
-              placeholder="e.g. Nike Air Force 1, heavy sole yellowing, avoid bleach..."
+              rows="3"
+              placeholder="e.g. Nike Air Force 1, heavy sole yellowing, avoid bleach…"
+              aria-describedby="shoeNotesHint"
+              maxlength="500"
             ></textarea>
+            <p id="shoeNotesHint" class="sub" style="font-size:0.78rem;color:var(--text-4);margin:0;">
+              Optional — helps our team prepare for your shoes.
+            </p>
           </div>
 
-          <div class="field" id="shoePreviewWrap" style="display:none">
-            <label for="shoePhoto">Upload shoe photo (optional)</label>
-            <input type="file" id="shoePhoto" accept="image/*" />
-            <img id="shoePreview" alt="Preview" />
+          <!-- Photo upload -->
+          <div class="field">
+            <label for="shoeImages">
+              Upload shoe photo
+              <span class="sub">(optional, max 10 MB)</span>
+            </label>
+
+            <div class="upload-zone" role="button" aria-label="Upload shoe photos — click or drag files here">
+              <input
+                type="file"
+                id="shoeImages"
+                name="shoeImages"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                multiple
+                aria-label="Choose shoe photos to upload"
+              />
+              <div class="upload-zone-text" aria-hidden="true">
+                <span class="upload-zone-icon">📸</span>
+                Click or drag photos here<br />
+                <span style="font-size:0.76rem;">JPEG, PNG, WebP · Max 10 MB</span>
+              </div>
+            </div>
+
+            <div id="shoePreviewWrap" hidden aria-live="polite">
+              <img id="shoePreview" alt="Preview of uploaded shoe photo" />
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <span class="sub" style="font-size:0.8rem;font-weight:600;">Photo ready</span>
+                <button type="button" class="preview-remove" id="btnRemovePhoto" aria-label="Remove uploaded photo">
+                  Remove ✕
+                </button>
+              </div>
+            </div>
           </div>
 
-          <button id="btnBook" class="btn primary full" type="button">
-            Confirm booking
-          </button>
-          <p id="bookMsg" class="auth-msg"></p>
-        </div>
+          <!-- Book button -->
+          <div class="btn-book-wrap">
+            <button
+              id="btnBook"
+              class="btn primary full"
+              type="button"
+              aria-live="polite"
+            >
+              Confirm booking
+            </button>
+            <p id="msg" class="auth-msg" role="alert" aria-live="assertive"></p>
+          </div>
+
+        </section>
       </div>
+      <!-- end booking-form -->
 
-      <aside class="card booking-summary">
-        <div class="summary-title">Order summary</div>
+      <!-- ── ORDER SUMMARY SIDEBAR ────────────────────────────────────── -->
+      <aside
+        class="card booking-summary"
+        aria-label="Order summary"
+        aria-live="polite"
+      >
+        <div class="summary-inner">
 
-        <div class="summary-rows">
-          <div class="sum-row">
-            <span>Service</span>
-            <strong id="summaryService">Standard Cleaning</strong>
-          </div>
-          <div class="sum-row">
-            <span>Location</span>
-            <strong id="summaryLocation">Leicester</strong>
-          </div>
-          <div class="sum-row">
-            <span>Date</span>
-            <strong id="summaryDate">—</strong>
-          </div>
-          <div class="sum-row">
-            <span>Time</span>
-            <strong id="summaryTime">—</strong>
-          </div>
-          <div class="sum-row total">
-            <span>Total</span>
-            <strong id="selectedPriceText">£25</strong>
-          </div>
-        </div>
+          <div class="summary-title" aria-hidden="true">Order summary</div>
 
-        <div class="summary-box summary-points">
-          <div class="summary-box-label">Points you'll earn</div>
-          <div class="summary-points-value">
-            +10 <span>loyalty points</span>
+          <div class="summary-rows">
+            <div class="sum-row">
+              <span>Service</span>
+              <strong id="summaryService" aria-label="Selected service">Standard Cleaning</strong>
+            </div>
+            <div class="sum-row">
+              <span>Location</span>
+              <strong id="summaryLocation" aria-label="Selected location">—</strong>
+            </div>
+            <div class="sum-row">
+              <span>Date</span>
+              <strong id="summaryDate" aria-label="Selected date">—</strong>
+            </div>
+            <div class="sum-row">
+              <span>Time</span>
+              <strong id="summaryTime" aria-label="Selected time">—</strong>
+            </div>
+            <div class="sum-row total">
+              <span>Total</span>
+              <strong id="selectedPriceText" aria-label="Total price">£25</strong>
+            </div>
           </div>
-          <div class="summary-box-sub">Credited when your order is completed</div>
-        </div>
 
-        <div class="summary-box summary-tier-box">
-          <div class="summary-box-label neutral">Your tier progress</div>
-          <div class="summary-tier-name" id="summaryTier">Carbon</div>
-          <div class="tier-track">
-            <div class="tier-bar" id="summaryTierBar"></div>
+
+
+          <!-- Trust signals -->
+          <div class="summary-trust" aria-label="Booking guarantees">
+            <div class="trust-row">
+              <span class="trust-icon" aria-hidden="true"></span>
+              Secure, encrypted booking
+            </div>
+            <div class="trust-row">
+              <span class="trust-icon" aria-hidden="true"></span>
+              Confirmation email sent instantly
+            </div>
+            <div class="trust-row">
+              <span class="trust-icon" aria-hidden="true"></span>
+              Free reschedule up to 24 h before
+            </div>
           </div>
-          <div class="summary-box-sub" id="summaryTierHint">
-            Earn 50 pts to reach Carbon tier
-          </div>
+
         </div>
       </aside>
+      <!-- end booking-summary -->
+
     </div>
   </main>
 
   <script type="module" src="./app.js"></script>
   <script type="module" src="./theme.js"></script>
+
+
+
+  <script type="module">
+    document.getElementById("btnRemovePhoto")?.addEventListener("click", () => {
+      const input = document.getElementById("shoeImages");
+      const wrap  = document.getElementById("shoePreviewWrap");
+      const img   = document.getElementById("shoePreview");
+      if (input) input.value = "";
+      if (img)   img.src     = "";
+      if (wrap)  wrap.hidden = true;
+    });
+
+    // Update slot hint text once a date is picked
+    document.getElementById("date")?.addEventListener("change", () => {
+      const hint = document.getElementById("slotHint");
+      if (hint) hint.textContent = "";
+    });
+  </script>
+
 </body>
 </html>
