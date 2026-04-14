@@ -422,14 +422,6 @@ function wireStaffList(staffList) {
 
 
 // ─── Smart card refresh ─────────────────────────────────────────
-// Called after _ordersByStaff is rebuilt. Instead of re-rendering
-// every card on every orders snapshot, we:
-//   1. Compute the current active count for each staff member
-//   2. Compare to the previous counts stored in _prevAssignCounts
-//   3. Only replace cards where the count changed
-//
-// This means if 10 orders come in and only 1 affects "Sam Jones",
-// only Sam's card gets replaced in the DOM.
 function smartRefreshCards() {
   Object.values(_staffData).forEach((staff) => {
     const current = (_ordersByStaff[staff.name] || []).filter(
@@ -481,12 +473,6 @@ function closeShiftModal() {
 
 
 // ─── History modal ──────────────────────────────────────────────
-// Merges shift history (staffShifts collection) and order assignments
-// (orders collection) into one unified timeline, sorted by date desc.
-//
-// If the admin closes the modal before the data loads, we cancel the
-// in-flight fetch via an AbortController flag so the stale data
-// never gets written to the content div.
 
 async function openHistoryModal(id) {
   // Cancel any in-progress history fetch for a previous card
@@ -523,8 +509,6 @@ async function openHistoryModal(id) {
     if (abort.cancelled) return;
 
     // ── Build normalised row objects ─────────────────────────────
-    // Both types get a `sortKey` (YYYY-MM-DD) so we can sort them
-    // together in one array without type-specific comparators.
 
     const shiftRows = [];
     shiftSnap.forEach((d) => {
@@ -696,9 +680,7 @@ function initStaff() {
   onAuthStateChanged(auth, async (user) => {
     await setupNav(user);
 
-    // Tear down any previous Firestore listeners before re-subscribing.
-    // Without this, logging out and back in would create a second set of
-    // listeners that both update the DOM at the same time.
+
     if (_unsubOrders) { _unsubOrders(); _unsubOrders = null; }
     if (_unsubStaff)  { _unsubStaff();  _unsubStaff  = null; }
 
@@ -751,8 +733,7 @@ function initStaff() {
     );
 
     // ── Staff listener ───────────────────────────────────────────
-    // Full re-render only when the staff collection itself changes
-    // (someone added, edited, or removed a staff member).
+
     _unsubStaff = onSnapshot(
       query(collection(db, "staff"), orderBy("createdAt", "desc")),
       (snap) => {
@@ -875,10 +856,7 @@ function initStaff() {
     btn.textContent = "Saving…";
 
     try {
-      // Update the staff document and append to shift history atomically-ish.
-      // We do them as two separate writes because Firestore batch writes
-      // don't support addDoc (auto-ID). The shift history write is non-critical
-      // so we don't block the success toast on it.
+
       await withRetry(() => updateDoc(doc(db, "staff", _currentShiftId), {
         role, location,
         shiftStart: start,
