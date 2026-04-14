@@ -1,5 +1,3 @@
-
-
 // ─────────────────────────────────────────────────────────────
 //  SECTION 1 — FIREBASE IMPORTS
 // ─────────────────────────────────────────────────────────────
@@ -35,6 +33,7 @@ import {
   increment,
   writeBatch,
   deleteDoc,
+  runTransaction,
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
 import {
@@ -279,7 +278,6 @@ function _drainToasts() {
 //  SECTION 5 — EMAIL FUNCTION
 // ─────────────────────────────────────────────────────────────
 
-// Booking confirmation — sent when a customer books
 function sendBookingEmail({
   customerName,
   customerEmail,
@@ -307,7 +305,6 @@ function sendBookingEmail({
     .catch((err) => console.warn("Booking email failed:", err));
 }
 
-// Completion email — sent when admin marks an order as Completed
 async function sendCleaningCompleteEmail({
   recipientEmail,
   recipientName,
@@ -328,7 +325,6 @@ async function sendCleaningCompleteEmail({
   });
 }
 
-// Missed appointment reminder — sent from the Missed tab
 async function sendMissedEmail({
   customerName,
   customerEmail,
@@ -350,7 +346,6 @@ async function sendMissedEmail({
   });
 }
 
-// Pickup summary email — sent manually by admin after choosing date/time
 async function sendPickupSummaryEmail({
   recipientEmail,
   recipientName,
@@ -378,15 +373,14 @@ async function sendPickupSummaryEmail({
 //  SECTION 6 — AVAILABILITY (open/closed time slots)
 // ─────────────────────────────────────────────────────────────
 
-async function getOpenSlots(dateISO, location) {
+async function getOpenSlots(dateISO, locationKey) {
   const [availSnap, bookingSnap] = await Promise.all([
     getDoc(doc(db, "availability", dateISO)).catch(() => null),
     getDocs(
       query(
         collection(db, "orders"),
         where("date",     "==", dateISO),
-        where("location", "==", location),
-        where("status",   "!=", "Cancelled")
+        where("location", "==", locationKey)
       )
     ).catch(() => null),
   ]);
@@ -394,14 +388,40 @@ async function getOpenSlots(dateISO, location) {
   const slots = availSnap?.exists() ? availSnap.data().slots ?? {} : {};
 
   const taken = new Set();
-  bookingSnap?.forEach((d) => taken.add(d.data().timeSlot));
+  bookingSnap?.forEach((d) => {
+    const data = d.data();
+    if (data.status !== "Cancelled" && data.timeSlot) {
+      taken.add(data.timeSlot);
+    }
+  });
 
   return TIME_SLOTS.filter((s) => slots[s] !== false && !taken.has(s));
 }
 
-async function slotAvailable(dateISO, location, timeSlot) {
-  const open = await getOpenSlots(dateISO, location);
+async function slotAvailable(dateISO, locationKey, timeSlot) {
+  const open = await getOpenSlots(dateISO, locationKey);
   return open.includes(timeSlot);
+}
+
+function watchOpenSlots(dateISO, locationKey, onChange) {
+  const ordersUnsub = onSnapshot(
+    query(
+      collection(db, "orders"),
+      where("date",     "==", dateISO),
+      where("location", "==", locationKey)
+    ),
+    async () => {
+      try {
+        const open = await getOpenSlots(dateISO, locationKey);
+        onChange(open);
+      } catch (err) {
+        console.error("watchOpenSlots error:", err);
+      }
+    },
+    (err) => console.error("watchOpenSlots snapshot error:", err)
+  );
+
+  return ordersUnsub;
 }
 
 
@@ -449,10 +469,41 @@ function renderPickupBanner(order) {
   return "";
 }
 
+// ─────────────────────────────────────────────────────────────
+//  CHANGED: renderOrderCard now shows a "Cancelled" banner with
+//  the reason message, and hides the action buttons for cancelled
+//  orders. Also shows a "within 24 hrs" notice when the window
+//  has closed so the customer understands why buttons are gone.
+// ─────────────────────────────────────────────────────────────
 function renderOrderCard(order) {
   const pct           = progressPercent(order.status || "Booked");
-  const canEdit       = ["Booked", "Received"].includes(order.status);
+  const status        = order.status || "Booked";
   const dateFormatted = formatDate(order.date);
+
+  // Work out whether the 24-hour window is still open
+  const apptMs        = new Date(`${order.date}T${order.timeSlot || "00:00"}:00`).getTime();
+  const withinWindow  = apptMs - Date.now() < 24 * 60 * 60 * 1000;
+  const canEdit       = ["Booked", "Received"].includes(status) && !withinWindow;
+
+  // Banner shown when order is cancelled
+  const cancelledBanner = status === "Cancelled"
+    ? `<div class="cancelled-notice" role="alert"
+            style="margin:10px 0;padding:10px 14px;border-radius:8px;
+                   background:#fef2f2;border:1px solid #fecaca;
+                   color:#b91c1c;font-size:0.88rem;">
+         ✕ This booking was cancelled.
+         ${order.cancelledAt
+           ? ` Cancelled on ${new Date(order.cancelledAt).toLocaleDateString("en-GB")}.`
+           : ""}
+       </div>`
+    : "";
+
+  // Notice shown when window has passed but order is still active
+  const windowNotice = !["Cancelled","Completed"].includes(status) && withinWindow
+    ? `<div class="sub" style="margin-top:8px;color:#92400e;font-size:0.82rem;">
+         ⚠ Changes are no longer possible within 24 hours of your appointment.
+       </div>`
+    : "";
 
   return `
     <article class="order-card" data-id="${esc(order.id)}" aria-label="Order ${esc(order.id)}">
@@ -465,13 +516,15 @@ function renderOrderCard(order) {
             ${esc(dateFormatted)} &bull; ${esc(order.timeSlot)} &bull; ${esc(order.price || "")}
           </div>
         </div>
-        <span class="${badgeClass(order.status || "Booked")}">
-          ${esc(order.status || "Booked")}
+        <span class="${badgeClass(status)}">
+          ${esc(status)}
         </span>
       </div>
 
-      ${renderProgress(order.status || "Booked")}
+      ${cancelledBanner}
+      ${renderProgress(status)}
       ${renderPickupBanner(order)}
+      ${windowNotice}
 
       <div class="order-meta">
         <span class="sub">Order ID: <code>${esc(order.id)}</code></span>
@@ -529,6 +582,9 @@ function findConflicts(orders) {
   return Object.values(groups).filter((g) => g.length > 1);
 }
 
+// ─────────────────────────────────────────────────────────────
+//  renderAdminCard
+// ─────────────────────────────────────────────────────────────
 function renderAdminCard(order, currentUser, conflict = false) {
   const status    = order.status || "Booked";
   const canEdit   = isAdmin(currentUser?.email);
@@ -566,16 +622,35 @@ function renderAdminCard(order, currentUser, conflict = false) {
     )
     .join("");
 
+  // Dismiss button — only shown on cancelled orders, admin-only
+  const dismissBtn = canEdit && status === "Cancelled"
+    ? `<button class="dismiss-btn" type="button"
+               data-dismiss-order="${esc(order.id)}"
+               aria-label="Dismiss cancelled order — move to history"
+               title="Move to history"
+               style="position:absolute;top:10px;right:10px;
+                      width:28px;height:28px;border-radius:50%;
+                      border:1px solid var(--line,#e2e8f0);
+                      background:var(--bg,#fff);color:#94a3b8;
+                      font-size:17px;line-height:1;cursor:pointer;
+                      display:flex;align-items:center;justify-content:center;">
+         ×
+       </button>`
+    : "";
+
   return `
     <article class="order-card${conflict ? " conflict-card" : ""}"
-             data-id="${esc(order.id)}">
+             data-id="${esc(order.id)}"
+             style="position:relative;">
+
+      ${dismissBtn}
 
       <div class="order-top">
         <div>
           <div class="order-title">
             ${esc(order.customerName || "Customer")}
             &bull; ${esc(serviceLabel(order.service))}
-            ${conflict ? `<span class="conflict-badge">Conflict</span>` : ""}
+            ${conflict ? `<span class="conflict-badge">Double-booked</span>` : ""}
           </div>
           <div class="sub">
             ${esc(order.customerEmail || "")}
@@ -586,7 +661,7 @@ function renderAdminCard(order, currentUser, conflict = false) {
             ${esc(dateStr)} &bull; ${esc(order.timeSlot || "")} &bull; ${esc(order.price || "")}
           </div>
           <div class="sub">Order ID: <code>${esc(order.id)}</code></div>
-          <div class="sub">Collected: ${order.pickedUp ? "✅ Yes" : "No"}</div>
+          <div class="sub">Collected: ${order.pickedUp ? " Yes" : "No"}</div>
           ${order.assignedStaff
             ? `<div class="sub">Assigned: <strong>${esc(order.assignedStaff)}</strong></div>`
             : ""}
@@ -717,12 +792,6 @@ function renderAdminCard(order, currentUser, conflict = false) {
 
 // ─────────────────────────────────────────────────────────────
 //  SECTION 8b — SHARED PICKUP BUTTON HANDLER
-//
-//  Extracted into its own function so BOTH click listeners
-//  (adminOrders AND document) can call it. This was the bug —
-//  the button lives inside #adminOrders so the adminOrders
-//  listener was catching the click before it could bubble up
-//  to the document listener where the handler used to live.
 // ─────────────────────────────────────────────────────────────
 
 async function handlePickupBtn(pickupBtn) {
@@ -756,7 +825,7 @@ async function handlePickupBtn(pickupBtn) {
     });
 
     toast(`Pickup summary sent to ${order.customerEmail} ✅`, "success");
-    pickupBtn.textContent = "✅ Sent";
+    pickupBtn.textContent = " Sent";
   } catch (err) {
     console.error("Pickup summary email failed:", err);
     toast("Email failed — check EmailJS template ID.", "error");
@@ -833,7 +902,7 @@ async function saveOrder(orderId) {
           cleaningSummary: `${serviceLabel(prev.service)} for order ${orderId} is complete.`,
           completedAt:     new Date().toLocaleDateString("en-GB"),
         });
-        toast("Completion email sent to customer ✅", "success");
+        toast("Completion email sent to customer ", "success");
       } catch (err) {
         console.error("❌ Customer email failed:", err);
         toast("Order saved — email failed. Check Console (F12).", "error");
@@ -841,7 +910,7 @@ async function saveOrder(orderId) {
     }
   }
 
-  toast("Order updated ✅", "success");
+  toast("Order updated ", "success");
 }
 
 
@@ -854,15 +923,34 @@ async function cancelOrder(orderId) {
   const snap = await withRetry(() => getDoc(ref));
   if (!snap.exists()) { toast("Order not found", "error"); return; }
 
-  const { status } = snap.data();
+  const data = snap.data();
+  const { status, date, timeSlot } = data;
+
   if (!["Booked", "Received"].includes(status)) {
-    toast("This order can no longer be cancelled");
+    toast("This order can no longer be cancelled.");
     return;
   }
+
+  // ── 24-hour cancellation window ──────────────────────────────
+  // Build a full datetime from the booking date + time slot so
+  // we can compare against the current moment.
+  const apptMs = new Date(`${date}T${timeSlot || "00:00"}:00`).getTime();
+  if (apptMs - Date.now() < 24 * 60 * 60 * 1000) {
+    toast(
+      "Cancellations must be made more than 24 hours before your appointment.",
+      "error"
+    );
+    return;
+  }
+
   if (!confirm("Cancel this booking? This cannot be undone.")) return;
 
   await withRetry(() =>
-    updateDoc(ref, { status: "Cancelled", updatedAt: serverTimestamp() })
+    updateDoc(ref, {
+      status:      "Cancelled",
+      cancelledAt: Date.now(),
+      updatedAt:   serverTimestamp(),
+    })
   );
   toast("Booking cancelled", "success");
 }
@@ -875,6 +963,16 @@ async function rescheduleOrder(orderId) {
   const data = snap.data();
   if (!["Booked", "Received"].includes(data.status)) {
     toast("This order can no longer be rescheduled");
+    return;
+  }
+
+  // ── 24-hour reschedule window ────────────────────────────────
+  const apptMs = new Date(`${data.date}T${data.timeSlot || "00:00"}:00`).getTime();
+  if (apptMs - Date.now() < 24 * 60 * 60 * 1000) {
+    toast(
+      "Reschedules must be made more than 24 hours before your appointment.",
+      "error"
+    );
     return;
   }
 
@@ -906,12 +1004,13 @@ async function rescheduleOrder(orderId) {
 
   await withRetry(() =>
     updateDoc(ref, {
-      date:      newDate.trim(),
-      timeSlot:  newTime.trim(),
-      updatedAt: serverTimestamp(),
+      date:           newDate.trim(),
+      timeSlot:       newTime.trim(),
+      rescheduledAt:  Date.now(),
+      updatedAt:      serverTimestamp(),
     })
   );
-  toast("Booking rescheduled ✅", "success");
+  toast("Booking rescheduled ", "success");
 }
 
 function wireOrderActions(containerEl) {
@@ -1050,7 +1149,7 @@ async function setupNav(user) {
     navLogout.addEventListener("click", async (e) => {
       e.preventDefault();
       await signOut(auth);
-      toast("Logged out ✅");
+      toast("Logged out ");
       location.replace("home.html");
     });
   }
@@ -1132,7 +1231,7 @@ function initLogin() {
 
     try {
       await signInWithEmailAndPassword(auth, email, pass);
-      toast("Logged in ✅", "success");
+      toast("Logged in ", "success");
       location.replace(next ? decodeURIComponent(next) : "customer.html");
     } catch (err) {
       const msg = AUTH_ERRORS[err?.code] ?? err.message ?? "Login failed.";
@@ -1155,8 +1254,8 @@ function initLogin() {
     if (!email) { setMsg("Enter your email address first."); return; }
     try {
       await sendPasswordResetEmail(auth, email);
-      setMsg("Reset email sent ✅ Check your inbox.");
-      toast("Reset email sent ✅", "success");
+      setMsg("Reset email sent Check your inbox.");
+      toast("Reset email sent ", "success");
     } catch (err) {
       const msg =
         err?.code === "auth/user-not-found"
@@ -1241,6 +1340,8 @@ function initBooking() {
 
   wireOverlay();
 
+  let _slotWatcherUnsub = null;
+
   function getPrice() {
     return SERVICE_PRICES[$("#service")?.value] || "";
   }
@@ -1265,34 +1366,92 @@ function initBooking() {
     const loc  = $("#location")?.value || "";
     const btns = $$(".time-slot");
     if (!btns.length) return;
+    if (!loc) return;
 
     btns.forEach((b) => { b.disabled = true; b.style.opacity = "0.5"; });
 
     try {
-      const open = await withRetry(() => getOpenSlots(dateISO, loc));
+      const [availSnap, bookingSnap] = await Promise.all([
+        getDoc(doc(db, "availability", dateISO)).catch(() => null),
+        getDocs(
+          query(
+            collection(db, "orders"),
+            where("date",     "==", dateISO),
+            where("location", "==", loc)
+          )
+        ).catch(() => null),
+      ]);
 
-      btns.forEach((btn) => {
-        const available = open.includes(btn.dataset.time);
-        btn.disabled                = !available;
-        btn.style.opacity           = available ? "" : "0.4";
-        btn.style.cursor            = available ? "" : "not-allowed";
-        btn.style.textDecoration    = available ? "" : "line-through";
-        btn.setAttribute("aria-disabled", String(!available));
-        btn.classList.toggle("slot-unavailable", !available);
-        if (!available) btn.classList.remove("active");
+      const adminSlots = availSnap?.exists() ? availSnap.data().slots ?? {} : {};
+
+      const bookedTimes = new Set();
+      bookingSnap?.forEach((d) => {
+        const data = d.data();
+        if (data.status !== "Cancelled" && data.timeSlot) {
+          bookedTimes.add(data.timeSlot);
+        }
       });
 
-      const timeSlot = $("#timeSlot");
-      if (timeSlot && !open.includes(timeSlot.value)) {
-        timeSlot.value = "";
-        btns.forEach((b) => b.classList.remove("active"));
-        updateSummary();
-      }
+      btns.forEach((btn) => {
+        const slotTime       = btn.dataset.time;
+        const adminClosed    = adminSlots[slotTime] === false;
+        const customerBooked = bookedTimes.has(slotTime);
+        const available      = !adminClosed && !customerBooked;
+
+        btn.disabled = !available;
+
+        btn.classList.remove("active", "slot-unavailable", "slot-booked", "slot-admin-closed");
+        btn.style.opacity        = "";
+        btn.style.cursor         = "";
+        btn.style.textDecoration = "";
+        btn.removeAttribute("aria-disabled");
+
+        btn.querySelector(".slot-booked-label")?.remove();
+
+        if (available) {
+          // slot is fully clickable — no extra markup
+        } else {
+          btn.style.opacity        = "0.4";
+          btn.style.cursor         = "not-allowed";
+          btn.style.textDecoration = "line-through";
+          btn.setAttribute("aria-disabled", "true");
+          btn.classList.add("slot-unavailable");
+
+          const label = document.createElement("span");
+          label.className = "slot-booked-label";
+          label.setAttribute("aria-hidden", "true");
+
+          if (customerBooked) {
+            btn.classList.add("slot-booked");
+            label.textContent = "Booked";
+          } else {
+            btn.classList.add("slot-admin-closed");
+            label.textContent = "Unavailable";
+          }
+
+          btn.appendChild(label);
+
+          if (btn.classList.contains("active")) {
+            btn.classList.remove("active");
+            const hiddenInput = $("#timeSlot");
+            if (hiddenInput) hiddenInput.value = "";
+            updateSummary();
+            toast("Your selected time slot is no longer available. Please choose another.", "error");
+          }
+        }
+      });
+
     } catch (err) {
       console.error("Slot refresh failed:", err);
-      toast("Could not load slot availability.", "error");
+      toast("Could not load slot availability. Please refresh the page.", "error");
       btns.forEach((b) => { b.disabled = false; b.style.opacity = ""; });
     }
+  }
+
+  function applyOpenSlots() {
+    const dateISO = document.getElementById("date")?.value;
+    const loc     = $("#location")?.value || "";
+    if (dateISO && loc) refreshSlots(dateISO);
   }
 
   $$(".time-slot").forEach((btn) => {
@@ -1353,7 +1512,17 @@ function initBooking() {
 
           buildCal();
           updateSummary();
+
           await refreshSlots(iso);
+
+          if (_slotWatcherUnsub) {
+            _slotWatcherUnsub();
+            _slotWatcherUnsub = null;
+          }
+          const loc = $("#location")?.value || "";
+          if (loc) {
+            _slotWatcherUnsub = watchOpenSlots(iso, loc, applyOpenSlots);
+          }
         },
       });
     }
@@ -1425,8 +1594,18 @@ function initBooking() {
   $("#location")?.addEventListener("change", () => {
     updateSummary();
     updateMap();
-    const d = document.getElementById("date")?.value;
-    if (d && isValidDate(d)) refreshSlots(d);
+    const d   = document.getElementById("date")?.value;
+    const loc = $("#location")?.value || "";
+    if (d && isValidDate(d)) {
+      refreshSlots(d);
+      if (_slotWatcherUnsub) {
+        _slotWatcherUnsub();
+        _slotWatcherUnsub = null;
+      }
+      if (loc) {
+        _slotWatcherUnsub = watchOpenSlots(d, loc, applyOpenSlots);
+      }
+    }
   });
   document.getElementById("date")?.addEventListener("change", updateSummary);
 
@@ -1475,16 +1654,6 @@ function initBooking() {
     setMsg("");
 
     try {
-      const available = await withRetry(() => slotAvailable(date, loc, timeSlot));
-      if (!available) {
-        setMsg("That slot is no longer available. Please pick another time.");
-        toast("Slot taken — please pick another.", "error");
-        await refreshSlots(date);
-        return;
-      }
-
-      btnBook.textContent = "Processing…";
-
       const userSnap      = await getDoc(doc(db, "users", user.uid));
       const userData      = userSnap.exists() ? userSnap.data() : {};
       const customerName  = $("#customerName")?.value.trim()
@@ -1494,28 +1663,65 @@ function initBooking() {
       const customerEmail = userData.email  || user.email || "";
       const customerPhone = userData.phone  || "";
 
-      const orderRef = await addDoc(collection(db, "orders"), {
-        uid:           user.uid,
-        customerName,
-        customerEmail,
-        customerPhone,
-        service,
-        serviceLabel:  serviceLabel(service),
-        location:      loc,
-        date,
-        timeSlot,
-        price,
-        shoeNotes,
-        status:        "Booked",
-        pickedUp:      false,
-        deliveryMode:  "pending",
-        assignedStaff: "",
-        pointsAwarded: 10,
-        pointsGranted: false,
-        grantedPointsAmount: 0,
-        createdAt:     serverTimestamp(),
-        updatedAt:     serverTimestamp(),
+      let newOrderId;
+
+      await runTransaction(db, async (transaction) => {
+        const availRef  = doc(db, "availability", date);
+        const availSnap = await transaction.get(availRef);
+        const slotMap   = availSnap.exists() ? availSnap.data().slots ?? {} : {};
+
+        if (slotMap[timeSlot] === false) {
+          throw new Error("SLOT_UNAVAILABLE");
+        }
+
+        const slotSentinelRef = doc(
+          db,
+          "bookingSlots",
+          `${date}_${loc}_${timeSlot.replace(":", "")}`
+        );
+        const sentinelSnap = await transaction.get(slotSentinelRef);
+        const currentCount = sentinelSnap.exists()
+          ? Number(sentinelSnap.data().count || 0)
+          : 0;
+
+        if (currentCount >= 1) {
+          throw new Error("SLOT_UNAVAILABLE");
+        }
+
+        const orderRef = doc(collection(db, "orders"));
+        newOrderId = orderRef.id;
+
+        transaction.set(orderRef, {
+          uid:           user.uid,
+          customerName,
+          customerEmail,
+          customerPhone,
+          service,
+          serviceLabel:  serviceLabel(service),
+          location:      loc,
+          date,
+          timeSlot,
+          price,
+          shoeNotes,
+          status:        "Booked",
+          pickedUp:      false,
+          deliveryMode:  "pending",
+          assignedStaff: "",
+          pointsAwarded: 10,
+          pointsGranted: false,
+          grantedPointsAmount: 0,
+          createdAt:     serverTimestamp(),
+          updatedAt:     serverTimestamp(),
+        });
+
+        transaction.set(
+          slotSentinelRef,
+          { count: currentCount + 1, date, location: loc, timeSlot, updatedAt: serverTimestamp() },
+          { merge: true }
+        );
       });
+
+      btnBook.textContent = "Processing…";
 
       if (images.length) {
         try {
@@ -1523,13 +1729,13 @@ function initBooking() {
             images.map(async (img, i) => {
               const ref = storageRef(
                 storage,
-                `orders/${orderRef.id}/${Date.now()}-${i}-${img.name}`
+                `orders/${newOrderId}/${Date.now()}-${i}-${img.name}`
               );
               await uploadBytes(ref, img);
               return getDownloadURL(ref);
             })
           );
-          await updateDoc(orderRef, {
+          await updateDoc(doc(db, "orders", newOrderId), {
             imageUrls: urls,
             updatedAt: serverTimestamp(),
           });
@@ -1542,7 +1748,7 @@ function initBooking() {
       sendBookingEmail({
         customerName,
         customerEmail,
-        orderId:     orderRef.id,
+        orderId:     newOrderId,
         service:     serviceLabel(service),
         location:    loc,
         bookingDate: date,
@@ -1551,15 +1757,30 @@ function initBooking() {
         shoeNotes,
       });
 
-      toast("Booking confirmed ✅", "success");
-      setMsg(`Booking confirmed! Order ID: ${orderRef.id}`);
+      if (_slotWatcherUnsub) {
+        _slotWatcherUnsub();
+        _slotWatcherUnsub = null;
+      }
+
+      toast("Booking confirmed ", "success");
+      setMsg(`Booking confirmed! Order ID: ${newOrderId}`);
       setTimeout(() => { location.href = "track.html"; }, 900);
+
     } catch (err) {
       console.error("Booking failed:", err);
-      const msg =
-        err?.code === "permission-denied"
-          ? "Permission denied. Please log in again."
-          : "Booking failed. Please try again.";
+
+      let msg;
+      if (err?.message === "SLOT_UNAVAILABLE") {
+        msg = "That time slot was just taken. Please choose a different time.";
+        const d   = document.getElementById("date")?.value;
+        const loc = $("#location")?.value;
+        if (d && loc) await refreshSlots(d);
+      } else if (err?.code === "permission-denied") {
+        msg = "Permission denied. Please log in again.";
+      } else {
+        msg = "Booking failed. Please try again.";
+      }
+
       setMsg(msg);
       toast(msg, "error");
     } finally {
@@ -1572,6 +1793,11 @@ function initBooking() {
 
 // ─────────────────────────────────────────────────────────────
 //  SECTION 17 — TRACKING PAGE
+//
+//  CHANGED: Cancelled orders are now included in the visible
+//  list for 7 days after cancellation so customers can see
+//  their cancellation was processed. They show the red
+//  "Cancelled" badge. After 7 days they naturally disappear.
 // ─────────────────────────────────────────────────────────────
 
 function initTracking() {
@@ -1606,10 +1832,26 @@ function initTracking() {
           (a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)
         );
 
-        const active = orders.filter(
-          (o) =>
-            !["Completed", "Cancelled", "Delivered", "Collected"].includes(o.status)
-        );
+        // ── CHANGED: keep recently cancelled orders visible for 7 days ──
+        // Previously "Cancelled" was excluded entirely, so customers had
+        // no confirmation their cancellation was processed. Now they see
+        // the card with a red badge and a "cancelled" banner for 7 days.
+        const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+        const active = orders.filter((o) => {
+          // Always show non-terminal statuses
+          if (!["Completed", "Cancelled", "Delivered", "Collected"].includes(o.status)) {
+            return true;
+          }
+          // Show cancelled orders for 7 days after they were cancelled
+          if (o.status === "Cancelled") {
+            const cancelledMs = o.cancelledAt
+              ? Number(o.cancelledAt)
+              : (o.updatedAt?.seconds ? o.updatedAt.seconds * 1000 : 0);
+            return Date.now() - cancelledMs < sevenDaysMs;
+          }
+          // Completed / Delivered / Collected — hide from active view
+          return false;
+        });
 
         ordersEl.innerHTML = active.length
           ? active.map(renderOrderCard).join("")
@@ -1707,8 +1949,8 @@ function initCustomer() {
           EmailAuthProvider.credential(user.email, currentPass)
         );
         await updatePassword(user, newPass);
-        setMsg("Password updated ✅", "passMsg");
-        toast("Password updated ✅", "success");
+        setMsg("Password updated ", "passMsg");
+        toast("Password updated ", "success");
         if ($("#curPass")) $("#curPass").value = "";
         if ($("#newPass")) $("#newPass").value = "";
       } catch (err) {
@@ -1922,6 +2164,16 @@ function exportOrdersToCSV(orders) {
 
 // ─────────────────────────────────────────────────────────────
 //  SECTION 22 — ADMIN PAGE
+//
+//  CHANGED:
+//  • renderAll() now splits allOrders into visible (not dismissed)
+//    and dismissed sets.
+//  • Dismissed cancelled orders are rendered into a collapsible
+//    <details> history panel (#cancelledHistory) that sits below
+//    the main orders list in admin.html.
+//  • The dismiss (×) click handler is wired inside adminOrders
+//    and the delegated document listener.
+//  • A renderHistoryPanel() helper keeps history rendering DRY.
 // ─────────────────────────────────────────────────────────────
 
 function initAdmin() {
@@ -1974,6 +2226,30 @@ function initAdmin() {
       console.warn("Could not load staff list:", err);
       window._staffList = [];
     }
+  }
+
+  // ── History panel renderer ─────────────────────────────────
+  //
+  function renderHistoryPanel(dismissedOrders) {
+    const historyEl      = document.getElementById("cancelledHistory");
+    const historyCountEl = document.getElementById("cancelledHistoryCount");
+    if (!historyEl) return;
+
+    if (historyCountEl) {
+      historyCountEl.textContent = dismissedOrders.length
+        ? `(${dismissedOrders.length})`
+        : "";
+    }
+
+    historyEl.innerHTML = dismissedOrders.length
+      ? dismissedOrders
+          .map((o) => renderAdminCard(o, currentUser))
+          .join("")
+      : `<div class="order-card">
+           <div class="order-title" style="color:var(--text-3,#94a3b8);">
+             No archived orders
+           </div>
+         </div>`;
   }
 
   // ── Missed drop-offs tab ───────────────────────────────────
@@ -2084,25 +2360,6 @@ function initAdmin() {
     setText("#adminCompletedOrders", allOrders.filter((o) => o.status === "Completed").length);
     setText("#adminWithImages",      allOrders.filter((o) => getImageUrls(o).length > 0).length);
 
-    const conflictsList = $("#conflictsList");
-    if (conflictsList) {
-      conflictsList.innerHTML =
-        conflicts.length === 0
-          ? `<div class="order-card"><div class="order-title">No conflicts ✅</div></div>`
-          : conflicts
-              .map(
-                (g) => `
-                <div style="margin-bottom:18px;">
-                  <div class="sub" style="font-weight:700;color:var(--warning);margin-bottom:8px;">
-                    ${g.length} orders — ${esc(formatDate(g[0].date))}
-                    &bull; ${esc(g[0].timeSlot)} &bull; ${esc(g[0].location)}
-                  </div>
-                  ${g.map((o) => renderAdminCard(o, currentUser, true)).join("")}
-                </div>`
-              )
-              .join("");
-    }
-
     const scheduleList = $("#scheduleList");
     if (scheduleList) {
       const todayOrders = allOrders
@@ -2115,7 +2372,16 @@ function initAdmin() {
 
     renderMissedTab();
 
-    const filtered = allOrders.filter((o) => {
+    // ── CHANGED: split into visible and dismissed ────────────
+    // Dismissed orders are moved to the history panel so the
+    // main list stays clean. The admin can expand the history
+    // panel at any time to review archived cancelled orders.
+    const visible   = allOrders.filter((o) => !o.dismissed);
+    const dismissed = allOrders.filter((o) => !!o.dismissed);
+
+    renderHistoryPanel(dismissed);
+
+    const filtered = visible.filter((o) => {
       const matchesFilter = !filter || o.status === filter;
       const haystack = [
         o.customerName, o.customerEmail, o.location,
@@ -2144,20 +2410,41 @@ function initAdmin() {
     }
   });
 
-  // ── Save button + pickup button — main orders list ─────────
-  // NOTE: data-send-pickup lives inside #adminOrders so it must
-  // be handled HERE, not in the document listener below.
+  // ── Save / pickup / dismiss — main orders list ─────────────
   adminOrders.addEventListener("click", async (e) => {
     if (!isAdmin(currentUser?.email)) return;
 
-    // Pickup summary button
+    // ── CHANGED: dismiss button handler ──────────────────────
+    // Sets dismissed:true on the order doc. renderAll() will
+    // then move it out of the main list and into history.
+    const dismissBtn = e.target.closest("[data-dismiss-order]");
+    if (dismissBtn) {
+      const oid = dismissBtn.dataset.dismissOrder;
+      dismissBtn.disabled    = true;
+      dismissBtn.textContent = "…";
+      try {
+        await withRetry(() =>
+          updateDoc(doc(db, "orders", oid), {
+            dismissed: true,
+            updatedAt: serverTimestamp(),
+          })
+        );
+        toast("Moved to history ✓", "success");
+      } catch (err) {
+        console.error("Dismiss failed:", err);
+        toast("Could not dismiss order. Please retry.", "error");
+        dismissBtn.disabled    = false;
+        dismissBtn.textContent = "×";
+      }
+      return;
+    }
+
     const pickupBtn = e.target.closest("[data-send-pickup]");
     if (pickupBtn) {
       await handlePickupBtn(pickupBtn);
       return;
     }
 
-    // Save button
     const saveBtn = e.target.closest("[data-admin-save]");
     if (!saveBtn) return;
     saveBtn.disabled = true; saveBtn.textContent = "Saving…";
@@ -2175,7 +2462,29 @@ function initAdmin() {
   document.addEventListener("click", async (e) => {
     if (!isAdmin(currentUser?.email)) return;
 
-    // Notify missed customer
+    // Dismiss from history panel (in case admin re-expands it)
+    const dismissBtn = e.target.closest("[data-dismiss-order]");
+    if (dismissBtn && !dismissBtn.closest("#adminOrders")) {
+      const oid = dismissBtn.dataset.dismissOrder;
+      dismissBtn.disabled    = true;
+      dismissBtn.textContent = "…";
+      try {
+        await withRetry(() =>
+          updateDoc(doc(db, "orders", oid), {
+            dismissed: true,
+            updatedAt: serverTimestamp(),
+          })
+        );
+        toast("Moved to history ✓", "success");
+      } catch (err) {
+        console.error("Dismiss failed:", err);
+        toast("Could not dismiss order.", "error");
+        dismissBtn.disabled    = false;
+        dismissBtn.textContent = "×";
+      }
+      return;
+    }
+
     const notifyBtn = e.target.closest("[data-notify-missed]");
     if (notifyBtn) {
       const email = notifyBtn.dataset.email;
@@ -2190,8 +2499,8 @@ function initAdmin() {
           bookingTime:   notifyBtn.dataset.time,
           location:      notifyBtn.dataset.loc,
         });
-        toast(`Reminder sent to ${email} ✅`, "success");
-        notifyBtn.textContent = "✅ Sent";
+        toast(`Reminder sent to ${email} `, "success");
+        notifyBtn.textContent = " Sent";
       } catch (err) {
         console.error(err);
         toast("Email failed — check EmailJS template ID.", "error");
@@ -2200,7 +2509,6 @@ function initAdmin() {
       return;
     }
 
-   // Pickup summary email
     const pickupBtn = e.target.closest("[data-send-pickup]");
     if (pickupBtn) {
       const orderId    = pickupBtn.dataset.sendPickup;
@@ -2242,7 +2550,7 @@ function initAdmin() {
       }
       return;
     }
-    // Cancel missed order
+
     const cancelBtn = e.target.closest("[data-cancel-missed]");
     if (cancelBtn) {
       if (!confirm("Cancel this no-show order?")) return;
@@ -2250,11 +2558,12 @@ function initAdmin() {
       try {
         await withRetry(() =>
           updateDoc(doc(db, "orders", cancelBtn.dataset.cancelMissed), {
-            status:    "Cancelled",
-            updatedAt: serverTimestamp(),
+            status:      "Cancelled",
+            cancelledAt: Date.now(),
+            updatedAt:   serverTimestamp(),
           })
         );
-        toast("Order cancelled ✅", "success");
+        toast("Order cancelled ", "success");
       } catch (err) {
         console.error(err);
         toast("Cancel failed. Please retry.", "error");
@@ -2263,7 +2572,6 @@ function initAdmin() {
       return;
     }
 
-    // Save button in conflicts / schedule tabs (outside #adminOrders)
     const saveBtn = e.target.closest("[data-admin-save]");
     if (saveBtn && !saveBtn.closest("#adminOrders")) {
       saveBtn.disabled = true; saveBtn.textContent = "Saving…";
@@ -2581,7 +2889,7 @@ function initSchedule() {
           <div class="sched-order-info">
             <div class="sched-order-name">
               ${esc(o.customerName || "Customer")} ${pickupTag}
-              ${conflictIds.has(o.id) ? `<span class="conflict-badge">Conflict</span>` : ""}
+              ${conflictIds.has(o.id) ? `<span class="conflict-badge">Double-booked</span>` : ""}
               ${o.assignedStaff
                 ? `<span class="badge info" style="font-size:0.7rem;">
                      Staff: ${esc(o.assignedStaff)}
@@ -2857,12 +3165,13 @@ function initSchedule() {
         }
         await withRetry(() =>
           updateDoc(doc(db, "orders", orderId), {
-            date:      newDate,
-            timeSlot:  newTime,
-            updatedAt: serverTimestamp(),
+            date:          newDate,
+            timeSlot:      newTime,
+            rescheduledAt: Date.now(),
+            updatedAt:     serverTimestamp(),
           })
         );
-        toast(`Rescheduled to ${formatDate(newDate)} at ${newTime} ✅`, "success");
+        toast(`Rescheduled to ${formatDate(newDate)} at ${newTime} `, "success");
         closeModal();
         renderTimeline(selectedISO);
         buildCal();
@@ -2883,7 +3192,7 @@ function initSchedule() {
     await buildCal();
   });
   document.getElementById("btnWeekRefresh")?.addEventListener("click", () => {
-    buildCal(); toast("Refreshed ✅");
+    buildCal(); toast("Refreshed ");
   });
 
   onAuthStateChanged(auth, (user) => {

@@ -1,7 +1,7 @@
 Final Year Project Log
 
 Student: Daniel Asouzu
-Project: DKCleanEdit
+Project: DKCleanedit
 
 20 January 2026
 Researched ideas for the final year project and decided to build
@@ -19,6 +19,8 @@ CSS.
 Developed the main frontend pages including the homepage,
 booking page and navigation bar. Implemented responsive styling
 to ensure the website works across different screen sizes.
+
+
 10 February 2026
 Implemented user authentication using Firebase. Developed login
 and registration pages allowing users to create accounts and log
@@ -49,7 +51,3 @@ completed orders, cancelled orders, service popularity and order
 locations. Connected analytics to Firebase so charts update based
 on stored booking data.
 march the 11 - updated the css,js and home and booking page
-
-Next Steps
-Continue improving the system, fixing bugs, testing features and
-documenting the project for the dissertation.
