@@ -1,0 +1,177 @@
+/*. RESPONSIVE — All pages */
+
+/*  Global nav mobile*/
+@media (max-width: 560px) {
+  .nav-links, .nav-inner { justify-content: center; gap: 6px; }
+  .nav-logo { width: 100%; justify-content: center; margin-right: 0; }
+  .nav-links a, .nav-inner a { min-height: 42px; padding: 8px 10px; font-size: 0.92rem; }
+  .container { width: min(var(--max), calc(100% - 20px)); margin-top: 18px; }
+  .card { padding: 16px; }
+  .hero-actions, .popup-actions, .order-actions { flex-direction: column; }
+  .btn { width: 100%; }
+  #toastHost { right: 10px; left: 10px; bottom: 10px; }
+  .toast { max-width: none; width: 100%; }
+  .footer-grid { grid-template-columns: 1fr; }
+}
+
+/*  Home */
+@media (max-width: 1060px) {
+  .hero { grid-template-columns: 1fr; gap: 32px; padding: 40px 36px; }
+  .hero-copy h1 { font-size: clamp(2rem, 5vw, 2.6rem); }
+  .hero-media   { max-width: 560px; margin: 0 auto; width: 100%; }
+  .testimonials-grid { grid-template-columns: 1fr 1fr; }
+  .steps-grid { grid-template-columns: 1fr 1fr; gap: 16px; }
+  .steps-grid::before { display: none; }
+  .step-card { padding: 20px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow-1); }
+}
+
+@media (max-width: 760px) {
+  .hero { padding: 28px 22px; gap: 24px; }
+  .hero-metrics { flex-direction: column; border-radius: 12px; }
+  .metric-pill { border-right: none; border-bottom: 1px solid var(--line); }
+  .metric-pill:last-child { border-bottom: none; }
+  .home-overview { grid-template-columns: 1fr; }
+  .tier-cards, .tutorial-grid, .testimonials-grid { grid-template-columns: 1fr; }
+  .footer-grid { grid-template-columns: 1fr 1fr; gap: 28px; }
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .section-head, .card-header, .order-top, .order-meta { flex-direction: column; align-items: flex-start; }
+  .carousel-track img { height: 300px; }
+}
+
+@media (max-width: 560px) {
+  .hero { padding: 22px 18px; }
+  .steps-grid { grid-template-columns: 1fr; }
+  .footer-grid { grid-template-columns: 1fr; gap: 24px; }
+  .hero-actions .btn { width: 100%; }
+}
+
+/* ── Auth ── */
+@media (max-width: 600px) {
+  .auth-container { padding: 20px 12px 32px; align-items: flex-start; }
+  .auth-card { max-width: 100%; padding: 32px 22px 28px; border-radius: 18px; }
+  .auth-title { font-size: 2rem; }
+  .auth-input { min-height: 48px; border-radius: 10px; }
+  .auth-submit, .auth-alt { min-height: 48px; border-radius: 10px; }
+}
+
+/* ── Booking ── */
+@media (max-width: 980px) {
+  .booking-layout { grid-template-columns: 1fr; }
+  .booking-summary { position: static; }
+}
+
+@media (max-width: 760px) {
+  .booking-hero { padding: 28px 22px; }
+  .form-section { padding: 18px 16px; }
+  .frow { grid-template-columns: 1fr; }
+  .time-slots { gap: 6px; }
+  .time-slot { min-width: 58px; font-size: 0.84rem; min-height: 42px; }
+  .booking-steps { padding: 16px 16px 0; }
+  .step-label { display: none; }
+}
+
+@media (max-width: 480px) {
+  .booking-hero { padding: 22px 18px; }
+  .form-section { padding: 16px 14px; }
+  .summary-inner { padding: 18px 16px; }
+}
+
+/* ── Account ── */
+@media (max-width: 900px) {
+  .acct-mid { grid-template-columns: 1fr; }
+  .stat-col { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 560px) {
+  .acct-strip { flex-direction: column; align-items: flex-start; }
+  .acct-book-btn { margin-left: 0; width: 100%; justify-content: center; }
+  .tier-items { grid-template-columns: 1fr; }
+  .stat-col { grid-template-columns: 1fr; }
+  .acct-order-row { grid-template-columns: 1fr; }
+}
+
+/* ── Admin ── */
+@media (max-width: 1100px) {
+  .admin-layout { grid-template-columns: 240px minmax(0,1fr); }
+  .stat-card .stat-val { font-size: 1.5rem; }
+}
+
+@media (max-width: 860px) {
+  .admin-layout { grid-template-columns: 1fr; }
+  .admin-sidebar { position: static !important; }
+  .admin-header { flex-direction: column; align-items: flex-start; }
+  .admin-actions { width: 100%; }
+  .admin-actions input[type="text"] { min-width: 0; flex: 1; }
+}
+
+@media (max-width: 560px) {
+  .admin-tab { padding: 11px 12px; font-size: 0.8rem; }
+  .admin-tab-panel { padding: 16px; }
+  .admin-header { padding: 16px; }
+  .admin-row { flex-direction: column; align-items: stretch; }
+  .admin-status, .admin-points { min-width: 0; width: 100%; }
+  .stat-grid { grid-template-columns: repeat(4, 1fr); }
+  .stat-card .stat-val { font-size: 1.2rem; }
+}
+
+/* ── Schedule ── */
+@media (max-width: 1100px) { .sched-layout { grid-template-columns: 1fr; } }
+
+@media (max-width: 760px) {
+  .sched-hero { flex-direction: column; align-items: flex-start; padding: 22px; gap: 20px; }
+  .sched-hero-stats { gap: 12px; }
+  .sched-stat { flex: 1; min-width: 72px; padding: 10px 12px; }
+  .sched-week-grid { grid-template-columns: repeat(4, minmax(0,1fr)); }
+  .sched-slot-grid { grid-template-columns: repeat(2, 1fr); }
+  .sched-order-row { grid-template-columns: 30px 1fr auto; gap: 8px; }
+}
+
+@media (max-width: 480px) {
+  .sched-shell { gap: 14px; }
+  .sched-week-grid { grid-template-columns: repeat(4, minmax(0,1fr)); gap: 5px; padding: 12px; }
+  .sched-slot-grid { grid-template-columns: 1fr; }
+  .sched-order-row { grid-template-columns: 1fr auto; }
+  .sched-order-avatar { display: none; }
+}
+
+/* ── Order tracker mobile ── */
+@media (max-width: 700px) {
+  .order-tracker { grid-template-columns: repeat(7, 90px); gap: 8px; }
+  .order-tracker::before { left: 32px; right: 32px; }
+  .label { font-size: 10px; }
+}
+
+
+/* 42. FOCUS, PRINT, REDUCED MOTIOn /
+
+/* Focus rings — [REF-3]: visible focus indicators are required for accessibility */
+.svc-opt:focus-visible, .cal-cell:focus-visible, .time-slot:focus-visible,
+.sched-cell:focus-visible, .sched-cal-btn:focus-visible, .sched-pill-btn:focus-visible,
+.sched-slot-item:focus-visible, .sched-week-day:focus-visible,
+.avail-cell:focus-visible, .avail-cal-nav:focus-visible, .avail-slot-btn:focus-visible,
+.admin-tab:focus-visible, .admin-side-link:focus-visible {
+  outline: 2px solid var(--primary-400);
+  outline-offset: 2px;
+}
+
+/* Print */
+@media print {
+  body { background: #fff !important; color: #000 !important; }
+  .navbar         { position: static; background: #fff !important; }
+  .admin-sidebar  { display: none; }
+  .admin-layout   { grid-template-columns: 1fr; }
+  .booking-steps, .hero-glow, .sched-editor-actions, .sched-cal-nav-row { display: none; }
+  .card, .order-card, .sched-order-row { box-shadow: none !important; break-inside: avoid; background: #fff !important; color: #000 !important; border-color: #ccc !important; }
+  #btnBook        { display: none; }
+  .booking-summary { break-inside: avoid; }
+}
+
+/* Motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -116,3 +116,6 @@ Reflection:
 This feature enhanced accessibility and personalisation. It also demonstrated attention to user experience beyond core functionality.
 Plan for next phase:
 Conduct user testing, analyse results and improve.
+
+20 April 2026
+Distributed an anonymous online survey via Jotform to collect validation feedback from existing DKCleanEdit customers on booking experiences, communication gaps, and feature desirability. The survey was shared via Instagram and Snapchat stories and direct messages to past customers. Three responses were received and will be summarised in Appendix 12.9. Key finding: all three respondents confirmed real-time tracking would be "very helpful," directly validating Objective 1.

@@ -1,0 +1,344 @@
+
+/* 24. BOOKING PAGE — Layout & hero
+   [REF-2]: Booking hero uses tonal blue gradient — on-brand dark surface. */
+
+.booking-page { display: grid; gap: 22px; }
+
+.booking-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.78fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.booking-page > * {
+  animation: fade-up 260ms var(--ease-spring) both;
+}
+.booking-page > *:nth-child(1) { animation-delay: 0ms; }
+.booking-page > *:nth-child(2) { animation-delay: 60ms; }
+
+/* [REF-2]: Booking hero — dark navy with subtle blue-green tonal gradient      */
+.booking-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 42px 40px;
+  border-radius: 18px;
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.booking-hero .eyebrow  { align-self: flex-start; margin-bottom: 4px; }
+.booking-hero h1        { margin: 0 0 8px; color: var(--text); }
+.booking-hero .sub      { margin: 0; font-size: 0.97rem; max-width: 540px; }
+
+.hero-glow { position: absolute; border-radius: 50%; pointer-events: none; }
+.hero-glow--blue { top:-90px; right:-70px; width:320px; height:320px; background:radial-gradient(circle, rgba(74,144,232,0.07) 0%, transparent 68%); }
+.hero-glow--gold { bottom:-70px; left:8%; width:240px; height:240px; background:radial-gradient(circle, rgba(74,144,232,0.04) 0%, transparent 68%); }
+
+.booking-form     { padding: 0; border-radius: 18px; overflow: hidden; box-shadow: var(--shadow-1); }
+.booking-summary  { height: fit-content; position: sticky; top: calc(var(--nav-h) + 20px); border-radius: 18px !important; overflow: hidden; box-shadow: var(--shadow-2) !important; }
+
+
+/* 25. BOOKING PAGE — Step progress bar */
+
+.booking-steps { display: flex; align-items: center; gap: 0; padding: 20px 24px 0; background: var(--surface); }
+
+.booking-step { display: flex; align-items: center; gap: 10px; flex: 1; position: relative; }
+
+.booking-step:not(:last-child)::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  background: var(--line);
+  margin: 0 8px;
+  border-radius: 2px;
+  transition: background 260ms var(--ease-spring);
+}
+.booking-step.completed:not(:last-child)::after { background: var(--bk-blue); }
+
+.booking-step .step-num {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--line-2);
+  background: var(--surface-3);
+  color: var(--text-3);
+  font-size: 0.76rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  transition: background var(--ease), border-color var(--ease), color var(--ease);
+}
+
+.step-label {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-4);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  transition: color var(--ease);
+}
+
+.booking-step.active .step-num   { background: var(--bk-blue); border-color: var(--bk-blue); color: #fff; box-shadow: 0 0 0 4px rgba(74,144,232,0.14); }
+.booking-step.active .step-label  { color: var(--bk-blue); font-weight: 700; }
+.booking-step.completed .step-num { background: var(--bk-green); border-color: var(--bk-green); color: #fff; }
+.booking-step.completed .step-label { color: var(--bk-green); }
+
+.form-section { padding: 22px 24px; display: flex; flex-direction: column; gap: 16px; background: var(--surface); }
+
+.form-section-head { display: flex; align-items: center; gap: 12px; margin-bottom: 2px; }
+
+.section-num {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--bk-blue-light);
+  border: 1.5px solid var(--bk-blue-border);
+  color: var(--bk-blue);
+  font-size: 0.74rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.section-label { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
+.section-sep   { margin: 0; border: 0; border-top: 1px solid var(--line); }
+
+.frow  { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
+
+.field { display: grid; gap: 8px; }
+.field label { font-weight: 700; color: var(--text-2); font-size: 0.9rem; display: flex; align-items: baseline; gap: 6px; }
+.field label .sub { font-weight: 400; font-size: 0.8rem; }
+
+
+/* 26. BOOKING PAGE — Service card */
+
+.svc-opts { display: grid; gap: 10px; }
+
+.svc-opt {
+  width: 100%;
+  display: grid;
+  gap: 4px;
+  text-align: left;
+  padding: 16px 18px;
+  border: 1.5px solid var(--line-2);
+  border-radius: 12px;
+  background: var(--surface-3);
+  cursor: pointer;
+  position: relative;
+  transition: border-color var(--ease), box-shadow var(--ease), transform var(--ease), background-color var(--ease);
+}
+
+.svc-opt:hover           { border-color: var(--bk-blue-border); box-shadow: var(--shadow-1); transform: translateY(-1px); background: var(--surface-hover); }
+.svc-opt:focus-within    { outline: 2px solid var(--bk-blue); outline-offset: 2px; }
+
+.svc-opt.active {
+  border-color: var(--bk-blue);
+  background: var(--bk-blue-light);
+  box-shadow: 0 0 0 3px rgba(74,144,232,0.12), var(--shadow-1);
+}
+
+.svc-opt.active::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--bk-blue);
+  border-radius: 3px 0 0 3px;
+  opacity: 1;
+  background-image: none;
+}
+
+.svc-opt.active::after {
+  content: "✓";
+  position: absolute;
+  top: 14px; right: 16px;
+  width: 20px; height: 20px;
+  background: var(--bk-blue);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.65rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 20px;
+  text-align: center;
+  background-image: none;
+}
+
+.svc-opt-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px; flex-wrap: wrap; padding-right: 28px; }
+.svc-opt-top strong { font-weight: 700; color: var(--text); font-size: 0.97rem; }
+.svc-opt-sub { margin: 0; color: var(--text-3); font-size: 0.87rem; line-height: 1.55; }
+
+
+/* 27. BOOKING PAGE — Calendar
+   [REF-2]: Calendar uses dark tonal surface — no white cells. */
+
+.cal-wrap {
+  border: 1.5px solid var(--line-2);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface-3);
+  box-shadow: var(--shadow-1);
+  transition: box-shadow var(--ease);
+}
+.cal-wrap:hover { box-shadow: var(--shadow-2); }
+
+.cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+}
+.cal-head .btn     { min-height: 34px; min-width: 34px; padding: 4px 10px; font-size: 1.1rem; line-height: 1; border-radius: 8px; }
+#calMonthLabel     { font-size: 0.92rem; font-weight: 700; color: var(--text); }
+
+.cal-days-header { display: grid; grid-template-columns: repeat(7, 1fr); padding: 10px 12px 3px; }
+.cal-days-header span { text-align: center; font-size: 0.7rem; font-weight: 700; color: var(--text-4); text-transform: uppercase; letter-spacing: 0.07em; }
+
+.cal-body { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; padding: 6px 12px 14px; }
+
+.cal-cell {
+  position: relative;
+  aspect-ratio: 1;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; font-weight: 600;
+  color: var(--text-2);
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  user-select: none;
+  transition: background-color var(--ease), border-color var(--ease), color var(--ease), transform var(--ease);
+}
+
+.cal-cell:hover:not(.cal-cell--other):not(.cal-cell--past) { background: var(--primary-050); border-color: var(--primary-border); transform: scale(1.08); z-index: 2; }
+.cal-cell:active:not(.cal-cell--other):not(.cal-cell--past) { transform: scale(0.95); }
+.cal-cell--other    { color: var(--text-4); opacity: 0.28; pointer-events: none; }
+.cal-cell--past     { color: var(--text-4); opacity: 0.36; pointer-events: none; cursor: not-allowed; }
+.cal-cell--today    { border-color: var(--bk-blue); color: var(--primary-400); font-weight: 800; }
+.cal-cell--selected { background: var(--bk-blue) !important; color: #fff !important; border-color: var(--bk-blue) !important; box-shadow: var(--bk-shadow-blue) !important; font-weight: 800; transform: scale(1.06) !important; z-index: 3; }
+.cal-cell--booked   { background: var(--gold-bg); color: var(--gold); border-color: var(--gold-border); cursor: not-allowed; pointer-events: none; }
+.cal-cell--full     { background: var(--danger-100); color: #f08888; border-color: rgba(224,92,92,0.25); cursor: not-allowed; pointer-events: none; }
+
+.selected-date-label { padding: 8px 16px 12px; font-size: 0.86rem; font-weight: 500; min-height: 36px; margin: 0; color: var(--text-3); display: flex; align-items: center; gap: 6px; background: var(--surface-2); }
+.selected-date-label:not(:empty)::before { content: "📅"; font-size: 0.9rem; }
+
+
+/* 28. BOOKING PAGE — Time slots, map, upload  */
+
+.time-slots { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.time-slot {
+  flex: 1; min-width: 68px; min-height: 46px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--line-2);
+  border-radius: 8px;
+  background: var(--surface-3);
+  color: var(--text-2);
+  font-size: 0.9rem; font-weight: 700;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+  transition: background-color var(--ease), border-color var(--ease), color var(--ease), transform var(--ease), box-shadow var(--ease);
+}
+.time-slot:hover:not([disabled])  { border-color: var(--bk-blue); background: var(--bk-blue-light); color: var(--primary-400); transform: translateY(-2px); box-shadow: var(--shadow-1); }
+.time-slot:active:not([disabled]) { transform: translateY(0) scale(0.97); }
+.time-slot:focus-visible           { outline: 2px solid var(--bk-blue); outline-offset: 2px; }
+.time-slot.active                  { background: var(--bk-blue); border-color: var(--bk-blue); color: #fff; box-shadow: var(--bk-shadow-blue); transform: translateY(-2px); }
+.time-slot[disabled], .time-slot.slot-unavailable {
+  opacity: 0.30; cursor: not-allowed; transform: none !important; box-shadow: none !important;
+  text-decoration: line-through; border-color: var(--line) !important; background: var(--surface-2) !important; color: var(--text-4) !important;
+}
+.time-slot.slot-loading { animation: pulse 1s ease-in-out infinite; pointer-events: none; }
+
+.map-card { display: grid; gap: 14px; padding: 16px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--surface-2); transition: border-color var(--ease), box-shadow var(--ease); }
+.map-card:hover { border-color: var(--bk-blue-border); box-shadow: var(--shadow-1); }
+.map-info { display: flex; flex-direction: column; gap: 6px; }
+.map-info strong { font-size: 0.97rem; color: var(--text); font-weight: 700; }
+.map-info .sub { font-size: 0.84rem; }
+.map-info .btn { align-self: flex-start; min-height: 38px; font-size: 0.86rem; margin-top: 4px; }
+.map-frame { width: 100%; height: 200px; border: 0; border-radius: 10px; display: block; background: var(--surface-3); }
+
+.upload-zone {
+  position: relative;
+  border: 2px dashed var(--line-2);
+  border-radius: 12px;
+  padding: 18px 16px;
+  background: var(--surface-3);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--ease), background-color var(--ease);
+}
+.upload-zone:hover { border-color: var(--bk-blue-border); background: var(--bk-blue-light); }
+.upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.upload-zone-text  { font-size: 0.86rem; color: var(--text-3); line-height: 1.5; pointer-events: none; }
+.upload-zone-icon  { font-size: 1.6rem; display: block; margin-bottom: 6px; }
+
+#shoePreviewWrap { margin-top: 10px; padding: 12px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--surface-2); display: flex; align-items: flex-start; gap: 12px; }
+#shoePreview     { max-width: 200px; max-height: 160px; border-radius: 10px; border: 1px solid var(--line); display: block; object-fit: cover; }
+
+.preview-remove { background: var(--danger-100); border: 1px solid rgba(224,92,92,0.25); color: #f08888; border-radius: 6px; padding: 4px 10px; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: background var(--ease); }
+.preview-remove:hover { background: rgba(224,92,92,0.20); }
+
+.btn-book-wrap { display: flex; flex-direction: column; gap: 8px; }
+
+#btnBook {
+  min-height: 52px; font-size: 1rem; font-weight: 800;
+  border-radius: 12px;
+  background: var(--primary);
+  border: none;
+  box-shadow: var(--bk-shadow-blue);
+  transition: transform var(--ease), box-shadow var(--ease), filter var(--ease);
+}
+#btnBook:hover:not([disabled])  { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(74,144,232,0.32); filter: brightness(1.08); }
+#btnBook:active:not([disabled]) { transform: translateY(0) scale(0.98); }
+#btnBook[disabled]              { opacity: 0.55; cursor: not-allowed; transform: none; filter: none; }
+
+.auth-msg:not(:empty) { padding: 8px 12px; border-radius: 8px; background: var(--danger-100); border: 1px solid rgba(224,92,92,0.20); color: #f08888; font-weight: 500; }
+.auth-msg.success     { background: var(--bk-green-bg); border-color: var(--bk-green-border); color: var(--bk-green); }
+
+
+/* 29. BOOKING PAGE — Order summary sidebar
+   [REF-4]: Gold used for points value — warm contrast signal.
+   [REF-5]: Consistent gold = points/reward throughout the booking flow.  */
+
+.summary-inner { padding: 22px 22px 20px; background: var(--surface-2); }
+.summary-title { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; color: var(--text-3); margin-bottom: 16px; }
+
+.summary-rows { display: grid; gap: 0; }
+.sum-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+.sum-row:last-child { border-bottom: 0; }
+.sum-row span   { color: var(--text-3); font-size: 0.87rem; }
+.sum-row strong { color: var(--text); font-weight: 700; text-align: right; font-size: 0.9rem; max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sum-row.total  { padding-top: 14px; padding-bottom: 4px; margin-top: 4px; }
+.sum-row.total span   { font-weight: 700; font-size: 0.92rem; color: var(--text-2); }
+.sum-row.total strong { font-size: 1.35rem; color: var(--primary-400); font-weight: 800; letter-spacing: -0.02em; }
+
+.summary-box { margin-top: 16px; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-3); }
+
+/* Gold points box — [REF-4]: gold warm contrast on navy background             */
+.summary-points { background: var(--gold-bg); border-color: var(--gold-border); }
+
+.summary-box-label   { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold); margin-bottom: 6px; }
+.summary-points-value {
+  font-size: 1.45rem; font-weight: 800;
+  color: var(--gold);   /* [REF-4]: Large gold number — centrepiece reward signal */
+  letter-spacing: -0.02em;
+  display: flex; align-items: baseline; gap: 6px;
+}
+.summary-points-value span { font-size: 0.78rem; font-weight: 500; color: var(--text-3); }
+.summary-box-sub { font-size: 0.74rem; color: var(--text-3); margin-top: 4px; line-height: 1.45; }
+
+.summary-trust { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+.trust-row { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-3); font-weight: 500; }
+.trust-icon { font-size: 0.9rem; flex-shrink: 0; }

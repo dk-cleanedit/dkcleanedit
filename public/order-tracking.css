@@ -1,0 +1,151 @@
+/* ORDER-TRACKER.CSS — DKcleanedit
+   Shared order tracker component used on: Home · Account · Admin
+   Requires tokens.css + global.css */
+
+.orders-grid { display: grid; gap: 16px; }
+
+.order-card {
+  width: 100%;
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  box-shadow: var(--shadow-1);
+  transition: transform var(--ease), box-shadow var(--ease), border-color var(--ease);
+}
+
+.order-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); border-color: var(--line-2); }
+
+.order-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.order-title { font-size: 1rem; font-weight: 760; color: var(--text); }
+
+.order-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.order-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+.order-tracker {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(56px, 1fr));
+  align-items: start;
+  position: relative;
+  margin: 20px 0 12px;
+  overflow-x: auto;
+}
+
+.order-tracker::before {
+  content: "";
+  position: absolute;
+  top: 9px;
+  left: 5%; right: 5%;
+  height: 3px;
+  background: var(--line-2);
+  border-radius: 999px;
+  z-index: 0;
+}
+
+.step {
+  position: relative;
+  text-align: center;
+  z-index: 1;
+  padding: 0 4px;
+}
+
+.circle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--surface-3);
+  display: block;
+  margin: 0 auto;
+  border: 2px solid var(--line-2);
+  box-shadow: 0 0 0 4px var(--surface-2);
+}
+
+.step.active .circle    { background: var(--primary); border-color: var(--primary); }
+.step.cancelled .circle { background: var(--danger);  border-color: var(--danger); }
+
+.label {
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--text-3);
+  text-align: center;
+  max-width: 80px;
+  margin-left: auto;
+  margin-right: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.step.active .label    { color: var(--text); font-weight: 600; }
+.step.cancelled .label { color: #f08888; font-weight: 600; }
+
+.pickup-notice {
+  margin: 10px 0 4px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--success-100);
+  border: 1px solid rgba(61,201,138,0.25);
+  font-size: 0.88rem;
+  color: var(--success);
+  line-height: 1.5;
+}
+
+.pickup-collected { margin-top: 8px; font-size: 0.84rem; color: var(--success); font-weight: 600; }
+
+.pickup-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 7px;
+  border-radius: var(--r-pill);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.pickup-tag--done    { background: rgba(61,201,138,0.12); color: var(--success); }
+.pickup-tag--waiting { background: var(--primary-050);    color: var(--primary-400); }
+
+.conflict-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: var(--r-pill);
+  background: var(--danger-100);
+  color: #f08888;
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid rgba(224,92,92,0.25);
+}
+
+
+/* RESPONSIVE */
+
+@media (max-width: 700px) {
+  .order-tracker { grid-template-columns: repeat(7, 90px); gap: 8px; }
+  .order-tracker::before { left: 32px; right: 32px; }
+  .label { font-size: 10px; }
+}
+
+@media (max-width: 760px) {
+  .order-top, .order-meta { flex-direction: column; align-items: flex-start; }
+}

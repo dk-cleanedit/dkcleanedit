@@ -1,4 +1,4 @@
-<<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -11,10 +11,10 @@
       document.documentElement.classList.add("dark-mode");
     }
   </script>
-
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="home.css" />
-  <link rel="stylesheet" href="darkmode.css" />
+<link rel="stylesheet" href="token.css">
+<link rel="stylesheet" href="global.css">
+<link rel="stylesheet" href="order-tracking.css">
+<link rel="stylesheet" href="home.css">
 </head>
 
 <body>
@@ -65,13 +65,8 @@
 
         <p class="hero-sub">
           Book in minutes, follow your order through every stage in real time,
-          and earn loyalty rewards — all through one clean platform.
+          and earn loyalty rewards, all through one clean platform.
         </p>
-
-        <div class="hero-actions">
-          <a class="btn primary" href="booking.html" data-requires-auth="true">Book now</a>
-          <a class="btn secondary" href="track.html" data-requires-auth="true">Track my order</a>
-        </div>
 
         <div class="hero-metrics" aria-label="Service highlights">
           <div class="metric-pill">
@@ -89,17 +84,11 @@
         </div>
       </div>
 
-      <div class="hero-media">
-        <video
-          class="hero-video"
-          controls
-          preload="metadata"
-          aria-label="DKcleanedit service showcase video"
-        >
-          <source src="videos/video.mp4" type="video/mp4" />
-          Your browser does not support video playback.
-        </video>
-      </div>
+     <!-- https://www.youtube.com/shorts/k2cKxc3lv3M to create the floating shoe -->
+<div class="container">
+  <img src="videos/pngwing.com.png" alt="Nike Shoe" class="Nike">
+</div>
+
 
     </section>
 
@@ -115,17 +104,13 @@
         <p>
           DKcleanedit is a professional shoe cleaning and restoration service
           based in London and Leicester. We specialise in deep cleaning, stain
-          removal, sole unyellowing, and high-quality refreshes that protect
+          removal, sole unyellowing, and high quality refreshes that protect
           the look and longevity of your footwear.
         </p>
         <p>
           The platform gives you full order visibility and a smooth journey
-          from booking right through to collection — no chasing, no guessing.
+          from booking right through to collection  no chasing, no guessing.
         </p>
-        <div class="hero-actions">
-          <a class="btn primary" href="booking.html" data-requires-auth="true">Book a clean</a>
-          <a class="btn" href="register.html" id="homeCtaAuth">Create account</a>
-        </div>
       </article>
 
       <aside class="card carousel" aria-label="Restoration examples">
@@ -170,6 +155,16 @@
         alt="Before and after restoration — example 4"
         loading="lazy"
       />
+ <div class="hero-media">
+        <video
+          class="hero-video"
+          controls
+          preload="metadata"
+          aria-label="DKcleanedit service showcase video"
+        >
+          <source src="videos/video.mp4" type="video/mp4" />
+          Your browser does not support video playback.
+        </video>
 
     </div>
   </div>
@@ -213,7 +208,7 @@
         </li>
       </ol>
 
-      <div class="hero-actions" style="margin-top: 8px;">
+      <div class="hero-actions">
         <a class="btn primary" href="booking.html" data-requires-auth="true">Book now</a>
         <a class="btn" href="register.html">Log in / Register</a>
       </div>
@@ -221,47 +216,98 @@
     </section>
 
     <!-- ══ LOYALTY TIERS ══════════════════════════════════════════════════ -->
-    <section class="card earn-section" aria-labelledby="earnHeading">
+   <section class="card earn-section" aria-labelledby="earnHeading">
 
-      <div class="section-head">
-        <div>
 
-          <h2 id="earnHeading">Clean more, earn more</h2>
+  <p class="sub">
+    Every clean earns you points. Accumulate them to unlock discounts,
+    free services, and exclusive perks.
+  </p>
+
+  <div class="tier-cards">
+
+    <!-- CARBON -->
+    <div class="tier-card tier--carbon">
+      <div class="tier-head">
+        <div class="tier-top-row">
+          <span class="tier-label">Carbon</span>
         </div>
+        <div class="tier-num-row">
+          <h3 class="tier-num">0 – 99</h3>
+          <span class="tier-unit">pts</span>
+        </div>
+        <span class="tier-sublabel">Entry tier</span>
       </div>
-
-      <p class="sub" style="margin-bottom: 28px;">
-        Every clean earns you points. Accumulate them to unlock discounts,
-        free services, and exclusive perks.
-      </p>
-
-      <div class="tier-cards">
-        <div class="tier-card tier--carbon">
-          <div class="tier-icon" aria-hidden="true"></div>
-          <h3>Carbon</h3>
-          <span class="tier-pts">50 – 99 pts</span>
+      <div class="tier-body">
+        <div class="tier-reward-row">
+          <div class="tier-icon" aria-hidden="true">
+            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8z" fill="currentColor" opacity=".3"/>
+              <path d="M8 4.5a.75.75 0 01.75.75v3.19l1.72 1.72a.75.75 0 11-1.06 1.06L7.47 9.28A.75.75 0 017.25 8.75V5.25A.75.75 0 018 4.5z" fill="currentColor"/>
+            </svg>
+          </div>
           <p class="tier-perk">£5 off your next clean</p>
         </div>
-        <div class="tier-card tier--stone">
-          <div class="tier-icon" aria-hidden="true"></div>
-          <h3>Stone</h3>
-          <span class="tier-pts">100 – 499 pts</span>
+      </div>
+    </div>
+
+    <!-- STONE -->
+    <div class="tier-card tier--stone">
+      <div class="tier-head">
+        <div class="tier-top-row">
+          <span class="tier-label">Stone</span>
+          <span class="tier-popular">Most popular</span>
+        </div>
+        <div class="tier-num-row">
+          <h3 class="tier-num">100 – 499</h3>
+          <span class="tier-unit">pts</span>
+        </div>
+        <span class="tier-sublabel">Mid tier</span>
+      </div>
+      <div class="tier-body">
+        <div class="tier-reward-row">
+          <div class="tier-icon" aria-hidden="true">
+            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1.5 2A1.5 1.5 0 000 3.5v2A1.5 1.5 0 001.5 7h13A1.5 1.5 0 0016 5.5v-2A1.5 1.5 0 0014.5 2h-13z" fill="currentColor" opacity=".3"/>
+              <path d="M0 9.5A1.5 1.5 0 011.5 8h13A1.5 1.5 0 0116 9.5v2a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 010 11.5v-2zm3 1a.75.75 0 000 1.5h.5a.75.75 0 000-1.5H3z" fill="currentColor"/>
+            </svg>
+          </div>
           <p class="tier-perk">£10 off + priority booking</p>
         </div>
-        <div class="tier-card tier--pearl">
-          <div class="tier-icon" aria-hidden="true"></div>
-          <h3>Pearl</h3>
-          <span class="tier-pts">500+ pts</span>
+      </div>
+    </div>
+
+    <!-- PEARL -->
+    <div class="tier-card tier--pearl">
+      <div class="tier-head">
+        <div class="tier-top-row">
+          <span class="tier-label">Pearl</span>
+        </div>
+        <div class="tier-num-row">
+          <h3 class="tier-num">500+</h3>
+          <span class="tier-unit">pts</span>
+        </div>
+        <span class="tier-sublabel">Top tier</span>
+      </div>
+      <div class="tier-body">
+        <div class="tier-reward-row">
+          <div class="tier-icon" aria-hidden="true">
+            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z" fill="currentColor"/>
+            </svg>
+          </div>
           <p class="tier-perk">1 free clean + shoe tree included</p>
         </div>
       </div>
+    </div>
 
-      <div class="hero-actions">
-        <a class="btn primary" href="register.html">Join now — it's free</a>
-        <a class="btn secondary" href="customer.html" data-requires-auth="true">View my points</a>
-      </div>
+  </div>
 
-    </section>
+  <div class="hero-actions">
+    <a class="btn secondary" href="customer.html" data-requires-auth="true">View my points</a>
+  </div>
+
+</section>
 
     <!-- ══ TUTORIALS ══════════════════════════════════════════════════════ -->
     <section class="card tutorials-section" aria-labelledby="tutHeading">
@@ -325,7 +371,7 @@
             class="testimonial-stars"
           />
           <p class="testimonial-quote">
-            "Gave my Dior B30s in looking wrecked — got them back looking
+            "Gave my Dior B30s in looking wrecked. DK got them back looking
             fresh out the box. The live tracking gave me full clarity throughout."
           </p>
           <div class="testimonial-attribution">

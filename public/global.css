@@ -1,0 +1,1008 @@
+/* =============================================================================
+   global.css — dkcleanedit
+   ─────────────────────────────────────────────────────────────────────────────
+   PURPOSE AND METHODOLOGY
+   This file provides the base layer shared across every page in the application.
+   It follows a "reset → primitives → components" architecture, a pattern used
+   by major CSS frameworks including Tailwind, Bootstrap 5, and IBM Carbon.
+
+   The approach is layered CSS specificity: global rules have the lowest
+   specificity so page-specific files can always override without !important.
+   This is a deliberate architectural decision — specificity conflicts are one
+   of the most common causes of CSS bugs in large projects.
+
+   SECTIONS IN ORDER:
+   1. Reset             — browser normalisation
+   2. Typography        — heading and paragraph base styles
+   3. Layout utilities  — reusable layout helpers
+   4. Navbar            — sticky global navigation
+   5. Buttons           — all button variants from one base
+   6. Card base         — shared card structure
+   7. Form inputs       — all input types from one ruleset
+   8. Badges            — inline status labels
+   9. Overlay + popup   — modal/dialog pattern
+   10. Toast            — notification system
+   11. Keyframes        — animation definitions
+   12. Responsive       — shared breakpoints
+   13. Print            — print optimisation
+   14. Reduced motion   — accessibility
+
+   SUSTAINABILITY
+   Global styles are loaded once and cached by the browser for every subsequent
+   page view. Keeping this file lean and avoiding duplication directly reduces
+   parse time and cache invalidation frequency. The reset used here is minimal
+   (not normalize.css) to avoid loading hundreds of rules the project doesn't need.
+   ref: web performance and css — https://web.dev/css-web-vitals/
+
+   LOAD ORDER: tokens.css → global.css → page-specific css
+============================================================================= */
+
+
+/* ─── 1. reset ───────────────────────────────────────────────────────────── */
+/*
+   A minimal, targeted reset rather than a full normalize.css. The goal is to
+   remove browser defaults that cause layout problems without stripping away
+   the useful defaults that make semantic HTML work out of the box.
+
+   KEY DECISIONS:
+   - box-sizing: border-box on everything eliminates the single most common
+     cause of width overflow bugs: padding being added to declared width.
+     ref: box-sizing rationale — https://www.youtube.com/watch?v=WlGQdgy-M6w (kevin powell)
+   - overflow-x: hidden on html and body prevents horizontal scroll caused by
+     elements that accidentally exceed viewport width.
+   - scroll-behavior: smooth improves perceived responsiveness for anchor links.
+   ref: modern css reset — https://www.joshwcomeau.com/css/custom-css-reset/
+*/
+
+/* hidden elements truly disappear — including the overlay when not open */
+[hidden],
+.overlay[hidden] {
+  display:        none !important;
+  pointer-events: none !important;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html, body {
+  min-height:  100%;
+  max-width:   100%;
+  overflow-x:  hidden;
+}
+
+/*
+   The body background uses three layered gradients:
+   two soft radial "glows" at opposite corners sit on top of a solid linear
+   gradient base. The radial glows are at 6% and 5% opacity — subtle enough
+   to add depth without distracting from content.
+
+   WHY LAYERED GRADIENTS:
+   A single flat #0a1120 background reads as cheap and flat. The subtle
+   glow gradients create an "ambient light" effect that makes the dark
+   background feel more three-dimensional and intentional. This is used
+   by many modern SaaS products (Linear, Vercel, Supabase) as a signature
+   dark background technique.
+
+   IMPORTANT: font-family uses --font (Satoshi, the geometric sans-serif).
+   The original code incorrectly used --font-display (the editorial serif).
+   Display fonts are only appropriate for headings — using them for body text
+   degrades readability at small sizes.
+
+   ref: layered css gradients — https://css-tricks.com/css-basics-using-multiple-backgrounds/
+*/
+body {
+  margin:                 0;
+  font-family:            var(--font);
+  background:
+    radial-gradient(900px 360px at 100% -10%, rgba(74, 144, 232, 0.06), transparent 60%),
+    radial-gradient(700px 260px at 0%   0%,   rgba(74, 144, 232, 0.05), transparent 58%),
+    linear-gradient(180deg, #0a1120 0%, #0d1726 100%);
+  -webkit-font-smoothing: antialiased;
+  text-rendering:         optimizeLegibility;
+}
+
+/*
+   CRITICAL FIX: the original code had `img, video { height: 300px; right: 50px; }`
+   This forced every image and video on every page to exactly 300px tall,
+   overriding all component-level sizing. It also contained `right: 50 px`
+   (a space in the value), which is a syntax error — the declaration was
+   silently ignored by the browser.
+
+   The correct global rule for images is:
+   - max-width: 100% so they never overflow their container
+   - display: block to remove the inline baseline gap that browsers add
+     below inline images (the gap is caused by line-height for descenders)
+   All other sizing (height, object-fit, width) is handled per-component.
+   ref: image sizing best practice — https://web.dev/optimize-cls/#images-without-dimensions
+*/
+img,
+video {
+  max-width: 100%;
+  display:   block;
+}
+
+/*
+   Links inherit colour by default — this is intentional. Individual components
+   set link colours. All state changes (hover, focus, active) transition
+   smoothly using --ease to keep interactions consistent across the app.
+*/
+a {
+  color:           inherit;
+  text-decoration: none;
+  transition:
+    color            var(--ease),
+    background-color var(--ease),
+    border-color     var(--ease),
+    box-shadow       var(--ease),
+    transform        var(--ease),
+    opacity          var(--ease);
+}
+
+/*
+   Browsers don't inherit the page font for form elements by default —
+   they use a system font. This single line fixes that inconsistency
+   and ensures forms match the rest of the UI.
+*/
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button { cursor: pointer; }
+
+/*
+   :focus-visible shows a focus ring only during keyboard navigation.
+   Mouse and touch users never see it (they don't need it — they can
+   see where they clicked). This is a better UX than :focus, which shows
+   rings on mouse clicks and was why designers used to suppress all focus
+   styles (which is an accessibility violation).
+
+   Box-shadow is used instead of outline for two reasons:
+   1. it respects border-radius (outline does not in some browsers)
+   2. it doesn't affect layout (unlike outline in older browsers)
+   ref: :focus-visible — https://developer.mozilla.org/en-US/docs/Web/CSS/:focus-visible
+   ref: wcag 2.4.7 focus visible — https://www.w3.org/TR/WCAG21/#focus-visible
+*/
+:focus-visible {
+  outline:    none;
+  box-shadow: var(--focus);
+}
+
+/* highlighted text gets the brand blue tint */
+::selection {
+  background: rgba(74, 144, 232, 0.25);
+}
+
+
+/* typography  */
+/*
+   Base heading and paragraph styles. The key principle here is that heading
+   elements have NO top margin — all spacing is controlled by the parent
+   container using gap or margin-bottom. This prevents the notorious "doubled
+   margin" problem where heading margin-top combines with sibling margin-bottom
+   to create inconsistent spacing.
+   ref: spacing approach — https://www.youtube.com/watch?v=YSGCQ_3bOFE (kevin powell)
+*/
+
+h1, h2, h3, h4, p {
+  margin-top: 0;
+}
+
+/*
+   clamp() is used for fluid typography — the font size scales continuously
+   between the minimum, preferred, and maximum values without requiring
+   multiple media queries. This is more precise than breakpoint-based scaling
+   because it produces the correct size at every viewport width, not just at
+   the breakpoints.
+   ref: fluid type with clamp — https://www.youtube.com/watch?v=wARbgs5Fmuw (kevin powell)
+   ref: text-wrap: balance — https://developer.chrome.com/blog/css-text-wrap-balance/
+*/
+h1 {
+  font-family:    var(--font-display, system-ui, sans-serif);
+  font-size:      clamp(2rem, 4vw + 0.5rem, 3.25rem);
+  font-weight:    800;
+  line-height:    1.1;
+  letter-spacing: -0.02em;
+  color:          var(--text, #e6f2ff);
+  margin-bottom:  var(--s-3, 1rem);
+  text-wrap:      balance;  /* prevents awkward single-word last lines */
+  max-width:      22ch;     /* ~22 characters wide — optimal headline line length */
+}
+
+h2 {
+  font-family:    var(--font-display, system-ui, sans-serif);
+  font-size:      clamp(1.4rem, 2.5vw + 0.3rem, 2.2rem);
+  font-weight:    700;
+  line-height:    1.16;
+  letter-spacing: -0.015em;
+  color:          var(--text, #e6f2ff);
+  margin-bottom:  var(--s-3, 1rem);
+  text-wrap:      balance;
+  max-width:      30ch;
+}
+
+/* card titles and sub-section headings */
+h3 {
+  font-size:     1.05rem;
+  font-weight:   700;
+  line-height:   1.3;
+  color:         var(--text-2);
+  margin-bottom: var(--s-2);
+}
+
+/* default paragraph colour — one step below heading brightness */
+p {
+  color:       var(--text-2);
+  line-height: 1.72;
+}
+
+/* .sub — wider, relaxed body text for intro and description paragraphs */
+.sub {
+  max-width:   62ch;  /* 62 chars — widely cited as optimal line length for readability */
+  color:       var(--text-3);
+  line-height: 1.78;
+  font-size:   1rem;
+}
+
+/* small uppercase pill label above section headings — e.g. "how it works" */
+.eyebrow {
+  display:        inline-flex;
+  align-items:    center;
+  gap:            8px;
+  height:         28px;
+  padding:        0 12px;
+  border-radius:  var(--r-pill);
+  border:         1px solid var(--primary-border);
+  background:     var(--primary-050);
+  color:          var(--primary-400);
+  font-size:      0.72rem;
+  font-weight:    700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+
+/*  layout utilities */
+/*
+   Small, single-purpose utility classes for page structure and spacing.
+   These are composition helpers — they don't define what an element looks like,
+   only how it sits in the layout. This is the core idea behind utility-first
+   CSS (Tailwind, Tachyons) — reusable layout logic that doesn't know about
+   the component it's applied to.
+   ref: every layout — https://every-layout.dev
+   ref: utility-first explained — https://tailwindcss.com/docs/utility-first
+*/
+
+/* centres the main content column and caps its width on wide screens */
+.container {
+  width:          min(var(--max), calc(100% - 48px));
+  margin:         0 auto;
+  padding-bottom: var(--s-8);
+}
+
+/* the outer grid for a full page — stacks all sections with a consistent gap */
+.page-shell {
+  display:     grid;
+  gap:         var(--s-9);
+  padding-top: var(--s-7);
+}
+
+/* a title + action-link row that sits above a section or grid */
+.section-head {
+  display:         flex;
+  align-items:     flex-end;
+  justify-content: space-between;
+  gap:             var(--s-4);
+  margin-bottom:   var(--s-6);
+  flex-wrap:       wrap;
+}
+
+/* equal-column grids — pick whichever matches the item count */
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-7); }
+.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-5); }
+.grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-4); }
+
+/* stack helpers — margin between every direct child, three intensity levels */
+.stack-sm > * + * { margin-top: var(--s-3); }
+.stack-md > * + * { margin-top: var(--s-5); }
+.stack-lg > * + * { margin-top: var(--s-7); }
+
+.full { width: 100%; }
+
+/* decorative <hr> that fades to transparent at both ends — used between sections */
+.gradient-line {
+  border:     none;
+  height:     1px;
+  background: linear-gradient(
+    90deg,
+    transparent    0%,
+    var(--line-2) 30%,
+    var(--line-2) 70%,
+    transparent  100%
+  );
+  margin: var(--s-2) 0;
+}
+
+
+/*  navbar  */
+/*
+   The sticky frosted-glass navigation bar. The "frosted glass" effect
+   is achieved with backdrop-filter: blur() — this blurs everything
+   behind the element. The semi-transparent background provides context
+   while the blur makes overlapping content illegible, keeping the nav
+   clearly readable. Sticky positioning keeps it in view as the user scrolls.
+
+   The -webkit- prefix is still required for Safari (as of 2025), which
+   has not moved backdrop-filter out of the vendor prefix stage.
+
+   Z-INDEX MANAGEMENT: the navbar sits at z-index 120 — above page content
+   (default 0) and tooltips (typically z-index 50-100), but below modals
+   (z-index 9999+). This is intentional — modal overlays should cover the nav.
+
+   ref: css glass effect — https://www.youtube.com/watch?v=eDCPfd_8RcA
+   ref: backdrop-filter browser support — https://caniuse.com/css-backdrop-filter
+*/
+.navbar {
+  position:                sticky;
+  top:                     0;
+  z-index:                 120;
+  backdrop-filter:         blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background:              rgba(10, 17, 32, 0.82);
+  border-bottom:           1px solid var(--line);
+}
+
+/* inner flex row — centred and max-width constrained like .container */
+.nav-links,
+.nav-inner {
+  list-style:  none;
+  margin:      0 auto;
+  padding:     0 24px;
+  width:       min(var(--max), calc(100% - 48px));
+  display:     flex;
+  align-items: center;
+  gap:         4px;
+  flex-wrap:   wrap;
+  min-height:  var(--nav-h);
+}
+
+.nav-links li,
+.nav-inner li {
+  min-width: 0;  /* prevents flex children from refusing to shrink below content size */
+}
+
+/* logo on the far left — margin-right: auto pushes everything else to the right */
+.nav-logo {
+  display:      flex;
+  align-items:  center;
+  margin-right: auto;
+}
+
+.logo {
+  width:  88px;
+  height: auto;
+}
+
+/*
+   Nav links are pill-shaped with 40px minimum height.
+   40px meets Apple's Human Interface Guidelines (44px is ideal) while
+   fitting comfortably in the 66px navbar. The 1px transparent border is
+   intentional — it's overridden on hover and active states to prevent a
+   1px layout shift when the border colour changes.
+   ref: apple hig touch targets — https://developer.apple.com/design/human-interface-guidelines/buttons
+   ref: preventing layout shift on hover borders — https://css-tricks.com/adding-a-border-on-hover-without-affecting-layout/
+*/
+.nav-links a,
+.nav-inner a {
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  min-height:      40px;
+  padding:         8px 14px;
+  border-radius:   var(--r-pill);
+  border:          1px solid transparent;
+  font-size:       0.9rem;
+  font-weight:     600;
+  color:           var(--text-3);
+  background:      transparent;
+  white-space:     nowrap;
+  transition:
+    background   var(--ease),
+    color        var(--ease),
+    border-color var(--ease);
+}
+
+.nav-links a:hover,
+.nav-inner a:hover {
+  color:        var(--text);
+  background:   var(--surface-2);
+  border-color: var(--line-2);
+}
+
+/* the active/current page link — filled with brand blue tint */
+.nav-links a[aria-current="page"],
+.nav-inner a[aria-current="page"] {
+  color:        var(--primary-400);
+  background:   var(--primary-050);
+  border-color: var(--primary-border);
+}
+
+/* settings icon — small and slightly dimmed to de-emphasise */
+.PicSettings {
+  width:      20px;
+  height:     20px;
+  object-fit: contain;
+  opacity:    0.60;
+}
+
+
+/* buttons*/
+/*
+   All button variants are built on a single .btn base using CSS class
+   composition. This avoids the "button component explosion" problem where
+   each variant is a completely separate set of declarations.
+
+   The hover state lifts the button 1px using translateY(-1px). This is a
+   well-established micro-interaction that communicates "this is pressable"
+   without any icon or text. The matching shadow deepening reinforces the
+   physical affordance.
+
+   All transitions list every individual property rather than using
+   "transition: all" — "all" re-evaluates every property on every frame,
+   which is expensive and can cause unexpected transitions.
+
+   ref: performant css transitions — https://developer.chrome.com/docs/devtools/performance-reference/
+   ref: button affordance design — https://www.nngroup.com/articles/clickable-elements/
+   ref: hover lift micro-interaction — https://www.youtube.com/watch?v=zGiirUiWslI (kevin powell)
+*/
+.btn {
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             var(--s-2);
+  min-height:      46px;
+  padding:         11px 22px;
+  border-radius:   var(--r-sm);
+  border:          1px solid var(--line-2);
+  background:      var(--surface-3);
+  color:           var(--text);
+  font-size:       0.92rem;
+  font-weight:     700;
+  line-height:     1;
+  letter-spacing:  0.01em;
+  transition:
+    transform        var(--ease),
+    box-shadow       var(--ease),
+    background-color var(--ease),
+    border-color     var(--ease),
+    color            var(--ease);
+}
+
+.btn:hover {
+  transform:    translateY(-1px);
+  border-color: var(--line-strong);
+  background:   var(--surface-hover);
+  box-shadow:   var(--shadow-1);
+}
+
+.btn:focus-visible { box-shadow: var(--focus); }
+
+/* primary — the main CTA. Always only one primary button per visible screen area */
+.btn.primary {
+  border-color: var(--primary-700);
+  background:   var(--primary);
+  color:        #fff;
+  box-shadow:   0 4px 14px rgba(74, 144, 232, 0.30);
+}
+
+.btn.primary:hover {
+  background: var(--primary-600);
+  box-shadow: 0 6px 20px rgba(74, 144, 232, 0.42);
+}
+
+/* secondary — used alongside a primary, lower visual weight */
+.btn.secondary {
+  border-color: var(--primary-border);
+  background:   var(--primary-050);
+  color:        var(--primary-400);
+}
+
+.btn.secondary:hover {
+  background:   var(--primary-100);
+  border-color: rgba(74, 144, 232, 0.42);
+}
+
+/* danger — only for destructive or irreversible actions */
+.btn.danger {
+  border-color: rgba(224, 85, 85, 0.35);
+  background:   var(--danger-100);
+  color:        #f07777;
+}
+
+.btn.danger:hover {
+  background:   rgba(224, 85, 85, 0.20);
+  border-color: rgba(224, 85, 85, 0.50);
+}
+
+/* disabled — explicitly set to prevent browser defaults from applying */
+.btn[disabled],
+.btn:disabled {
+  opacity:    0.40;
+  cursor:     not-allowed;
+  transform:  none;
+  box-shadow: none;
+}
+
+
+/*  card base*/
+/*
+   DESIGN DECISION: The .card class itself has NO border, NO border-radius,
+   and NO box-shadow. This is a deliberate departure from the original code.
+
+   The home page HTML uses .card on every section wrapper:
+     <section class="card how-section">
+     <section class="card earn-section">
+     <section class="card tutorials-section">
+     <article class="card home-about">
+   etc.
+
+   If .card had a border and radius, every single section on the home page
+   would render as a boxed panel — the "dashboard widget" aesthetic that
+   makes the page look generic and cheap rather than premium.
+
+   Instead, the card base is transparent with no outline. Each section
+   then defines its own visual treatment in home.css. The only shared
+   feature is the hover top-strip animation, which provides a consistent
+   interactive texture across all card-type elements.
+
+   ref: why generic card UIs fail — https://www.nngroup.com/articles/flat-design/
+   ref: pseudo-element hover strip technique — https://www.youtube.com/watch?v=zGiirUiWslI (kevin powell)
+*/
+.card {
+  position:   relative;
+  background: transparent;
+  overflow:   hidden;
+}
+
+/* thin blue gradient strip — only visible on hover, fades from opacity 0 */
+.card::before {
+  content:    "";
+  position:   absolute;
+  inset:      0 0 auto 0;
+  height:     2px;
+  background: linear-gradient(90deg, var(--primary), var(--primary-400));
+  opacity:    0;
+  transition: opacity var(--ease);
+}
+
+.card:hover::before {
+  opacity: 0.8;
+}
+
+/* .soft — opt-in shadow variant for panels that need visual lifting */
+.card.soft {
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+}
+
+/* the title + action row inside a card */
+.card-header {
+  display:         flex;
+  justify-content: space-between;
+  align-items:     flex-start;
+  gap:             var(--s-4);
+  margin-bottom:   var(--s-5);
+  flex-wrap:       wrap;
+}
+
+.card-title {
+  font-size:   1.05rem;
+  font-weight: 700;
+  color:       var(--text);
+  margin:      0;
+}
+
+
+/*  form inputs */
+/*
+   A single ruleset covers all interactive form controls. The visual states
+   are: default → hover (border brightens) → focus (blue ring + lighter bg).
+   These three states are a minimal but complete set — the user always gets
+   feedback about whether a field is interactive, hovered, or active.
+
+   Focus state uses box-shadow (the --focus ring) in addition to border-color
+   change. This double-signal is important for accessibility: colour-blind
+   users who cannot distinguish the blue border can still see the glow shape.
+   ref: accessible form design — https://www.smashingmagazine.com/2023/02/guide-accessible-form-validation/
+*/
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+input[type="file"],
+input[type="number"],
+input[type="tel"],
+select,
+textarea {
+  width:         100%;
+  min-height:    46px;
+  padding:       10px 14px;
+  border:        1px solid var(--line-2);
+  border-radius: var(--r-sm);
+  background:    var(--surface-3);
+  color:         var(--text);
+  transition:
+    border-color     var(--ease),
+    box-shadow       var(--ease),
+    background-color var(--ease);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-4);
+}
+
+/* dropdown options inherit the dark surface background */
+select option {
+  background: var(--surface-3);
+  color:      var(--text-2);
+}
+
+/* textarea can grow vertically but not horizontally (prevents layout break) */
+textarea {
+  min-height: 120px;
+  resize:     vertical;
+}
+
+input:hover,
+select:hover,
+textarea:hover {
+  border-color: var(--line-strong);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline:      none;
+  border-color: var(--primary);
+  box-shadow:   0 0 0 3px rgba(74, 144, 232, 0.16);
+  background:   var(--surface-2);
+}
+
+
+/*  badges */
+/*
+   Small pill-shaped inline labels. The base .badge is neutral, and semantic
+   colour variants (info, success, warning, danger) are applied via modifier
+   classes. This follows the BEM modifier pattern and avoids creating
+   separate components for each badge type.
+*/
+.badge {
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  min-height:      26px;
+  padding:         3px 10px;
+  border-radius:   var(--r-pill);
+  font-size:       0.76rem;
+  font-weight:     700;
+  border:          1px solid var(--line-2);
+  background:      var(--surface-3);
+  color:           var(--text-2);
+  white-space:     nowrap;
+}
+
+.badge.info    { color: var(--primary-400); background: var(--info-100);    border-color: rgba(74,  144, 232, 0.28); }
+.badge.success { color: var(--success);     background: var(--success-100); border-color: rgba(52,  196, 122, 0.28); }
+.badge.warning { color: var(--gold);        background: var(--gold-bg);     border-color: var(--gold-border);        }
+.badge.danger  { color: #f07777;            background: var(--danger-100);  border-color: rgba(224, 85,  85,  0.28); }
+
+/* gold loyalty points badge — used in nav and account sections */
+.points-badge {
+  color:        var(--gold);
+  background:   var(--gold-bg-strong);
+  border-color: var(--gold-border);
+}
+
+
+/*  overlay and popup*/
+/*
+   The overlay provides a full-screen dimmed backdrop for modal dialogs.
+   The popup is the centred dialog box.
+
+   backdrop-filter: blur() is applied to the overlay (not the popup) to
+   blur the page content behind the overlay. This depth effect makes the
+   modal feel elevated above the page without needing a heavy shadow.
+
+   Z-INDEX: overlay at 9999 sits above all page content. popup at 10000
+   sits above the overlay (so it's never accidentally covered by the overlay
+   if stacking contexts are complex).
+
+   ACCESSIBILITY: the overlay should trap focus when open. This is handled
+   in app.js — CSS alone cannot manage focus trapping.
+   ref: accessible modal pattern — https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/
+   ref: native dialog element — https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog
+*/
+.overlay {
+  position:                fixed;
+  inset:                   0;
+  z-index:                 9999;
+  display:                 grid;
+  place-items:             center;
+  padding:                 24px;
+  background:              rgba(0, 0, 0, 0.72);
+  backdrop-filter:         blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.popup {
+  position:       relative;
+  z-index:        10000;
+  width:          min(500px, 100%);
+  background:     var(--surface-2);
+  border:         1px solid var(--line-2);
+  border-radius:  var(--r-lg);
+  padding:        var(--s-7);
+  box-shadow:     var(--shadow-3);
+  text-align:     center;
+  pointer-events: auto;
+}
+
+.popup h2 { margin-bottom: var(--s-3); color: var(--text);   }
+.popup p  { margin-bottom: var(--s-5); color: var(--text-2); }
+
+.popup-actions {
+  display:         flex;
+  gap:             var(--s-3);
+  flex-wrap:       wrap;
+  justify-content: center;
+  pointer-events:  auto;
+}
+
+
+/*  toast notifications*/
+/*
+   Toasts appear in the bottom-right corner and slide up when shown.
+   pointer-events: none on the host prevents the invisible area above
+   the toasts from blocking interactions — only actual toast elements
+   are clickable.
+
+   The animation is triggered by adding/removing .show via JavaScript.
+   CSS handles the visual transition; JS handles the timing and removal.
+   ref: toast notification pattern — https://www.youtube.com/watch?v=T4eKYMlmJlQ (web dev simplified)
+*/
+#toastHost {
+  position:       fixed;
+  right:          20px;
+  bottom:         20px;
+  z-index:        9999;
+  display:        flex;
+  flex-direction: column;
+  gap:            var(--s-2);
+  pointer-events: none;
+}
+
+/* starts invisible and shifted 12px down — .show transitions both */
+.toast {
+  min-width:      220px;
+  max-width:      320px;
+  padding:        12px 16px;
+  border-radius:  var(--r-md);
+  border:         1px solid var(--line-2);
+  background:     var(--surface-2);
+  color:          var(--text);
+  font-size:      0.875rem;
+  font-weight:    600;
+  box-shadow:     var(--shadow-2);
+  opacity:        0;
+  transform:      translateY(12px);
+  transition:     transform 240ms var(--ease-decelerate), opacity 240ms var(--ease-decelerate);
+  pointer-events: auto;
+}
+
+.toast.show      { opacity: 1; transform: translateY(0); }
+
+.toast--success {
+  background:   rgba(52, 196, 122, 0.14);
+  border-color: rgba(52, 196, 122, 0.30);
+  color:        var(--success);
+}
+
+.toast--error {
+  background:   var(--danger-100);
+  border-color: rgba(224, 85, 85, 0.30);
+  color:        #f07777;
+}
+
+
+/* keyframe animations */
+/*
+   All @keyframes are defined in this global file so they're always available
+   regardless of which page CSS is loaded. Components reference them by name.
+
+   PERFORMANCE: CSS animations that only animate transform and opacity run
+   on the GPU compositor thread — they don't cause layout recalculations.
+   All animations here use only transform and/or opacity for this reason.
+   ref: performant css animations — https://developer.chrome.com/blog/animations-guide/
+   ref: css animation basics — https://www.youtube.com/watch?v=YszONjKpgg4 (kevin powell)
+*/
+
+/* sections fade in from slightly below — used on page-shell children */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+/* left-to-right shimmer for skeleton loading placeholders */
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+
+/* full 360° rotation — loading spinners */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* gentle opacity pulse — pulsing availability indicators */
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 1;   }
+}
+
+/*
+   Skeleton loading: a shimmer that moves left-to-right, indicating
+   that content is loading. The shimmer is created by animating
+   background-position on a gradient. This is more performant than
+   animating opacity because it uses the background painting engine,
+   not the layout engine.
+   ref: skeleton screens — https://www.youtube.com/watch?v=ZVug65gW-gc (kevin powell)
+   ref: skeleton loading best practice — https://uxdesign.cc/what-you-should-know-about-skeleton-screens-a820c45a571a
+*/
+.skeleton {
+  border-radius:   var(--r-xs);
+  background:      linear-gradient(
+    90deg,
+    var(--surface-3)     25%,
+    var(--surface-hover) 50%,
+    var(--surface-3)     75%
+  );
+  background-size: 1200px 100%;
+  animation:       shimmer 1.6s ease-in-out infinite;
+}
+
+
+/* responsive — shared breakpoints */
+/*
+   These breakpoints cover layout elements present on every page. The
+   values (760px, 560px) are chosen empirically: 760px is roughly the point
+   where a two-column layout starts to feel cramped, and 560px is roughly
+   where single-column is the only sensible option. These are content-driven
+   breakpoints, not device-driven — a well-known best practice.
+   ref: content-driven breakpoints — https://www.youtube.com/watch?v=JU6sl_yyZqs (kevin powell)
+*/
+
+/* ≤ 760px — tablets and large phones */
+@media (max-width: 760px) {
+  /* all multi-column grids collapse to single column */
+  .grid-2,
+  .grid-3,
+  .grid-4 {
+    grid-template-columns: 1fr;
+  }
+
+  .section-head,
+  .card-header {
+    flex-direction: column;
+    align-items:    flex-start;
+  }
+}
+
+/* ≤ 560px — mobile phones */
+@media (max-width: 560px) {
+  /* centre the navbar and stack logo above links */
+  .nav-links,
+  .nav-inner {
+    justify-content: center;
+    gap:             4px;
+  }
+
+  .nav-logo {
+    width:           100%;
+    justify-content: center;
+    margin-right:    0;
+  }
+
+  .nav-links a,
+  .nav-inner a {
+    min-height: 40px;
+    padding:    7px 10px;
+    font-size:  0.85rem;
+  }
+
+  .container {
+    width:      min(var(--max), calc(100% - 28px));
+  }
+
+  /* all button groups stack vertically and go full width */
+  .hero-actions,
+  .popup-actions,
+  .order-actions {
+    flex-direction: column;
+    text-alignment: center;
+    justify-alignment: cnter;
+  }
+
+  .btn { width: 100%; }
+
+  /* toasts span full screen width */
+  #toastHost {
+    right:  10px;
+    left:   10px;
+    bottom: 10px;
+  }
+
+  .toast {
+    max-width: none;
+    width:     100%;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* 13. print */
+/*
+   Print optimisation strips the dark background (it would use enormous amounts
+   of ink) and removes the sticky navbar (it would repeat on every printed page
+   and add no value). The !important overrides are justified here — print styles
+   are explicitly a higher-priority context than screen styles.
+*/
+@media print {
+  body    { background: #fff !important; color: #000 !important; }
+  .navbar { position: static; background: #fff !important;       }
+}
+
+
+/*  reduced motion*/
+/*
+   ACCESSIBILITY REQUIREMENT
+   Some users experience vestibular disorders, epilepsy, or motion sickness
+   that can be triggered by animations and transitions. The
+   prefers-reduced-motion media query reads the OS-level accessibility
+   setting and disables all motion when enabled.
+
+   Using 0.01ms (not 0s) is intentional: 0s can still trigger
+   animationstart/animationend events in some browsers, which can break
+   JavaScript that listens for animation end to trigger logic.
+   duration: 0.01ms fires the events practically instantly.
+
+   animation-iteration-count: 1 stops infinite animations after one cycle.
+   This is important for skeleton loaders and floating animations — they
+   should stop rather than loop forever, even at 0.01ms per loop.
+
+   ref: prefers-reduced-motion — https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion
+   ref: vestibular disorders and animation — https://alistapart.com/article/designing-safer-web-animation-for-motion-sensitivity/
+   ref: wcag 2.3.3 animation from interactions — https://www.w3.org/TR/WCAG21/#animation-from-interactions
+*/
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration:        0.01ms !important;
+    animation-iteration-count: 1      !important;
+    transition-duration:       0.01ms !important;
+    scroll-behavior:           auto   !important;
+  }
+}

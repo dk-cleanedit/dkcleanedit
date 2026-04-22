@@ -1,8 +1,6 @@
-/* =============================================================
-   TIME SLOT BUTTON STATES
-   ============================================================= */
+/* TIME SLOT BUTTON STATES */
 
-/* ── Base slot button ───────────────────────────────────────── */
+/*  Base slot button */
 .time-slot {
   position: relative;
   display:  inline-flex;
@@ -23,14 +21,14 @@
   user-select: none;
 }
 
-/* ── Hover (available slots only) ──────────────────────────── */
+/* Hover (available slots only)*/
 .time-slot:not(:disabled):not(.slot-unavailable):hover {
   border-color: #1f74ea;
   background:   #f0f6ff;
   color:        #1f74ea;
 }
 
-/* ── Selected / active ──────────────────────────────────────── */
+/*  Selected / active */
 .time-slot.active,
 .time-slot[aria-pressed="true"] {
   background:   #1f74ea;
@@ -38,8 +36,7 @@
   color:        #ffffff;
 }
 
-/* ── BOOKED / UNAVAILABLE ─────────────────────────────────────
-             */
+/* BOOKED / UNAVAILABLE*/
 .time-slot.slot-unavailable,
 .time-slot:disabled {
   background:      #f4f5f7;
