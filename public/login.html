@@ -4,7 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Login | DKcleanedit</title>
-
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+  emailjs.init("v1GO4hYhLibhbnt_N");
+</script>
   <script>
     if (localStorage.getItem("theme") === "dark") {
       document.documentElement.classList.add("dark-mode");
@@ -12,12 +15,11 @@
   </script>
 
   <link rel="stylesheet" href="token.css">
-<link rel="stylesheet" href="global.css">
-<link rel="stylesheet" href="auth.css">
+  <link rel="stylesheet" href="global.css">
+  <link rel="stylesheet" href="auth.css">
 </head>
 
 <body class="auth-page">
-
 
   <nav class="navbar" aria-label="Primary">
     <ul class="nav-links">
@@ -26,14 +28,14 @@
           <img src="videos/logo.png" class="logo" alt="DKcleanedit logo" />
         </a>
       </li>
-      <li><a href="home.html"     id="navHome">Home</a></li>
-      <li><a href="booking.html"  id="navBooking"  data-requires-auth="true">Booking</a></li>
-      <li><a href="track.html"    id="navTracking" data-requires-auth="true">Tracking</a></li>
-      <li><a href="customer.html" id="navAccount"  data-requires-auth="true">My Account</a></li>
-      <li><a href="admin.html"    id="navAdmin"    data-requires-auth="true">Admin</a></li>
-      <li><a href="login.html"    id="navLogin"    aria-current="page">Login</a></li>
+      <li><a href="home.html" id="navHome">Home</a></li>
+      <li><a href="booking.html" id="navBooking" data-requires-auth="true">Booking</a></li>
+      <li><a href="track.html" id="navTracking" data-requires-auth="true">Tracking</a></li>
+      <li><a href="customer.html" id="navAccount" data-requires-auth="true">My Account</a></li>
+      <li><a href="admin.html" id="navAdmin" data-requires-auth="true">Admin</a></li>
+      <li><a href="login.html" id="navLogin" aria-current="page">Login</a></li>
       <li><a href="register.html" id="navRegister">Register</a></li>
-      <li><a href="#"             id="navLogout"   hidden>Logout</a></li>
+      <li><a href="#" id="navLogout" hidden>Logout</a></li>
       <li><span id="navPointsBadge" class="badge info points-badge" hidden>Points: 0</span></li>
       <li>
         <a href="settings.html" aria-label="Settings">
@@ -45,54 +47,94 @@
     </ul>
   </nav>
 
-
   <main class="auth-container">
     <section class="auth-card" aria-labelledby="loginTitle">
 
+      <!-- LOGIN STEP -->
+      <div id="loginStep">
+        <h1 class="auth-title" id="loginTitle">Welcome back</h1>
+        <p class="auth-sub">Sign in to manage bookings, track orders and view your account.</p>
 
-      <h1 class="auth-title" id="loginTitle">Welcome back</h1>
-      <p class="auth-sub">Sign in to manage bookings, track orders and view your account.</p>
+        <form id="loginForm" novalidate>
+          <div class="auth-field">
+            <label class="auth-label" for="logEmail">Email address</label>
+            <input
+              id="logEmail"
+              class="auth-input"
+              type="email"
+              autocomplete="email"
+              placeholder="you@email.com"
+              required
+            />
+          </div>
 
-      <form id="loginForm" novalidate>
+          <div class="auth-field">
+            <label class="auth-label" for="logPass">Password</label>
+            <input
+              id="logPass"
+              class="auth-input"
+              type="password"
+              autocomplete="current-password"
+              placeholder="Your password"
+              required
+            />
+          </div>
 
-        <div class="auth-field">
-          <label class="auth-label" for="logEmail">Email address</label>
-          <input
-            id="logEmail"
-            class="auth-input"
-            type="email"
-            autocomplete="email"
-            placeholder="you@email.com"
-            required
-          />
+          <button id="btnLogin" class="btn primary full auth-submit" type="button">
+            Login
+          </button>
+
+          <p><a class="ForgotPass" href="register.html">Forgot password</a></p>
+
+          <button id="btnRegisterGo" class="btn secondary full auth-alt" type="button">
+            Create account
+          </button>
+
+          <p id="msg" class="auth-msg" role="alert" aria-live="polite"></p>
+        </form>
+      </div>
+
+      <!-- 2FA STEP -->
+      <div id="twoFactorStep" hidden>
+        <div class="text-center">
+          <div class="svg-icon svg-icon-xl text-purple" style="margin-bottom: 16px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="70" height="70" viewBox="0 0 512 512">
+              <path d="M336,208V113a80,80,0,0,0-160,0v95"
+                style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path>
+              <rect x="96" y="208" width="320" height="272" rx="48" ry="48"
+                style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></rect>
+            </svg>
+          </div>
+          <!-- Bootdey (n.d.) ‘2-step verification form inside a card’. Available at: https://www.bootdey.com/snippets/view/2-step-verification-form-inside-a-card#css (Accessed: 23 April 2026). -->
+          <h2 class="auth-title">2-step verification</h2>
+          <p class="auth-sub">A email verification code has been sent to your email.</p>
+          <p class="auth-sub">Please enter the code below.</p>
         </div>
 
-        <div class="auth-field">
-          <label class="auth-label" for="logPass">Password</label>
-          <input
-            id="logPass"
-            class="auth-input"
-            type="password"
-            autocomplete="current-password"
-            placeholder="Your password"
-            required
-          />
-        </div>
+        <form id="twoFactorForm" novalidate>
+          <div class="twofa-row">
+            <input type="text" class="twofa-input" maxlength="1" inputmode="numeric" />
+            <input type="text" class="twofa-input" maxlength="1" inputmode="numeric" />
+            <input type="text" class="twofa-input" maxlength="1" inputmode="numeric" />
+            <input type="text" class="twofa-input" maxlength="1" inputmode="numeric" />
+          </div>
 
-        <button id="btnLogin" class="btn primary full auth-submit" type="button">
-          Login
-        </button>
-<p><a class="ForgotPass" href="register.html">Forgot password</a></p>
-        <button id="btnRegisterGo" class="btn secondary full auth-alt" type="button">
-          Create account
-        </button>
+          <button id="btnVerify2FA" class="btn primary full auth-submit" type="button">
+            Verify my account
+          </button>
 
+          <p class="auth-sub" style="text-align:center; margin-top:16px;">
+            Didn’t receive it?
+            <a href="#" id="resendCode">Resend code</a>
+          </p>
 
-        <p id="msg" class="auth-msg" role="alert" aria-live="polite"></p>
+          <p id="twofaMsg" class="auth-msg" role="alert" aria-live="polite"></p>
+        </form>
+      </div>
 
-      </form>
     </section>
   </main>
+
 
   <script type="module" src="./app.js"></script>
   <script type="module" src="./theme.js"></script>

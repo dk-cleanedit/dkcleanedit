@@ -123,3 +123,122 @@
   .auth-input { min-height: 48px; border-radius: 10px; }
   .auth-submit, .auth-alt { min-height: 48px; border-radius: 10px; }
 }
+/* ==========================================================================
+   2FA section — adapted for DKcleanedit auth flow
+   ========================================================================== */
+
+#twoFactorStep {
+  animation: fade-up var(--duration-slow) var(--ease-decelerate);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.svg-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.svg-icon svg {
+  width: 3.25rem;
+  height: 3.25rem;
+}
+
+.text-purple {
+  color: var(--primary-400);
+}
+
+.twofa-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 24px 0 10px;
+}
+
+.twofa-input {
+  width: 100%;
+  min-height: 64px;
+  padding: 0;
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  background: var(--surface-3);
+  color: var(--text);
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+  transition:
+    border-color var(--ease),
+    box-shadow var(--ease),
+    background-color var(--ease),
+    transform var(--ease);
+}
+
+.twofa-input:hover {
+  border-color: var(--line-strong);
+}
+
+.twofa-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--surface-2);
+  box-shadow: 0 0 0 4px rgba(74, 144, 232, 0.12);
+  transform: translateY(-1px);
+}
+
+#resendCode {
+  color: var(--primary-400);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+#resendCode:hover {
+  color: var(--primary-300);
+}
+
+.ForgotPass {
+  display: inline-block;
+  margin-top: 12px;
+  color: var(--primary-400);
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ForgotPass:hover {
+  color: var(--primary-300);
+}
+
+/* optional state styling for verification messages */
+#twofaMsg.error {
+  color: #f08888;
+}
+
+#twofaMsg.success {
+  color: var(--success);
+}
+
+@media (max-width: 600px) {
+  .twofa-row {
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .twofa-input {
+    min-height: 56px;
+    font-size: 1.3rem;
+    border-radius: 12px;
+  }
+
+  .svg-icon svg {
+    width: 2.8rem;
+    height: 2.8rem;
+  }
+}
+/* 2FA styles adapted from a Bootdey verification card example and then
+   redesigned to match the DKcleanedit token-based design system.
+   AI assistance was used to help refine and integrate the final version. */

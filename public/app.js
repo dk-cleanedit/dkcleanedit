@@ -1202,7 +1202,7 @@ function wireOverlay() {
 // ─────────────────────────────────────────────────────────────
 //  SECTION 14 — LOGIN PAGE
 // ─────────────────────────────────────────────────────────────
-
+//www.bootdey.com/snippets/view/2-step-verification-form-inside-a-card#css (Accessed: 23 April 2026).
 function initLogin() {
   const btn = $("#btnLogin");
   if (!btn) return;
@@ -1216,6 +1216,30 @@ function initLogin() {
     "auth/network-request-failed": "Network error. Check your connection.",
   };
 
+  // 2FA elements
+  const loginStep   = document.getElementById("loginStep");
+  const twoFAStep   = document.getElementById("twoFactorStep");
+  const verifyBtn   = document.getElementById("btnVerify2FA");
+  const resendBtn   = document.getElementById("resendCode");
+  const twofaMsg    = document.getElementById("twofaMsg");
+
+  let currentUserFor2FA = null;
+  let generatedCode     = null;
+
+  function generateCode() {
+    return Math.floor(1000 + Math.random() * 9000).toString(); // 4-digit
+  }
+
+  async function send2FACode(email, code) {
+    if (!window.emailjs) return;
+
+    return window.emailjs.send("service_6ep5ahh", "template_2fa_code", {
+      to_email: email,
+      code: code,
+    });
+  }
+
+  // ── LOGIN STEP ─────────────────────────────────────────────
   btn.addEventListener("click", async (e) => {
     e.preventDefault();
 
@@ -1223,46 +1247,91 @@ function initLogin() {
     const pass  = $("#logPass")?.value;
 
     if (!email) { setMsg("Please enter your email address."); return; }
-    if (!pass)  { setMsg("Please enter your password.");      return; }
+    if (!pass)  { setMsg("Please enter your password."); return; }
 
     btn.disabled    = true;
     btn.textContent = "Signing in…";
     setMsg("");
 
     try {
-      await signInWithEmailAndPassword(auth, email, pass);
-      toast("Logged in ", "success");
-      location.replace(next ? decodeURIComponent(next) : "customer.html");
+      const cred = await signInWithEmailAndPassword(auth, email, pass);
+
+      currentUserFor2FA = cred.user;
+      generatedCode     = generateCode();
+
+      // send email code
+      await send2FACode(email, generatedCode);
+
+      // switch UI
+      loginStep.hidden = true;
+      twoFAStep.hidden = false;
+
+      toast("Verification code sent ", "success");
+
     } catch (err) {
       const msg = AUTH_ERRORS[err?.code] ?? err.message ?? "Login failed.";
       setMsg(msg);
       toast(msg, "error");
     } finally {
       btn.disabled    = false;
-      btn.textContent = "Sign in";
+      btn.textContent = "Login";
     }
   });
 
+  // ── VERIFY STEP ────────────────────────────────────────────
+  verifyBtn?.addEventListener("click", async () => {
+    const inputs = document.querySelectorAll(".twofa-input");
+    let code = "";
+
+    inputs.forEach(i => code += i.value.trim());
+
+    if (code.length !== 4) {
+      twofaMsg.textContent = "Enter the 4-digit code.";
+      return;
+    }
+
+    if (code !== generatedCode) {
+      twofaMsg.textContent = "Incorrect code.";
+      return;
+    }
+
+    twofaMsg.textContent = "";
+
+    toast("Login successful ", "success");
+
+    // redirect AFTER verification
+    location.replace(next ? decodeURIComponent(next) : "customer.html");
+  });
+
+  // ── RESEND CODE ────────────────────────────────────────────
+  resendBtn?.addEventListener("click", async (e) => {
+    e.preventDefault();
+    if (!currentUserFor2FA) return;
+
+    generatedCode = generateCode();
+    await send2FACode(currentUserFor2FA.email, generatedCode);
+
+    twofaMsg.textContent = "New code sent.";
+  });
+
+  // ── INPUT AUTO-FOCUS ───────────────────────────────────────
+  document.querySelectorAll(".twofa-input").forEach((input, i, arr) => {
+    input.addEventListener("input", () => {
+      if (input.value.length === 1 && i < arr.length - 1) {
+        arr[i + 1].focus();
+      }
+    });
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Backspace" && !input.value && i > 0) {
+        arr[i - 1].focus();
+      }
+    });
+  });
+
+  // ── ENTER KEY SUPPORT ──────────────────────────────────────
   $("#logPass")?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") btn.click();
-  });
-
-  $("#btnSendReset")?.addEventListener("click", async () => {
-    const email = (
-      $("#resetEmail")?.value || $("#logEmail")?.value || ""
-    ).trim();
-    if (!email) { setMsg("Enter your email address first."); return; }
-    try {
-      await sendPasswordResetEmail(auth, email);
-      setMsg("Reset email sent Check your inbox.");
-      toast("Reset email sent ", "success");
-    } catch (err) {
-      const msg =
-        err?.code === "auth/user-not-found"
-          ? "No account found with that email."
-          : err.message;
-      setMsg(msg);
-    }
   });
 }
 
