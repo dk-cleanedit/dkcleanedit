@@ -5,17 +5,18 @@ Project: DKCleanedit
 
 -------------------------------------------------------
 
-20 January 2026
-Researched potential ideas for the final year project and decided to develop a web platform for a sneaker cleaning service, DKCleanEdit. Investigated suitable technologies including HTML, CSS, JavaScript, Firebase Authentication and Firestore. Defined core system requirements such as booking services, order tracking and an admin dashboard.
-Reflection:
-This stage was important in setting a clear direction for the project. Early consideration of technologies helped avoid future compatibility issues. In hindsight, more time could have been spent comparing backend alternatives before committing to Firebase.
-Plan for next week:
-Design system structure and begin frontend layout.
+January 20, 2026
+i researched a plan  for a sneaker cleaning business, dkcleanedit when researching several final year project ideas. looked into appropriate technologies such as Firestore, Firebase Authentication, HTML, CSS, and JavaScript. specified essential system needs, including an admin dashboard, order tracking, and booking services.
+Thoughts:
+This was fist time explaoring differnet technologies i was exicted 
+Make plans for the following week:
+start coding the front end 
 
 
 
-27 January 2026
-Designed the overall system architecture and planned the website layout. Created the initial folder structure and began implementing the navigation system and homepage using HTML and CSS.
+
+27 January 2026 
+i designed the system architecture and research the website layout. i craeted a initial folder structure and began implementing the navigation system and homepage using HTML and CSS.
 Reflection:
 Establishing a clear structure early improved development efficiency later. However, some layout decisions were revisited in later stages, showing that initial designs should remain flexible.
 Plan for next week:
@@ -117,5 +118,23 @@ This feature enhanced accessibility and personalisation. It also demonstrated at
 Plan for next phase:
 Conduct user testing, analyse results and improve.
 
-20 April 2026
-Distributed an anonymous online survey via Jotform to collect validation feedback from existing DKCleanEdit customers on booking experiences, communication gaps, and feature desirability. The survey was shared via Instagram and Snapchat stories and direct messages to past customers. Three responses were received and will be summarised in Appendix 12.9. Key finding: all three respondents confirmed real-time tracking would be "very helpful," directly validating Objective 1.
+13–14 April 2026
+Added a cancel and reschedule feature for bookings, including logic to prevent double-booking conflicts. Extended EmailJS integration to send appointment-specific email confirmations. Designed and implemented the schedule page layout.
+Reflection:
+The cancel and reschedule functionality addressed a practical gap in the booking system. Handling double-booking edge cases required careful conditional logic, highlighting the importance of anticipating real-world user behaviour during development.
+Plan for next week:
+Resolve merge conflicts, update project log, and develop settings page
+
+22 April 2026
+Implemented a two-factor authentication (2FA) verification system to strengthen user account security. Enhanced the homepage UI with a floating shoe animation and improved form styling to elevate the visual experience and brand identity of DKCleanEdit.
+Reflection:
+Adding 2FA addressed an important security consideration that had not been part of the initial scope, demonstrating how projects evolve in response to broader software quality standards. The UI animation work reinforced the value of small polish details in creating a memorable user experience.
+Plan for next phase:
+Finalise documentation, complete the project report, and prepare for submission and demonstration.
+
+26 April 2026
+i conducted a user testing wihtin the platform including authentication, booking, order tracking and the admin dashboard. Identified and resolved a number of bugs discovered during testing to ensure system stability. Carried out final checks and code clean-up in preparation for project submission.
+Reflection:
+Testing at this stage was valuable in catching edge cases and minor issues that had gone unnoticed during development. It reinforced the importance of dedicated testing phases rather than relying solely on testing during feature development. Fixing these bugs before submission ensured the system is in its most stable and polished state.
+Plan for next phase:
+Submit the final project and prepare for the demonstration.

@@ -1,458 +1,906 @@
 <!doctype html>
 <html lang="en">
+<!--
+  home.html — dkcleanedit homepage
+  university of leicester co3202 entrepreneurial project 2025/26
+
+  references (ieee format)
+
+  [1] w3schools (n.d.) "html semantic elements." available at:
+      https://www.w3schools.com/html/html5_semantic_elements.asp
+      [accessed: 27 apr. 2026].
+      used for: semantic landmark elements — <main>, <nav>, <section>,
+      <article>, <aside>, <footer>, <blockquote> — applied throughout this
+      page to improve machine-readability and accessibility.
+
+  [2] mdn web docs (n.d.) "aria: role attribute." available at:
+      https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles
+      [accessed: 27 apr. 2026].
+      used for: aria-label, aria-labelledby, aria-current, aria-hidden,
+      aria-live, aria-atomic, role="list/listitem/tablist" attributes
+      applied on nav, carousel, metric pills, tier cards, and step lists.
+
+  [3] google fonts (n.d.) "fonts." available at:
+      https://fonts.google.com [accessed: 27 apr. 2026].
+      used for: importing syne (display headings) and dm sans (body text)
+      via <link rel="preconnect"> and the google fonts stylesheet in <head>.
+
+  [4] css-tricks (2021) "a complete guide to flexbox." available at:
+      https://css-tricks.com/snippets/css/a-guide-to-flexbox/
+      [accessed: 27 apr. 2026].
+      used for: hero-actions, metric-pill, tier-cards, and footer-grid
+      layout class patterns referenced in this file, implemented in home.css
+      and global.css.
+
+  [5] bootdey (n.d.) "pricing / service flip cards." available at:
+      https://www.bootdey.com/snippets/view/pricing-cards
+      [accessed: 27 apr. 2026].
+      used for: the serviceflipcard html structure — .serviceflipinner,
+      .serviceflipfront / .serviceflipback, icon + price + list layout —
+      in the "cleaning packages" section. adapted into dkcleanedit context.
+
+  [6] codingnepal (n.d.) "responsive image slider in html css & javascript."
+      available at: https://www.codingnepalweb.com/best-30-javascript-projects-with-source-code/
+      [accessed: 27 apr. 2026].
+      used for: .carousel-viewport / .carousel-track / .carousel-btn /
+      .carousel-dots html structure in the "restoration examples" aside.
+      javascript behaviour handled in app.js section 24 (initcarousel).
+
+  [7] w3c (2023) "web content accessibility guidelines (wcag) 2.2." available at:
+      https://www.w3.org/TR/WCAG22/ [accessed: 27 apr. 2026].
+      used for: descriptive alt text on all images (sc 1.1.1), <video>
+      fallback text and download link (sc 1.2.1), role="list" on ordered
+      and unordered lists used for navigation and steps (sc 1.3.1), and
+      aria-label on all interactive controls (sc 4.1.2).
+
+  [8] youtube help (n.d.) "shorts." available at:
+      https://www.youtube.com/shorts/k2cKxc3lv3M [accessed: 27 apr. 2026].
+      consulted for: the floating-shoe visual technique referenced in the
+      hero section. the .nike image element and hero-media layout are
+      retained from that reference.
+
+  [9] dkcleanedit (2026) instagram. available at:
+      https://www.instagram.com/dkcleanedit_/ [accessed: 27 apr. 2026].
+      used for: the instagram social link in the site footer.
+
+  [10] dkcleanedit (2026) tiktok. available at:
+       https://www.tiktok.com/@dk_asz [accessed: 27 apr. 2026].
+       used for: the tiktok social link in the site footer.
+
+  [11] anthropic (2025) claude ai assistant. available at:
+       https://www.anthropic.com [accessed: 27 apr. 2026].
+       used as a development aid to help improve html structure, accessibility
+       attributes, and comment clarity. all design decisions remain the
+       author's own.
+-->
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>DKcleanedit | Luxury Sneaker Cleaning</title>
-  <meta name="description" content="Professional sneaker cleaning and restoration in Leicester and London. Book online, track in real time, earn loyalty rewards." />
+  <title>dkcleanedit | luxury sneaker cleaning</title>
+  <meta
+    name="description"
+    content="professional sneaker cleaning and restoration in leicester and london. book online, track in real time, earn loyalty rewards."
+  />
 
+  <!-- preconnect for google fonts performance — ref [3] (google fonts) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- syne (display) + dm sans (body) — ref [3] (google fonts) -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;1,9..40,400&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- dark-mode class applied before paint to prevent flash of unstyled content -->
   <script>
     if (localStorage.getItem("theme") === "dark") {
       document.documentElement.classList.add("dark-mode");
     }
   </script>
-<link rel="stylesheet" href="token.css">
-<link rel="stylesheet" href="global.css">
-<link rel="stylesheet" href="order-tracking.css">
-<link rel="stylesheet" href="home.css">
+
+  <link rel="stylesheet" href="token.css" />
+  <link rel="stylesheet" href="global.css" />
+  <link rel="stylesheet" href="order-tracking.css" />
+  <link rel="stylesheet" href="home.css" />
 </head>
 
 <body>
 
-  <!-- ─── Navbar ──────────────────────────────────────────────────────────── -->
-  <nav class="navbar" aria-label="Primary navigation">
-    <ul class="nav-links">
+  <!-- navbar
+       semantic <nav> landmark with role="navigation" — ref [1] (w3schools).
+       aria-label on nav and aria-current on active link — ref [2] (mdn aria). -->
+  <nav class="navbar" role="navigation" aria-label="primary navigation">
+    <ul class="nav-links" role="list">
+
       <li class="nav-logo">
-        <a href="home.html" aria-label="DKcleanedit — go to homepage">
-          <img src="videos/logo.png" class="logo" alt="DKcleanedit" />
+        <a href="home.html" aria-label="dkcleanedit — go to homepage">
+          <img
+            src="videos/logo.png"
+            class="logo"
+            alt="dkcleanedit logo"
+            width="120"
+            height="40"
+          />
         </a>
       </li>
-      <li><a href="home.html"     id="navHome"     aria-current="page">Home</a></li>
-      <li><a href="booking.html"  id="navBooking"  data-requires-auth="true">Booking</a></li>
-      <li><a href="track.html"    id="navTracking" data-requires-auth="true">Tracking</a></li>
-      <li><a href="customer.html" id="navAccount"  data-requires-auth="true">My Account</a></li>
-      <li><a href="admin.html"    id="navAdmin"    data-requires-auth="true" hidden>Admin</a></li>
-      <li><a href="login.html"    id="navLogin">Login</a></li>
-      <li><a href="register.html" id="navRegister">Register</a></li>
-      <li><a href="#"             id="navLogout" hidden>Logout</a></li>
+
+      <li><a href="home.html"     id="navHome"     aria-current="page">home</a></li>
+      <li><a href="booking.html"  id="navBooking"  data-requires-auth="true">booking</a></li>
+      <li><a href="track.html"    id="navTracking" data-requires-auth="true">tracking</a></li>
+      <li><a href="customer.html" id="navAccount"  data-requires-auth="true">my account</a></li>
+      <li><a href="admin.html"    id="navAdmin"    data-requires-auth="true" hidden>admin</a></li>
+      <li><a href="login.html"    id="navLogin">login</a></li>
+      <li><a href="register.html" id="navRegister">register</a></li>
+      <li><a href="#"             id="navLogout"   hidden>logout</a></li>
+
       <li>
-        <span id="navPointsBadge" class="badge info points-badge" hidden aria-live="polite">
-          0 pts
-        </span>
+        <!-- aria-live="polite" + aria-atomic so screen readers announce point changes
+             — ref [2] (mdn aria, aria-live) -->
+        <span
+          id="navPointsBadge"
+          class="badge info points-badge"
+          hidden
+          aria-live="polite"
+          aria-atomic="true"
+        >0 pts</span>
       </li>
+
       <li>
-        <a href="settings.html" aria-label="Settings">
-          <img class="PicSettings"
-               src="https://img.icons8.com/ios-filled/100/666666/settings.png"
-               alt="" aria-hidden="true" />
+        <a href="settings.html" aria-label="open settings">
+          <!-- aria-hidden on decorative icon — ref [7] (w3c wcag 2.2, sc 1.1.1) -->
+          <img
+            class="PicSettings"
+            src="https://img.icons8.com/ios-filled/100/666666/settings.png"
+            alt=""
+            aria-hidden="true"
+            width="24"
+            height="24"
+          />
         </a>
       </li>
+
     </ul>
   </nav>
 
-  <!-- ─── Main ────────────────────────────────────────────────────────────── -->
-  <main class="container page-shell">
 
-    <!-- ══ HERO ══════════════════════════════════════════════════════════ -->
+  <!-- main content — <main> landmark — ref [1] (w3schools semantic elements) -->
+  <main class="container page-shell" id="main" tabindex="-1">
+
+
+    <!-- hero
+         two-column layout: copy left, floating shoe image right.
+         floating-shoe visual technique — ref [8] (youtube shorts k2cKxc3lv3M). -->
     <section class="hero" aria-labelledby="heroHeading">
 
       <div class="hero-copy">
 
+        <p class="eyebrow" aria-hidden="true">professional sneaker care</p>
+
         <h1 id="heroHeading">
-          Luxury Sneaker<br />
-          Cleaning &amp; Restoration
+          luxury sneaker<br />
+          cleaning &amp; restoration
         </h1>
 
         <p class="hero-sub">
-          Book in minutes, follow your order through every stage in real time,
-          and earn loyalty rewards, all through one clean platform.
+          book in minutes, follow your order through every cleaning stage in
+          real time, and earn loyalty rewards — all through one clean platform.
         </p>
 
-        <div class="hero-metrics" aria-label="Service highlights">
-          <div class="metric-pill">
+        <!-- metric pills — flex layout pattern ref [4] (css-tricks flexbox) -->
+        <div class="hero-metrics" role="list" aria-label="service highlights">
+          <div class="metric-pill" role="listitem">
             <strong>2 locations</strong>
-            <span>Leicester &amp; London</span>
+            <span>leicester &amp; london</span>
           </div>
-          <div class="metric-pill">
-            <strong>Live updates</strong>
-            <span>Real-time tracking</span>
+          <div class="metric-pill" role="listitem">
+            <strong>live updates</strong>
+            <span>real-time tracking</span>
           </div>
-          <div class="metric-pill">
-            <strong>Loyalty points</strong>
-            <span>Earn on every clean</span>
+          <div class="metric-pill" role="listitem">
+            <strong>loyalty points</strong>
+            <span>earn on every clean</span>
           </div>
         </div>
+
+        <!-- cta group — ref [4] (css-tricks flexbox, hero-actions pattern) -->
+        <div class="hero-actions">
+          <a class="btn primary" href="booking.html" data-requires-auth="true">book now</a>
+          <a class="btn" href="register.html">log in / register</a>
+        </div>
+
       </div>
 
-     <!-- https://www.youtube.com/shorts/k2cKxc3lv3M to create the floating shoe -->
-<div class="container">
-  <img src="videos/pngwing.com.png" alt="Nike Shoe" class="Nike">
-</div>
-
+      <!-- floating shoe — purely decorative, aria-hidden — ref [7] (wcag 2.2, sc 1.1.1) -->
+      <div class="hero-media" aria-hidden="true">
+        <img
+          src="videos/pngwing.com.png"
+          alt=""
+          class="Nike"
+          width="520"
+          height="400"
+          loading="eager"
+          fetchpriority="high"
+        />
+      </div>
 
     </section>
 
-    <!-- ══ ABOUT + CAROUSEL ═══════════════════════════════════════════════ -->
+
+    <!-- about + carousel row
+         two-column grid — ref [4] (css-tricks flexbox guide).
+         carousel html structure adapted from ref [6] (codingnepal image slider). -->
     <div class="grid-2 home-overview">
 
-      <article class="card home-about stack-md" aria-label="About DKcleanedit">
+      <!-- about — <article> for self-contained content — ref [1] (w3schools) -->
+      <article class="card home-about stack-md" aria-labelledby="aboutHeading">
+
         <div class="section-head">
-          <div>
-            <h2>Premium care for every pair</h2>
-          </div>
+          <h2 id="aboutHeading">premium care for every pair</h2>
         </div>
+
         <p>
-          DKcleanedit is a professional shoe cleaning and restoration service
-          based in London and Leicester. We specialise in deep cleaning, stain
-          removal, sole unyellowing, and high quality refreshes that protect
+          dkcleanedit is a professional shoe cleaning and restoration service
+          based in london and leicester. we specialise in deep cleaning, stain
+          removal, sole unyellowing, and high-quality refreshes that protect
           the look and longevity of your footwear.
         </p>
+
         <p>
-          The platform gives you full order visibility and a smooth journey
-          from booking right through to collection  no chasing, no guessing.
+          the platform gives you full order visibility and a smooth journey
+          from booking right through to collection — no chasing, no guessing.
         </p>
+
+        <div class="hero-actions" style="margin-top:1.5rem;">
+          <a class="btn secondary" href="booking.html" data-requires-auth="true">
+            see our services
+          </a>
+        </div>
+
       </article>
 
-      <aside class="card carousel" aria-label="Restoration examples">
-  <div class="card-header">
-    <h2 class="card-title">Restoration examples</h2>
-  </div>
+      <!-- carousel — html structure adapted from ref [6] (codingnepal image slider).
+           js behaviour handled in app.js section 24 initcarousel(). -->
+      <aside class="card carousel" aria-labelledby="carouselHeading">
 
-  <div class="carousel-viewport">
-    <div
-      class="carousel-track"
-      id="carouselTrack"
-      role="region"
-      aria-label="Image carousel"
-      aria-live="polite"
-    >
+        <div class="card-header">
+          <h2 class="card-title" id="carouselHeading">restoration examples</h2>
+        </div>
 
-      <img
-        src="videos/IMG_2317.JPG"
-        width="3432"
-        height="2024"
-        alt="Before and after restoration — example 1"
-        loading="lazy"
-      />
+        <!-- .carousel-viewport wraps track + buttons — ref [6] (codingnepal) -->
+        <div class="carousel-viewport">
 
-      <img src="videos/IMG_2399.JPG" height="3024" width="4032"/>
-        width="4032"
-        height="3024"
-        alt="Before and after restoration — example 2"
-        loading="lazy"
-      />
+          <div
+            class="carousel-track"
+            id="carouselTrack"
+            role="region"
+            aria-label="before and after restoration image carousel"
+            aria-live="polite"
+          >
 
-      <img src="videos/IMG_1456.JPG" height="3024" width="4032"/>
-        width="4032"
-        height="3024"
-        alt="Before and after restoration — example 3"
-        loading="lazy"
-      />
+            <!-- descriptive alt on every image — ref [7] (wcag 2.2, sc 1.1.1) -->
+            <img
+              src="videos/IMG_2317.JPG"
+              width="800"
+              height="600"
+              alt="restoration example 1 — sneakers before and after cleaning"
+              loading="lazy"
+            />
+            <img
+              src="videos/IMG_2399.JPG"
+              width="800"
+              height="600"
+              alt="restoration example 2 — sneakers before and after cleaning"
+              loading="lazy"
+            />
+            <img
+              src="videos/IMG_1456.JPG"
+              width="800"
+              height="600"
+              alt="restoration example 3 — sneakers before and after cleaning"
+              loading="lazy"
+            />
+            <img
+              src="videos/IMG_C8345467AB89-1.jpeg"
+              width="800"
+              height="600"
+              alt="restoration example 4 — sneakers before and after cleaning"
+              loading="lazy"
+            />
 
-     <img src="videos/IMG_C8345467AB89-1.jpeg" height="1537" width="1179"/>
-        width="4032"
-        height="3024"
-        alt="Before and after restoration — example 4"
-        loading="lazy"
-      />
- <div class="hero-media">
-        <video
-          class="hero-video"
-          controls
-          preload="metadata"
-          aria-label="DKcleanedit service showcase video"
-        >
-          <source src="videos/video.mp4" type="video/mp4" />
-          Your browser does not support video playback.
-        </video>
 
-    </div>
-  </div>
-</aside>
-        <button class="carousel-btn prev" type="button" id="prevBtn" aria-label="Previous image">&#8249;</button>
-        <button class="carousel-btn next" type="button" id="nextBtn" aria-label="Next image">&#8250;</button>
-        <div class="carousel-dots" id="carouselDots" role="tablist" aria-label="Carousel navigation"></div>
+          </div>
+          <!-- end .carousel-track -->
+
+          <!-- prev / next controls — ref [6] (codingnepal carousel-btn pattern) -->
+          <button
+            class="carousel-btn prev"
+            type="button"
+            id="prevBtn"
+            aria-label="previous restoration example"
+          >&#8249;</button>
+
+          <button
+            class="carousel-btn next"
+            type="button"
+            id="nextBtn"
+            aria-label="next restoration example"
+          >&#8250;</button>
+
+        </div>
+        <!-- end .carousel-viewport -->
+
+        <!-- dot navigation — role="tablist" for keyboard accessibility — ref [2] (mdn aria) -->
+        <div
+          class="carousel-dots"
+          id="carouselDots"
+          role="tablist"
+          aria-label="carousel slide navigation"
+        ></div>
+
       </aside>
 
     </div>
+    <!-- end .grid-2 -->
 
-    <!-- ══ HOW IT WORKS ═══════════════════════════════════════════════════ -->
+
+    <!-- how it works
+         <ol> conveys order to assistive tech — ref [7] (wcag 2.2, sc 1.3.1)
+         and ref [1] (w3schools semantic elements). -->
     <section class="card how-section" aria-labelledby="howHeading">
 
       <div class="section-head">
-        <div>
-          <h2 id="howHeading">How it works</h2>
-        </div>
+        <h2 id="howHeading">how it works</h2>
+        <p class="sub">from booking to collection in four simple steps.</p>
       </div>
 
-      <ol class="steps-grid" aria-label="Booking process steps">
+      <ol class="steps-grid" aria-label="booking process steps" role="list">
+
         <li class="step-card">
           <div class="step-num" aria-hidden="true">01</div>
-          <h3>Choose your service</h3>
-          <p>Select the cleaning or restoration package that matches your pair and needs.</p>
+          <h3>choose your service</h3>
+          <p>select the cleaning or restoration package that matches your pair and needs.</p>
         </li>
+
         <li class="step-card">
           <div class="step-num" aria-hidden="true">02</div>
-          <h3>Book your slot</h3>
-          <p>Log in, pick a date and time slot, then confirm your booking in seconds.</p>
+          <h3>book your slot</h3>
+          <p>log in, pick a date and time slot, then confirm your booking in seconds.</p>
         </li>
+
         <li class="step-card">
           <div class="step-num" aria-hidden="true">03</div>
-          <h3>Track progress</h3>
-          <p>Follow your pair through every cleaning stage with live status updates.</p>
+          <h3>track progress</h3>
+          <p>follow your pair through every cleaning stage with live status updates.</p>
         </li>
+
         <li class="step-card">
           <div class="step-num" aria-hidden="true">04</div>
-          <h3>Collect and earn</h3>
-          <p>Receive your refreshed sneakers and collect loyalty points for future rewards.</p>
+          <h3>collect and earn</h3>
+          <p>receive your refreshed sneakers and collect loyalty points for future rewards.</p>
         </li>
+
       </ol>
 
       <div class="hero-actions">
-        <a class="btn primary" href="booking.html" data-requires-auth="true">Book now</a>
-        <a class="btn" href="register.html">Log in / Register</a>
+        <a class="btn primary" href="booking.html" data-requires-auth="true">book now</a>
+        <a class="btn" href="register.html">log in / register</a>
       </div>
 
     </section>
 
-    <!-- ══ LOYALTY TIERS ══════════════════════════════════════════════════ -->
-   <section class="card earn-section" aria-labelledby="earnHeading">
 
+    <!-- cleaning packages — service flip cards
+         flip-card html structure adapted from ref [5]
+         (bootdey — pricing / service flip cards).
+         front panel: name + teaser. back panel: price + features + cta.
+         css perspective/transform handled in home.css. -->
+    <section class="card serviceShowcase" aria-labelledby="serviceShowcaseHeading">
 
-  <p class="sub">
-    Every clean earns you points. Accumulate them to unlock discounts,
-    free services, and exclusive perks.
-  </p>
-
-  <div class="tier-cards">
-
-    <!-- CARBON -->
-    <div class="tier-card tier--carbon">
-      <div class="tier-head">
-        <div class="tier-top-row">
-          <span class="tier-label">Carbon</span>
-        </div>
-        <div class="tier-num-row">
-          <h3 class="tier-num">0 – 99</h3>
-          <span class="tier-unit">pts</span>
-        </div>
-        <span class="tier-sublabel">Entry tier</span>
+      <div class="section-head">
+        <h2 id="serviceShowcaseHeading">cleaning packages</h2>
+        <p class="sub">
+          choose the level of care that suits your pair. each package is designed
+          around speed, finish quality, and restoration depth.
+        </p>
       </div>
-      <div class="tier-body">
-        <div class="tier-reward-row">
-          <div class="tier-icon" aria-hidden="true">
-            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8z" fill="currentColor" opacity=".3"/>
-              <path d="M8 4.5a.75.75 0 01.75.75v3.19l1.72 1.72a.75.75 0 11-1.06 1.06L7.47 9.28A.75.75 0 017.25 8.75V5.25A.75.75 0 018 4.5z" fill="currentColor"/>
-            </svg>
+
+      <!-- role="list" so assistive tech enumerates cards — ref [2] (mdn aria) -->
+      <div class="serviceFlipGrid" role="list">
+
+        <!-- standard clean — flip-card pattern ref [5] (bootdey pricing cards) -->
+        <article
+          class="serviceFlipCard"
+          role="listitem"
+          aria-label="standard clean package — from £25"
+        >
+          <div class="serviceFlipInner">
+
+            <div class="serviceFlipFront serviceFlipFrontStandard" data-service="Standard">
+              <div class="serviceFlipTop">
+                <span class="serviceFlipBadge">Standard</span>
+                <h3>Standard Clean</h3>
+              </div>
+              <p class="serviceFlipText">
+                ideal for regular maintenance and everyday refreshes.
+              </p>
+              <p class="serviceFlipHint" aria-hidden="true">hover to see pricing</p>
+            </div>
+
+            <div class="serviceFlipBack serviceFlipBackStandard">
+              <div class="serviceFlipBackInner">
+                <p class="serviceFlipPriceLabel">from</p>
+                <p class="serviceFlipPrice">£25</p>
+                <ul class="serviceFlipList" aria-label="included in standard clean">
+                  <li>upper clean</li>
+                  <li>midsole clean</li>
+                  <li>lace refresh</li>
+                  <li>deodorising &amp; finish</li>
+                </ul>
+                <a class="btn primary" href="booking.html" data-requires-auth="true">book now</a>
+              </div>
+            </div>
+
+
           </div>
-          <p class="tier-perk">£5 off your next clean</p>
-        </div>
-      </div>
-    </div>
+        </article>
 
-    <!-- STONE -->
-    <div class="tier-card tier--stone">
-      <div class="tier-head">
-        <div class="tier-top-row">
-          <span class="tier-label">Stone</span>
-          <span class="tier-popular">Most popular</span>
-        </div>
-        <div class="tier-num-row">
-          <h3 class="tier-num">100 – 499</h3>
-          <span class="tier-unit">pts</span>
-        </div>
-        <span class="tier-sublabel">Mid tier</span>
-      </div>
-      <div class="tier-body">
-        <div class="tier-reward-row">
-          <div class="tier-icon" aria-hidden="true">
-            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M1.5 2A1.5 1.5 0 000 3.5v2A1.5 1.5 0 001.5 7h13A1.5 1.5 0 0016 5.5v-2A1.5 1.5 0 0014.5 2h-13z" fill="currentColor" opacity=".3"/>
-              <path d="M0 9.5A1.5 1.5 0 011.5 8h13A1.5 1.5 0 0116 9.5v2a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 010 11.5v-2zm3 1a.75.75 0 000 1.5h.5a.75.75 0 000-1.5H3z" fill="currentColor"/>
-            </svg>
+        <!-- express service — flip-card pattern ref [5] (bootdey pricing cards) -->
+        <article
+          class="serviceFlipCard"
+          role="listitem"
+          aria-label="express service package — from £30"
+        >
+          <div class="serviceFlipInner">
+
+            <div class="serviceFlipFront serviceFlipFrontExpress" data-service="Express">
+              <div class="serviceFlipTop">
+                <span class="serviceFlipBadge">Express</span>
+                <h3>Express Service</h3>
+              </div>
+              <p class="serviceFlipText">
+                faster turnaround for customers who need a quick refresh.
+              </p>
+              <p class="serviceFlipHint" aria-hidden="true">hover to see pricing</p>
+            </div>
+
+            <div class="serviceFlipBack serviceFlipBackExpress">
+              <div class="serviceFlipBackInner">
+                <p class="serviceFlipPriceLabel">from</p>
+                <p class="serviceFlipPrice">£30</p>
+                <ul class="serviceFlipList" aria-label="included in express service">
+                  <li>priority cleaning</li>
+                  <li>detailed upper refresh</li>
+                  <li>lace and sole attention</li>
+                  <li>same-day completion</li>
+                </ul>
+                <a class="btn primary" href="booking.html" data-requires-auth="true">book now</a>
+              </div>
+            </div>
+
           </div>
-          <p class="tier-perk">£10 off + priority booking</p>
-        </div>
-      </div>
-    </div>
+        </article>
 
-    <!-- PEARL -->
-    <div class="tier-card tier--pearl">
-      <div class="tier-head">
-        <div class="tier-top-row">
-          <span class="tier-label">Pearl</span>
-        </div>
-        <div class="tier-num-row">
-          <h3 class="tier-num">500+</h3>
-          <span class="tier-unit">pts</span>
-        </div>
-        <span class="tier-sublabel">Top tier</span>
-      </div>
-      <div class="tier-body">
-        <div class="tier-reward-row">
-          <div class="tier-icon" aria-hidden="true">
-            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z" fill="currentColor"/>
-            </svg>
+        <!-- next day — flip-card pattern ref [5] (bootdey pricing cards) -->
+        <article
+          class="serviceFlipCard"
+          role="listitem"
+          aria-label="next day package — from £40"
+        >
+          <div class="serviceFlipInner">
+
+            <div class="serviceFlipFront serviceFlipFrontNextDay" data-service="Next Day">
+              <div class="serviceFlipTop">
+                <span class="serviceFlipBadge">Next Day</span>
+                <h3>Next Day</h3>
+              </div>
+              <p class="serviceFlipText">
+                premium speed for urgent turnaround and top-priority treatment.
+              </p>
+              <p class="serviceFlipHint" aria-hidden="true">hover to see pricing</p>
+            </div>
+
+            <div class="serviceFlipBack serviceFlipBackNextDay">
+              <div class="serviceFlipBackInner">
+                <p class="serviceFlipPriceLabel">from</p>
+                <p class="serviceFlipPrice">£40</p>
+                <ul class="serviceFlipList" aria-label="included in next day">
+                  <li>next-day completion</li>
+                  <li>priority queue placement</li>
+                  <li>full refresh finish</li>
+                  <li>best for urgent needs</li>
+                </ul>
+                <a class="btn primary" href="booking.html" data-requires-auth="true">book now</a>
+              </div>
+            </div>
+
           </div>
-          <p class="tier-perk">1 free clean + shoe tree included</p>
-        </div>
+        </article>
+
       </div>
-    </div>
+      <!-- end .serviceFlipGrid -->
 
-  </div>
+    </section>
 
-  <div class="hero-actions">
-    <a class="btn secondary" href="customer.html" data-requires-auth="true">View my points</a>
-  </div>
 
-</section>
+    <!-- loyalty tiers
+         role="list/listitem" so assistive tech announces tier count — ref [2] (mdn aria).
+         flex layout for tier-cards — ref [4] (css-tricks flexbox). -->
+    <section class="card earn-section" aria-labelledby="earnHeading">
 
-    <!-- ══ TUTORIALS ══════════════════════════════════════════════════════ -->
+      <div class="section-head">
+        <h2 id="earnHeading">loyalty tiers</h2>
+        <p class="sub">
+          every clean earns you points. accumulate them to unlock discounts,
+          free services, and exclusive perks.
+        </p>
+      </div>
+
+      <div class="tier-cards" role="list" aria-label="loyalty tier benefits">
+
+        <!-- carbon tier -->
+        <div
+          class="tier-card tier--carbon"
+          role="listitem"
+          aria-label="carbon tier: 0 to 99 points — £5 off your next clean"
+        >
+          <div class="tier-head" data-tier="Carbon">
+            <div class="tier-top-row">
+              <span class="tier-label">carbon</span>
+            </div>
+            <div class="tier-num-row">
+              <h3 class="tier-num">0 – 99</h3>
+              <span class="tier-unit">pts</span>
+            </div>
+            <span class="tier-sublabel">entry tier</span>
+          </div>
+          <div class="tier-body">
+            <div class="tier-reward-row">
+              <p class="tier-perk">£5 off your next clean</p>
+            </div>
+          </div>
+          <div class="tier-cta">
+            <a href="customer.html" data-requires-auth="true">view my points</a>
+          </div>
+        </div>
+
+        <!-- stone tier -->
+        <div
+          class="tier-card tier--stone"
+          role="listitem"
+          aria-label="stone tier: 100 to 499 points — £10 off plus priority booking"
+        >
+          <div class="tier-head" data-tier="Stone">
+            <div class="tier-top-row">
+              <span class="tier-label">stone</span>
+              <span class="tier-popular">most popular</span>
+            </div>
+            <div class="tier-num-row">
+              <h3 class="tier-num">100 – 499</h3>
+              <span class="tier-unit">pts</span>
+            </div>
+            <span class="tier-sublabel">mid tier</span>
+          </div>
+          <div class="tier-body">
+            <div class="tier-reward-row">
+              <p class="tier-perk">£10 off + priority booking</p>
+            </div>
+          </div>
+          <div class="tier-cta">
+            <a href="customer.html" data-requires-auth="true">view my points</a>
+          </div>
+        </div>
+
+        <!-- pearl tier -->
+        <div
+          class="tier-card tier--pearl"
+          role="listitem"
+          aria-label="pearl tier: 500 or more points — 1 free clean plus shoe tree"
+        >
+          <div class="tier-head" data-tier="Pearl">
+            <div class="tier-top-row">
+              <span class="tier-label">pearl</span>
+            </div>
+            <div class="tier-num-row">
+              <h3 class="tier-num">500+</h3>
+              <span class="tier-unit">pts</span>
+            </div>
+            <span class="tier-sublabel">top tier</span>
+          </div>
+          <div class="tier-body">
+            <div class="tier-reward-row">
+              <p class="tier-perk">1 free clean + shoe tree included</p>
+            </div>
+          </div>
+          <div class="tier-cta">
+            <a href="customer.html" data-requires-auth="true">view my points</a>
+          </div>
+        </div>
+
+      </div>
+      <!-- end .tier-cards -->
+
+      <div class="hero-actions">
+        <a class="btn secondary" href="customer.html" data-requires-auth="true">
+          view my points
+        </a>
+      </div>
+
+    </section>
+
+
+    <!-- tutorials
+         the first two cards use static images as placeholder thumbnails since
+         no video file exists for those tutorials yet. they link to the booking
+         page so the thumb is still actionable.
+         the third and fourth cards are the two working videos provided by the author.
+         ref [7] (wcag 2.2, sc 1.2.1): video fallback text + download links on all
+         video elements. ref [1] (w3schools): <article> for each self-contained card. -->
     <section class="card tutorials-section" aria-labelledby="tutHeading">
 
       <div class="section-head">
-        <div>
-          <h2 id="tutHeading">DK cleaning tutorials</h2>
-        </div>
+        <h2 id="tutHeading">dk cleaning tutorials</h2>
+        <p class="sub">watch and learn from our in-house cleaning professionals.</p>
       </div>
 
-      <div class="tutorial-grid">
-        <article class="tutorial-card">
-          <div class="tutorial-thumb">
-            <img src="videos/jordan1.jpg" alt="How to clean Jordan 4s" loading="lazy" />
-          </div>
-          <div class="tutorial-info">
-            <h3>How to clean Jordan 4s</h3>
-          </div>
-        </article>
-        <article class="tutorial-card">
-          <div class="tutorial-thumb">
-            <img src="videos/jordan2.jpg" alt="Sole unyellowing guide" loading="lazy" />
-          </div>
-          <div class="tutorial-info">
-            <h3>Sole unyellowing guide</h3>
-          </div>
-        </article>
-       <article class="tutorial-card">
-  <div class="tutorial-thumb">
-    <video controls width="100%" preload="metadata">
-      <source src="videos/v24044gl0000d6bh49fog65j901okegg.MP4" type="video/mp4">
-      Your browser does not support the video tag.
-    </video>
-  </div>
+      <div class="tutorial-grid" role="list">
 
-  <div class="tutorial-info">
-    <h3>White sneaker deep clean</h3>
-  </div>
-</article>
+        <!-- card 1 — static image placeholder, links to booking -->
+        <article class="tutorial-card tutorial-card--image" role="listitem">
+          <a href="booking.html" data-requires-auth="true" class="tutorial-thumb" aria-label="watch: how to clean jordan 4s — goes to booking">
+            <img
+              src="videos/jordan1.jpg"
+              alt="tutorial thumbnail — how to clean jordan 4s"
+              loading="lazy"
+              width="400"
+              height="300"
+            />
+            <div class="tutorial-play-overlay" aria-hidden="true">
+              <span class="tutorial-play-icon"></span>
+              <span class="tutorial-play-label">book this service</span>
+            </div>
+          </a>
+          <div class="tutorial-info">
+            <span class="tutorial-tag">technique</span>
+            <h3>how to clean jordan 4s</h3>
+            <p class="sub">correct technique for mesh and leather panels on your air jordans.</p>
+          </div>
+        </article>
+
+        <!-- card 2 — static image placeholder, links to booking -->
+        <article class="tutorial-card tutorial-card--image" role="listitem">
+          <a href="booking.html" data-requires-auth="true" class="tutorial-thumb" aria-label="watch: sole unyellowing guide — goes to booking">
+            <img
+              src="videos/jordan2.jpg"
+              alt="tutorial thumbnail — sole unyellowing guide"
+              loading="lazy"
+              width="400"
+              height="300"
+            />
+            <div class="tutorial-play-overlay" aria-hidden="true">
+              <span class="tutorial-play-icon"></span>
+              <span class="tutorial-play-label">book this service</span>
+            </div>
+          </a>
+          <div class="tutorial-info">
+            <span class="tutorial-tag">restoration</span>
+            <h3>sole unyellowing guide</h3>
+            <p class="sub">restore clear soles back to factory-fresh clarity using our uv process.</p>
+          </div>
+        </article>
+
+        <!-- card 3 — working video (v24044gl0000d6bh49fog65j901okegg 2.MP4)
+             fallback text + download link — ref [7] (wcag 2.2, sc 1.2.1) -->
+        <article class="tutorial-card tutorial-card--video" role="listitem">
+          <div class="tutorial-thumb tutorial-thumb--video">
+            <video
+              controls
+              preload="metadata"
+              aria-label="tutorial video — white sneaker deep clean"
+              class="tutorial-video"
+            >
+              <source
+                src="videos/v24044gl0000d6bh49fog65j901okegg 2.MP4"
+                type="video/mp4"
+              />
+              your browser does not support the video tag.
+              <a href="videos/v24044gl0000d6bh49fog65j901okegg 2.MP4">download tutorial video</a>
+            </video>
+          </div>
+          <div class="tutorial-info">
+            <span class="tutorial-tag">deep clean</span>
+            <h3>white sneaker deep clean</h3>
+            <p class="sub">step-by-step deep clean for white uppers, midsoles, and outsoles.</p>
+          </div>
+        </article>
+
+        <!-- card 4 — working video (1777265294133_v24044gl0000d5g0dnvog65ttturb87g_2.MP4)
+             fallback text + download link — ref [7] (wcag 2.2, sc 1.2.1) -->
+        <article class="tutorial-card tutorial-card--video" role="listitem">
+          <div class="tutorial-thumb tutorial-thumb--video">
+            <video
+              controls
+              preload="metadata"
+              aria-label="tutorial video — sneaker restoration process"
+              class="tutorial-video"
+            >
+              <source
+                src="videos/1777265294133_v24044gl0000d5g0dnvog65ttturb87g_2.MP4"
+                type="video/mp4"
+              />
+              your browser does not support the video tag.
+              <a href="videos/1777265294133_v24044gl0000d5g0dnvog65ttturb87g_2.MP4">download tutorial video</a>
+            </video>
+          </div>
+          <div class="tutorial-info">
+            <span class="tutorial-tag">restoration</span>
+            <h3>sneaker restoration process</h3>
+            <p class="sub">behind the scenes of a full dk restoration from drop-off to collection.</p>
+          </div>
+        </article>
+
       </div>
+      <!-- end .tutorial-grid -->
 
     </section>
 
     <hr class="gradient-line" aria-hidden="true" />
 
-    <!-- ══ TESTIMONIALS ═-->
+
+    <!-- testimonials
+         <blockquote> for quotations — ref [1] (w3schools semantic elements).
+         <footer> inside <article> for attribution — ref [1] (w3schools).
+         data-tier attribute drives the top accent colour via css. -->
     <section class="card testimonials-section" aria-labelledby="testimonialsHeading">
 
       <div class="section-head">
-        <div>
-          <h2 id="testimonialsHeading">What our clients say</h2>
-        </div>
+        <h2 id="testimonialsHeading">what our clients say</h2>
+        <p class="sub">real reviews from real customers across both of our locations.</p>
       </div>
 
-      <div class="testimonials-grid">
+      <div class="testimonials-grid" role="list">
 
-        <article class="testimonial-card">
-          <img
-            src="videos/yellow tesmonial png_.png"
-            alt="5 star rating"
-            class="testimonial-stars"
-          />
-          <p class="testimonial-quote">
-            "Gave my Dior B30s in looking wrecked. DK got them back looking
-            fresh out the box. The live tracking gave me full clarity throughout."
-          </p>
-          <div class="testimonial-attribution">
-            <p class="testimonial-name">Ezechiel N.</p>
-            <p class="testimonial-tier">Stone Member</p>
+        <article class="testimonial-card" role="listitem" data-tier="stone">
+          <!-- css-drawn stars — no image dependency -->
+          <div class="testimonial-stars-row" aria-label="5 out of 5 stars">
+            <span class="testimonial-star" aria-hidden="true">★</span>
+            <span class="testimonial-star" aria-hidden="true">★</span>
+            <span class="testimonial-star" aria-hidden="true">★</span>
+            <span class="testimonial-star" aria-hidden="true">★</span>
+            <span class="testimonial-star" aria-hidden="true">★</span>
           </div>
+          <blockquote class="testimonial-quote">
+            <p>
+              "gave my dior b30s in looking wrecked. dk got them back looking
+              fresh out the box. the live tracking gave me full clarity throughout
+              — i always knew exactly where my shoes were."
+            </p>
+          </blockquote>
+          <footer class="testimonial-attribution">
+            <p class="testimonial-name">ezechiel n.</p>
+            <p class="testimonial-tier">stone member &bull; leicester</p>
+          </footer>
         </article>
 
-        <article class="testimonial-card">
-          <img
-            src="videos/yellow tesmonial png_.png"
-            alt="5 star rating"
-            class="testimonial-stars"
-          />
-          <p class="testimonial-quote">
-            "As a sneakerhead I'm very particular. DK handled my Jordan 1
-            Highs perfectly — every update in real time. Worth every penny."
-          </p>
-          <div class="testimonial-attribution">
-            <p class="testimonial-name">Jordan A.</p>
-            <p class="testimonial-tier">Carbon Member</p>
+        <article class="testimonial-card" role="listitem" data-tier="carbon">
+          <div class="testimonial-stars-row" aria-label="5 out of 5 stars">
+            <span class="testimonial-star" aria-hidden="true">★</span>
+            <span class="testimonial-star" aria-hidden="true">★</span>
+            <span class="testimonial-star" aria-hidden="true">★</span>
+            <span class="testimonial-star" aria-hidden="true">★</span>
+            <span class="testimonial-star" aria-hidden="true">★</span>
           </div>
+          <blockquote class="testimonial-quote">
+            <p>
+              "as a sneakerhead i'm very particular about who touches my pairs.
+              dk handled my jordan 1 highs perfectly — every update in real time.
+              worth every penny, genuinely impressed."
+            </p>
+          </blockquote>
+          <footer class="testimonial-attribution">
+            <p class="testimonial-name">jordan a.</p>
+            <p class="testimonial-tier">carbon member &bull; london</p>
+          </footer>
         </article>
 
-        <article class="testimonial-card">
-          <img
-            src="videos/yellow tesmonial png_.png"
-            alt="5 star rating"
-            class="testimonial-stars"
-          />
-          <p class="testimonial-quote">
-            "Easiest booking I've done. Picked my service, got confirmation
-            instantly, then updates as it progressed. Came back immaculate."
-          </p>
-          <div class="testimonial-attribution">
-            <p class="testimonial-name">Rali N.</p>
-            <p class="testimonial-tier">Carbon Member</p>
+        <article class="testimonial-card" role="listitem" data-tier="carbon">
+          <div class="testimonial-stars-row" aria-label="5 out of 5 stars">
+            <span class="testimonial-star" aria-hidden="true">★</span>
+            <span class="testimonial-star" aria-hidden="true">★</span>
+            <span class="testimonial-star" aria-hidden="true">★</span>
+            <span class="testimonial-star" aria-hidden="true">★</span>
+            <span class="testimonial-star" aria-hidden="true">★</span>
           </div>
+          <blockquote class="testimonial-quote">
+            <p>
+              "easiest booking i've done. picked my service, got a confirmation
+              email instantly, then updates as it progressed. collected them and
+              they came back absolutely immaculate."
+            </p>
+          </blockquote>
+          <footer class="testimonial-attribution">
+            <p class="testimonial-name">rali n.</p>
+            <p class="testimonial-tier">carbon member &bull; leicester</p>
+          </footer>
         </article>
 
       </div>
+      <!-- end .testimonials-grid -->
 
     </section>
 
   </main>
+  <!-- end <main> -->
 
-  <!-- ─── Footer ─── -->
-  <footer class="site-footer" aria-label="Site footer">
+
+  <!-- footer
+       <footer> landmark — ref [1] (w3schools semantic elements).
+       <nav> inside footer for keyboard discoverability — ref [2] (mdn aria).
+       footer-grid layout — ref [4] (css-tricks flexbox guide).
+       instagram link — ref [9] (dkcleanedit instagram, 2026).
+       tiktok link — ref [10] (dkcleanedit tiktok, 2026). -->
+  <footer class="site-footer" aria-label="site footer">
     <div class="footer-grid">
 
       <div class="footer-brand">
-        <img src="videos/logo.png" class="footer-logo" alt="DKcleanedit" />
+        <a href="home.html" aria-label="dkcleanedit — return to homepage">
+          <img
+            src="videos/logo.png"
+            class="footer-logo"
+            alt="dkcleanedit"
+            width="120"
+            height="40"
+          />
+        </a>
         <p class="footer-tagline">
-          Professional sneaker cleaning and restoration in Leicester and London.
+          professional sneaker cleaning and restoration in leicester and london.
         </p>
       </div>
 
-      <div class="footer-col">
-        <h4>Services</h4>
-        <ul>
-          <li><a href="booking.html">Standard Cleaning</a></li>
-          <li><a href="booking.html">Express Service</a></li>
-          <li><a href="booking.html">Next Day</a></li>
+      <nav class="footer-col" aria-label="services links">
+        <h4>services</h4>
+        <ul role="list">
+          <li><a href="booking.html">standard cleaning</a></li>
+          <li><a href="booking.html">express service</a></li>
+          <li><a href="booking.html">next day</a></li>
         </ul>
-      </div>
+      </nav>
 
-      <div class="footer-col">
-        <h4>Company</h4>
-        <ul>
-          <li><a href="#">About DK</a></li>
-          <li><a href="#">Instagram</a></li>
-          <li><a href="#">TikTok</a></li>
-          <li><a href="#">Contact</a></li>
+      <nav class="footer-col" aria-label="company links">
+        <h4>company</h4>
+        <ul role="list">
+          <li><a href="#">about dk</a></li>
+
+          <!-- instagram — ref [9] (dkcleanedit, instagram, 2026) -->
+          <li>
+            <a
+              href="https://www.instagram.com/dkcleanedit_/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="dkcleanedit on instagram (opens in new tab)"
+            >instagram ↗</a>
+          </li>
+
+          <!-- tiktok — ref [10] (dkcleanedit, tiktok, 2026) -->
+          <li>
+            <a
+              href="https://www.tiktok.com/@dk_asz"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="dkcleanedit on tiktok (opens in new tab)"
+            >tiktok ↗</a>
+          </li>
+
+          <li><a href="#">contact</a></li>
         </ul>
-      </div>
+      </nav>
 
     </div>
+
     <div class="footer-bottom">
-      <span>© 2025 DKcleanedit. All rights reserved.</span>
+      <small>© 2025 dkcleanedit. all rights reserved.</small>
     </div>
   </footer>
+
 
   <script type="module" src="./app.js"></script>
   <script type="module" src="./theme.js"></script>

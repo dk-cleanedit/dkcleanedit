@@ -22,9 +22,60 @@
   <script>(function(){ emailjs.init({ publicKey: "v1GO4hYhLibhbnt_N" }); })();</script>
 </head>
 
+
+
+  <script>
+    if (localStorage.getItem("theme") === "dark") {
+      document.documentElement.classList.add("dark-mode");
+    }
+  </script>
+<style>
+  /* ── Add-on options ───────────────────────────────────────────────── */
+  .addon-opts {
+    display: grid;
+    gap: 10px;
+  }
+  .addon-opt {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1.5px solid var(--line);
+    background: var(--surface-2);
+    cursor: pointer;
+    transition: border-color var(--ease), background var(--ease), transform var(--ease);
+  }
+  .addon-opt:hover { border-color: var(--line-2); transform: translateY(-1px); }
+  .addon-opt.active { border-color: var(--primary); background: var(--primary-050, rgba(100,160,255,0.07)); }
+  .addon-opt input[type="checkbox"] {
+    margin-top: 3px;
+    accent-color: var(--primary);
+    width: 16px; height: 16px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .addon-opt-inner { flex: 1; }
+  .addon-opt-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .addon-opt-sub { margin: 4px 0 0; font-size: 0.84rem; }
+  .addon-summary-row { color: var(--text-3); }
+</style>
+
+
+  <!-- EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>(function(){ emailjs.init({ publicKey: "v1GO4hYhLibhbnt_N" }); })();</script>
+</head>
+
 <body>
 
-  <!-- ─── Navbar ──────────────────────────────────────────────────────────── -->
+  <!-- Navbar -->
   <nav class="navbar" role="navigation" aria-label="Main navigation">
     <ul class="nav-inner">
       <li class="nav-logo">
@@ -55,7 +106,7 @@
     </ul>
   </nav>
 
-  <!-- ─── Login Required Overlay ──────────────────────────────────────────── -->
+  <!--  Login Required Overlay -->
   <div id="signupOverlay" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="overlayHeading">
     <div class="popup">
       <h2 id="overlayHeading">Sign in to book</h2>
@@ -85,7 +136,7 @@
 
     <div class="booking-layout">
 
-      <!-- ── FORM CARD ───────────────────────────────────────────────────── -->
+      <!-- FORM CARD-->
       <div class="card booking-form" id="bookingFormCard">
 
         <!-- Step progress indicator -->
@@ -167,6 +218,66 @@
         <hr class="section-sep" />
 
         <!-- ────────────────────────────────────────────────────────────── -->
+        <!-- ADD-ONS TAB                                                    -->
+        <!-- ────────────────────────────────────────────────────────────── -->
+        <section class="form-section" aria-labelledby="sectionAddonsLabel">
+
+          <div class="form-section-head">
+            <span class="section-num" aria-hidden="true">✦</span>
+            <span class="section-label" id="sectionAddonsLabel">Add-ons <span class="sub" style="font-size:0.8rem;font-weight:400;">(optional extras)</span></span>
+          </div>
+
+          <div class="addon-opts" role="group" aria-labelledby="sectionAddonsLabel">
+
+            <label class="addon-opt" id="addonCoinPainting">
+              <input type="checkbox" name="addon" value="coin_painting" data-price="15"
+                     aria-label="Coin Painting — £15 extra" />
+              <div class="addon-opt-inner">
+                <div class="addon-opt-top">
+                  <strong>Painting</strong>
+                  <span class="badge info">+£15</span>
+                </div>
+                <p class="sub addon-opt-sub">
+                  Precision paint restoration on midsole coins and sole edges for a factory-fresh finish.
+                </p>
+              </div>
+            </label>
+
+            <label class="addon-opt" id="addonUX">
+              <input type="checkbox" name="addon" value="ux" data-price="15"
+                     aria-label="UX Treatment — £15 extra" />
+              <div class="addon-opt-inner">
+                <div class="addon-opt-top">
+                  <strong>UX Treatment</strong>
+                  <span class="badge info">+£15</span>
+                </div>
+                <p class="sub addon-opt-sub">
+                  Premium unyellowing and crease-reduction treatment to restore shape and clarity.
+                </p>
+              </div>
+            </label>
+
+            <label class="addon-opt" id="addonOdourRemoval">
+              <input type="checkbox" name="addon" value="odour_removal" data-price="5"
+                     aria-label="Odour Removal — £5 extra" />
+              <div class="addon-opt-inner">
+                <div class="addon-opt-top">
+                  <strong>Odour Removal</strong>
+                  <span class="badge info">+£5</span>
+                </div>
+                <p class="sub addon-opt-sub">
+                  Deep deodorising treatment to eliminate odours from the insole and lining.
+                </p>
+              </div>
+            </label>
+
+          </div>
+
+        </section>
+
+        <hr class="section-sep" />
+
+        <!-- ────────────────────────────────────────────────────────────── -->
         <!-- STEP 2 — YOUR DETAILS                                          -->
         <!-- ────────────────────────────────────────────────────────────── -->
         <section class="form-section" aria-labelledby="sectionDetailsLabel">
@@ -205,9 +316,9 @@
             <div class="cal-wrap" role="group" aria-labelledby="datePickerLabel">
 
               <div class="cal-head">
-                <button type="button" id="calPrev" class="btn" aria-label="Previous month">&#8249;</button>
+                <button type="button" id="calPrev" class="btn" aria-label="Previous month">‹</button>
                 <span id="calMonthLabel" aria-live="polite" aria-atomic="true"></span>
-                <button type="button" id="calNext" class="btn" aria-label="Next month">&#8250;</button>
+                <button type="button" id="calNext" class="btn" aria-label="Next month">›</button>
               </div>
 
               <div class="cal-days-header" aria-hidden="true">
@@ -397,6 +508,19 @@
               <span>Time</span>
               <strong id="summaryTime" aria-label="Selected time">—</strong>
             </div>
+            <!-- Add-on rows (hidden until selected) -->
+            <div class="sum-row addon-summary-row" id="summaryAddonCoin" hidden>
+              <span>Coin Painting</span>
+              <strong>+£15</strong>
+            </div>
+            <div class="sum-row addon-summary-row" id="summaryAddonUX" hidden>
+              <span>UX Treatment</span>
+              <strong>+£15</strong>
+            </div>
+            <div class="sum-row addon-summary-row" id="summaryAddonOdour" hidden>
+              <span>Odour Removal</span>
+              <strong>+£5</strong>
+            </div>
             <div class="sum-row total">
               <span>Total</span>
               <strong id="selectedPriceText" aria-label="Total price">£25</strong>
@@ -431,6 +555,57 @@
   <script type="module" src="./app.js"></script>
   <script type="module" src="./theme.js"></script>
 
+  <!-- ── Add-ons + Price Logic ──────────────────────────────────────────── -->
+  <script>
+    (function () {
+      const BASE_PRICES = { standard_clean: 25, express: 30, next_day: 40 };
+
+      const addonMap = {
+        coin_painting:  { summaryId: 'summaryAddonCoin',  price: 15 },
+        ux:             { summaryId: 'summaryAddonUX',    price: 15 },
+        odour_removal:  { summaryId: 'summaryAddonOdour', price: 5  },
+      };
+
+      function recalc() {
+        const serviceEl = document.getElementById('service');
+        const base = BASE_PRICES[serviceEl?.value] ?? 25;
+        let addonsTotal = 0;
+
+        document.querySelectorAll('.addon-opt input[type="checkbox"]').forEach(cb => {
+          const cfg = addonMap[cb.value];
+          if (!cfg) return;
+          const row = document.getElementById(cfg.summaryId);
+          if (cb.checked) {
+            addonsTotal += cfg.price;
+            if (row) row.hidden = false;
+          } else {
+            if (row) row.hidden = true;
+          }
+        });
+
+        const priceEl = document.getElementById('selectedPriceText');
+        if (priceEl) priceEl.textContent = '£' + (base + addonsTotal);
+      }
+
+      // Listen on addon checkboxes
+      document.querySelectorAll('.addon-opt input[type="checkbox"]').forEach(cb => {
+        cb.addEventListener('change', function () {
+          // Toggle active style on label
+          const label = this.closest('.addon-opt');
+          if (label) label.classList.toggle('active', this.checked);
+          recalc();
+        });
+      });
+
+      // Listen on service card radios to update base price
+      document.querySelectorAll('input[name="serviceCard"]').forEach(radio => {
+        radio.addEventListener('change', recalc);
+      });
+
+      recalc(); // init
+    })();
+  </script>
+
 
 
   <script type="module">
@@ -449,6 +624,39 @@
       if (hint) hint.textContent = "";
     });
   </script>
+
+  <!-- ─── References ──────────────────────────────────────────────────────── -->
+  <!--
+    REFERENCES (IEEE format)
+
+    [1] GeeksforGeeks, "Web Development Projects," GeeksforGeeks. [Online].
+        Available: https://www.geeksforgeeks.org/html/web-development-projects/
+        [Accessed: 27 Apr. 2026].
+
+    [2] GitHub, "Web Development Project," GitHub Topics. [Online].
+        Available: https://github.com/topics/web-development-project
+        [Accessed: 27 Apr. 2026].
+
+    [3] GreatStack, GreatStack — Web Development Projects & Tutorials. [Online].
+        Available: https://greatstack.dev [Accessed: 27 Apr. 2026].
+
+    [4] ProjectWorlds, "500 Coding Projects with Source Code," ProjectWorlds. [Online].
+        Available: https://projectworlds.com/500-coding-projects-with-source-code/
+        [Accessed: 27 Apr. 2026].
+
+    [5] 100 JS Projects, 100 JavaScript Projects. [Online].
+        Available: https://www.100jsprojects.com [Accessed: 27 Apr. 2026].
+
+    [6] CodingNepal, "Best 30 JavaScript Projects with Source Code," CodingNepal. [Online].
+        Available: https://www.codingnepalweb.com/best-30-javascript-projects-with-source-code/
+        [Accessed: 27 Apr. 2026].
+
+    [7] Anthropic, "Claude AI Assistant," Anthropic, 2025. [Online].
+        Available: https://www.anthropic.com [Accessed: 27 Apr. 2026].
+        Note: Claude was used as a development aid to assist with debugging,
+        code structure guidance, and clarifying technical concepts.
+        All final implementation decisions remain the author's own work.
+  -->
 
 </body>
 </html>

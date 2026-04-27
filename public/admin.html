@@ -1,28 +1,30 @@
 <!doctype html>
 <html lang="en">
+<!--
+  admin.html — DKcleanedit Admin Orders
+  References:
+  [1] Firebase Firestore — https://firebase.google.com/docs/firestore
+-->
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Admin | DKCleanEdit</title>
-  <link rel="stylesheet" href="token.css">
-<link rel="stylesheet" href="global.css">
-<link rel="stylesheet" href="order-tracking.css">
-<link rel="stylesheet" href="admin.css">
-
-  <!-- EmailJS — must load BEFORE app.js so window.emailjs exists when emails fire -->
-  <!-- 📺 EmailJS setup guide → https://www.youtube.com/watch?v=RPhHqEBjCOk        -->
-   <!-- EmailJS -->
-<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-<script>
-  (function(){
-    emailjs.init("v1GO4hYhLibhbnt_N");
-  })();
-</script>
+  <title>Admin — Orders | DKcleanedit</title>
+  <script>
+    if (localStorage.getItem("theme") === "dark") {
+      document.documentElement.classList.add("dark-mode");
+    }
+  </script>
+  <link rel="stylesheet" href="token.css" />
+  <link rel="stylesheet" href="global.css" />
+  <link rel="stylesheet" href="order-tracking.css" />
+  <link rel="stylesheet" href="admin.css" />
+  <link rel="stylesheet" href="staff.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>(function(){ emailjs.init({ publicKey: "v1GO4hYhLibhbnt_N" }); })();</script>
 </head>
-
-
-
 <body class="admin-body">
+
+  <!-- Admin navbar — no My Account, no booking/tracking links for admin -->
   <nav class="navbar" aria-label="Primary">
     <ul class="nav-links">
       <li class="nav-logo">
@@ -30,224 +32,144 @@
           <img src="videos/logo.png" class="logo" alt="DKcleanedit logo" />
         </a>
       </li>
-      <li><a href="home.html" id="navHome">Home</a></li>
-      <li><a href="customer.html" id="navAccount" data-requires-auth="true">My Account</a></li>
-      <li><a href="admin.html" id="navAdmin" aria-current="page" data-requires-auth="true">Admin</a></li>
-      <li><a href="login.html" id="navLogin">Login</a></li>
-      <li><a href="register.html" id="navRegister">Register</a></li>
+      <li><a href="admin.html"    id="navAdmin"    aria-current="page">Orders</a></li>
       <li><a href="schedule.html" id="navSchedule">Schedule</a></li>
-      <li><a href="analytics.html">Analytics</a></li>
-      <li><a href="#" id="navLogout" hidden>Logout</a></li>
-      <li><span id="navPointsBadge" class="badge" hidden>Points: 0</span></li>
+      <li><a href="analytics.html"id="navAnalytics">Analytics</a></li>
+      <li><a href="admin_account.html" id="navStaff">Staff</a></li>
+      <li><a href="#"             id="navLogout" hidden>Logout</a></li>
+      <li>
+        <span id="navPointsBadge" class="badge info points-badge" hidden>0 pts</span>
+      </li>
     </ul>
   </nav>
 
   <main class="container admin-layout">
 
-    <!-- ── SIDEBAR ── -->
+    <!-- Sidebar -->
     <aside class="card admin-sidebar">
-
       <div class="admin-brand">
-        <div class="brand-title">DKCleanedit</div>
+        <div class="brand-title">DKcleanedit</div>
         <div class="sub">Admin dashboard</div>
       </div>
-
       <nav class="admin-side-nav" style="margin-top:14px;">
         <a class="admin-side-link active" href="admin.html">Orders</a>
+        <a class="admin-side-link" href="schedule.html">Schedule</a>
         <a class="admin-side-link" href="analytics.html">Analytics</a>
-        <a class="admin-side-link" href="booking.html">Booking</a>
-        <a class="admin-side-link" href="track.html">Tracking</a>
-        <a class="admin-side-link" href="home.html">Home</a>
+        <a class="admin-side-link" href="admin_account.html">Staff</a>
       </nav>
 
-      <hr style="margin:16px 0; border-color:var(--line);" />
-
-      <!-- Quick stats -->
-      <div class="sidebar-section-title">Quick stats</div>
-      <div class="stat-grid">
-        <div class="stat-card">
-          <div class="stat-lbl">Total</div>
-          <div class="stat-val" id="adminTotalOrders">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-lbl">Open</div>
-          <div class="stat-val" id="adminOpenOrders">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-lbl">Done</div>
-          <div class="stat-val" id="adminCompletedOrders">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-lbl">Images</div>
-          <div class="stat-val" id="adminWithImages">0</div>
-        </div>
+      <!-- Debug info -->
+      <div class="admin-debug sub" style="margin-top:auto;padding-top:16px;border-top:1px solid var(--line);">
+        <div>UID: <span id="debugUid">—</span></div>
+        <div>Role: <span id="debugRole">—</span></div>
       </div>
-
-      <hr style="margin:16px 0; border-color:var(--line);" />
-
-      <!-- ── AVAILABILITY MANAGER ── -->
-      <div class="sidebar-section-title">Availability</div>
-      <div class="avail-panel">
-
-        <!-- Mini calendar -->
-        <div class="avail-cal-wrap">
-          <div class="avail-cal-header">
-            <button class="avail-cal-nav" id="availPrev" type="button" aria-label="Previous month">&#8249;</button>
-            <span id="availMonthLabel">April 2026</span>
-            <button class="avail-cal-nav" id="availNext" type="button" aria-label="Next month">&#8250;</button>
-          </div>
-          <div class="avail-day-names">
-            <div class="avail-day-name">S</div>
-            <div class="avail-day-name">M</div>
-            <div class="avail-day-name">T</div>
-            <div class="avail-day-name">W</div>
-            <div class="avail-day-name">T</div>
-            <div class="avail-day-name">F</div>
-            <div class="avail-day-name">S</div>
-          </div>
-          <div class="avail-cal-body" id="availCalBody"></div>
-        </div>
-
-        <!-- Selected date slot editor -->
-        <div id="availSlotEditor" style="display:none;">
-          <div class="avail-selected-label" id="availSelectedLabel">Select a date</div>
-          <div class="avail-slot-grid" id="availSlotGrid"></div>
-          <div class="avail-actions" style="margin-top:10px;">
-            <button class="btn secondary" type="button" id="btnAvailOpenAll">Open all</button>
-            <button class="btn danger"    type="button" id="btnAvailCloseAll">Close all</button>
-            <button class="btn primary"   type="button" id="btnAvailSave">Save</button>
-          </div>
-        </div>
-
-        <!-- Legend -->
-        <div class="avail-legend">
-          <div class="legend-item"><div class="legend-dot legend-dot--open"></div>Open</div>
-          <div class="legend-item"><div class="legend-dot legend-dot--closed"></div>Closed</div>
-          <div class="legend-item"><div class="legend-dot legend-dot--today"></div>Today</div>
-        </div>
-      </div>
-
-      <hr style="margin:16px 0; border-color:var(--line);" />
-
-      <div class="sub" style="font-size:0.78rem;">UID: <span id="debugUid">-</span></div>
-      <div class="sub" style="font-size:0.78rem;">Role: <span id="debugRole">-</span></div>
     </aside>
 
-    <!-- ── MAIN PANEL ── -->
-    <section class="card admin-main">
+    <!-- Main panel -->
+    <div class="admin-main">
 
-      <header class="admin-header">
-        <div>
-          <h1>Order Management</h1>
+      <!-- Stats row -->
+      <div class="admin-stats">
+        <div class="card admin-stat-box">
+          <div class="admin-stat-lbl">Total</div>
+          <div class="admin-stat-val" id="adminTotalOrders">—</div>
         </div>
-
-        <div class="admin-actions">
-          <input
-            id="adminSearch"
-            type="text"
-            placeholder="Search name, email, order ID…"
-            autocomplete="off"
-          />
-          <select id="adminFilter">
-            <option value="All">All stages</option>
-            <option value="Booked">Booked</option>
-            <option value="Received">Received</option>
-            <option value="Cleaning">Cleaning</option>
-            <option value="Drying &amp; Finish">Drying &amp; Finish</option>
-            <option value="Ready">Ready</option>
-            <option value="Completed">Completed</option>
-            <option value="Cancelled">Cancelled</option>
-          </select>
-          <button class="btn secondary" type="button" id="btnAdminRefresh">Refresh</button>
+        <div class="card admin-stat-box">
+          <div class="admin-stat-lbl">Open</div>
+          <div class="admin-stat-val" id="adminOpenOrders">—</div>
         </div>
-      </header>
+        <div class="card admin-stat-box">
+          <div class="admin-stat-lbl">Completed</div>
+          <div class="admin-stat-val" id="adminCompletedOrders">—</div>
+        </div>
+        <div class="card admin-stat-box">
+          <div class="admin-stat-lbl">Conflicts</div>
+          <div class="admin-stat-val" id="conflictCount">0</div>
+        </div>
+      </div>
 
       <!-- Tabs -->
-      <!-- Each tab button has data-tab matching the panel id suffix below -->
-      <!-- e.g. data-tab="orders" maps to id="tabOrders" in activateTab()  -->
       <div class="admin-tabs" role="tablist">
-        <button class="admin-tab active" type="button" data-tab="orders"
-                role="tab" aria-selected="true"  aria-controls="tabOrders">
-          Orders
-        </button>
-        <button class="admin-tab" type="button" data-tab="conflicts"
-                role="tab" aria-selected="false" aria-controls="tabConflicts">
-          Conflicts
-          <span id="conflictCount" class="badge info"
-                style="margin-left:4px;font-size:0.7rem;min-height:0;padding:2px 7px;">0</span>
-        </button>
-        <button class="admin-tab" type="button" data-tab="schedule"
-                role="tab" aria-selected="false" aria-controls="tabSchedule">
-          Today's Schedule
-        </button>
-        <!-- Missed Appointment tab — renderMissedTab() in app.js populates #tabAppointment -->
-        <button class="admin-tab" type="button" data-tab="appointment"
-                role="tab" aria-selected="false" aria-controls="tabAppointment">
-          Missed Appointment
-        </button>
+        <button class="admin-tab active" data-tab="orders"      role="tab" aria-selected="true">All Orders</button>
+        <button class="admin-tab"        data-tab="today"       role="tab" aria-selected="false">Today</button>
+        <button class="admin-tab"        data-tab="appointment" role="tab" aria-selected="false">Missed</button>
+        <button class="admin-tab"        data-tab="history"     role="tab" aria-selected="false">History</button>
+        <button class="admin-tab"        data-tab="availability"role="tab" aria-selected="false">Availability</button>
       </div>
 
-      <!-- ── Orders tab — the main order list ── -->
-      <div class="admin-tab-panel active" id="tabOrders" role="tabpanel">
-        <div id="adminOrders" class="admin-orders"></div>
+      <!-- Search / filter bar -->
+      <div class="admin-toolbar">
+        <input id="adminSearch" class="admin-search" type="search"
+               placeholder="Search orders, customers, IDs…" aria-label="Search orders" />
+        <select id="adminFilter" class="admin-filter" aria-label="Filter by status">
+          <option value="All">All statuses</option>
+          <option>Booked</option>
+          <option>Received</option>
+          <option>Cleaning</option>
+          <option>Drying &amp; Finish</option>
+          <option>Ready</option>
+          <option>Awaiting Pickup</option>
+          <option>Completed</option>
+          <option>Cancelled</option>
+        </select>
+        <button id="btnExportCSV" class="btn secondary">Export CSV</button>
+        <button id="btnAdminRefresh" class="btn">Refresh</button>
       </div>
 
-      <!-- ── Missed Appointment tab ────────────────────────────────────────────
-           This panel is populated entirely by renderMissedTab() in app.js.
-           It finds orders that are still "Booked" but whose date has passed,
-           then injects "Notify customer" and "Cancel order" buttons for each one.
-
-           HOW THE NOTIFY EMAIL WORKS:
-             1. Admin clicks "Notify customer" on a missed order card
-             2. app.js calls sendMissedEmail() which uses EmailJS template:
-                Template ID: template_missed_appt
-             3. EmailJS sends the no-show reminder to the customer's email
-             4. If no email is on record, a toast tells the admin
-
-           WHY THIS PANEL STARTS EMPTY:
-             renderMissedTab() runs inside renderAll() which fires after the
-             Firestore onSnapshot listener delivers data. Starting it empty
-             avoids showing stale HTML before data arrives.
-      ── -->
-      <div class="admin-tab-panel" id="tabAppointment" role="tabpanel">
-        <!-- Content injected by renderMissedTab() in app.js -->
-      </div>
-
-      <!-- ── Conflicts tab ── -->
-      <div class="admin-tab-panel" id="tabConflicts" role="tabpanel">
-        <div class="card soft" style="margin-bottom:16px; padding:14px 18px;">
-          <div class="card-title" style="font-size:0.95rem;">Double-booking conflicts</div>
-          <p class="sub" style="margin-top:4px; font-size:0.88rem;">
-            These are orders that share the same date, time slot, and location.
-            Resolve by rescheduling or cancelling one.
-          </p>
+      <!-- Tab panels -->
+      <div class="admin-tab-panel active" id="tabOrders">
+        <div id="adminOrders" class="orders-grid">
+          <div class="order-card"><div class="order-title">Loading orders…</div></div>
         </div>
-        <div id="conflictsList"></div>
       </div>
 
-      <!-- ── Today's schedule tab ── -->
-      <div class="admin-tab-panel" id="tabSchedule" role="tabpanel">
-        <div class="card soft" style="margin-bottom:16px; padding:14px 18px;">
-          <div class="card-title" style="font-size:0.95rem;" id="todayLabel">Today's bookings</div>
-          <p class="sub" style="margin-top:4px; font-size:0.88rem;">
-            All orders booked for today across all locations.
-          </p>
+      <div class="admin-tab-panel" id="tabToday">
+        <div class="card" style="padding:16px 20px;margin-bottom:16px;">
+          <strong id="todayLabel">Today's bookings</strong>
         </div>
-        <div id="scheduleList"></div>
+        <div id="scheduleList" class="orders-grid"></div>
       </div>
 
-      <p id="msg" class="admin-msg"></p>
-    </section>
+      <div class="admin-tab-panel" id="tabAppointment">
+        <!-- Missed appointments rendered by admin.js -->
+      </div>
 
+      <div class="admin-tab-panel" id="tabHistory">
+        <h3 style="margin:0 0 16px;" class="sub">
+          Archived / dismissed
+          <span id="cancelledHistoryCount"></span>
+        </h3>
+        <div id="cancelledHistory" class="orders-grid"></div>
+      </div>
+
+      <div class="admin-tab-panel" id="tabAvailability">
+        <div class="card" style="padding:20px;">
+          <h3 style="margin:0 0 16px;">Manage slot availability</h3>
+          <div class="avail-cal-head">
+            <button id="availPrev" class="btn" aria-label="Previous month">‹</button>
+            <span id="availMonthLabel" style="font-weight:700;"></span>
+            <button id="availNext" class="btn" aria-label="Next month">›</button>
+          </div>
+          <div class="cal-days-header" aria-hidden="true">
+            <span>Su</span><span>Mo</span><span>Tu</span>
+            <span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+          </div>
+          <div id="availCalBody" class="cal-body" role="grid" aria-label="Select a date"></div>
+          <div id="availSlotEditor" style="display:none;margin-top:16px;">
+            <p class="sub" id="availSelectedLabel"></p>
+            <div id="availSlotGrid" class="avail-slot-grid"></div>
+            <div style="display:flex;gap:10px;margin-top:12px;">
+              <button id="btnAvailOpenAll"  class="btn secondary">Open all</button>
+              <button id="btnAvailCloseAll" class="btn secondary">Close all</button>
+              <button id="btnAvailSave"     class="btn primary">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </main>
 
-  <div id="toastHost"></div>
-
-  <!-- app.js handles all page logic including email sends -->
   <script type="module" src="./app.js"></script>
-  <script type="module" src="./theme.js"></script>
-<script type="module" src="./tracking.js"></script>
-
-
 </body>
 </html>

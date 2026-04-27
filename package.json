@@ -11,5 +11,23 @@
     "resend": "^6.10.0",
     "twilio": "^5.13.1"
   },
-  "private": true
+  "private": true,
+  "version": "1.0.0",
+  "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@babel/preset-env": "^7.29.2",
+    "babel-jest": "^30.3.0",
+    "jest": "^30.3.0"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://campus.cs.le.ac.uk/gitlab/ug_project/25-26/da324.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
 }

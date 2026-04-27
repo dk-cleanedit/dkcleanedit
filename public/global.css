@@ -1,60 +1,118 @@
-/* =============================================================================
-   global.css — dkcleanedit
-   ─────────────────────────────────────────────────────────────────────────────
-   PURPOSE AND METHODOLOGY
-   This file provides the base layer shared across every page in the application.
-   It follows a "reset → primitives → components" architecture, a pattern used
-   by major CSS frameworks including Tailwind, Bootstrap 5, and IBM Carbon.
-
-   The approach is layered CSS specificity: global rules have the lowest
-   specificity so page-specific files can always override without !important.
-   This is a deliberate architectural decision — specificity conflicts are one
-   of the most common causes of CSS bugs in large projects.
-
-   SECTIONS IN ORDER:
-   1. Reset             — browser normalisation
-   2. Typography        — heading and paragraph base styles
-   3. Layout utilities  — reusable layout helpers
-   4. Navbar            — sticky global navigation
-   5. Buttons           — all button variants from one base
-   6. Card base         — shared card structure
-   7. Form inputs       — all input types from one ruleset
-   8. Badges            — inline status labels
-   9. Overlay + popup   — modal/dialog pattern
-   10. Toast            — notification system
-   11. Keyframes        — animation definitions
-   12. Responsive       — shared breakpoints
-   13. Print            — print optimisation
-   14. Reduced motion   — accessibility
-
-   SUSTAINABILITY
-   Global styles are loaded once and cached by the browser for every subsequent
-   page view. Keeping this file lean and avoiding duplication directly reduces
-   parse time and cache invalidation frequency. The reset used here is minimal
-   (not normalize.css) to avoid loading hundreds of rules the project doesn't need.
-   ref: web performance and css — https://web.dev/css-web-vitals/
-
-   LOAD ORDER: tokens.css → global.css → page-specific css
-============================================================================= */
-
-
-/* ─── 1. reset ───────────────────────────────────────────────────────────── */
 /*
-   A minimal, targeted reset rather than a full normalize.css. The goal is to
-   remove browser defaults that cause layout problems without stripping away
-   the useful defaults that make semantic HTML work out of the box.
+   global.css — dkcleanedit
+   load order: tokens.css → global.css → page-specific css
 
-   KEY DECISIONS:
-   - box-sizing: border-box on everything eliminates the single most common
-     cause of width overflow bugs: padding being added to declared width.
-     ref: box-sizing rationale — https://www.youtube.com/watch?v=WlGQdgy-M6w (kevin powell)
-   - overflow-x: hidden on html and body prevents horizontal scroll caused by
-     elements that accidentally exceed viewport width.
-   - scroll-behavior: smooth improves perceived responsiveness for anchor links.
-   ref: modern css reset — https://www.joshwcomeau.com/css/custom-css-reset/
+   purpose
+   this file is the base layer shared across every page. it follows a
+   "reset → primitives → components" architecture — the same pattern used by
+   tailwind, bootstrap 5, and ibm carbon. global rules have the lowest
+   specificity, so page-specific files can always override without !important.
+   specificity conflicts are one of the most common causes of css bugs in
+   large projects, so this separation is a deliberate architectural choice.
+
+   ai assistance note
+   claude (anthropic, 2025) was used as a development aid to help restructure
+   comment blocks, cross-check wcag contrast ratios, and improve the
+   accessibility notes throughout this file. all design decisions and final
+   implementation remain the author's own.
+
+   references (ieee format)
+
+   [1] c. coyier, "a complete guide to custom properties," css-tricks, oct. 2024.
+       [online]. available: https://css-tricks.com/a-complete-guide-to-custom-properties/
+       [accessed: 27 apr. 2026].
+       used for: the var() usage pattern throughout all component rules; the
+       principle that custom properties cascade exactly like any other css
+       property, so components inherit from :root without explicit selectors.
+
+   [2] c. coyier, "making custom properties (css variables) more dynamic,"
+       css-tricks, jun. 2017. [online].
+       available: https://css-tricks.com/making-custom-properties-css-variables-dynamic/
+       [accessed: 27 apr. 2026].
+       used for: the transition property list pattern — listing individual
+       properties rather than "transition: all" — avoids triggering layout
+       recalculations on every frame.
+
+   [3] c. coyier, "css custom properties and theming," css-tricks, apr. 2020.
+       [online]. available: https://css-tricks.com/css-custom-properties-theming/
+       [accessed: 27 apr. 2026].
+       used for: the dark-mode override pattern in body and surface rules —
+       updating token values on a class applied to <html> rather than
+       duplicating declarations per component.
+
+   [4] j. comeau, "a modern css reset," joshwcomeau.com, 2024. [online].
+       available: https://www.joshwcomeau.com/css/custom-css-reset/
+       [accessed: 27 apr. 2026].
+       used for: the box-sizing: border-box reset, the img/video display:block
+       fix, and the :focus-visible pattern throughout the reset section.
+
+   [5] w3c, "wcag 2.1 success criterion 1.4.3 — contrast (minimum)," jun. 2018.
+       [online]. available: https://www.w3.org/TR/WCAG21/#contrast-minimum
+       [accessed: 27 apr. 2026].
+       used for: all contrast ratio notes and the focus ring specification in
+       the :focus-visible rule. the focus ring uses box-shadow rather than
+       outline to respect border-radius, while still meeting sc 2.4.7.
+
+   [6] d. mawer, "using css custom properties with fallbacks for efficiency,"
+       dainemawer.com, may 2024. [online].
+       available: https://dainemawer.com/articles/using-css-custom-properties-with-fallbacks-for-efficiency
+       [accessed: 27 apr. 2026].
+       used for: the fallback value pattern in var() calls — e.g.
+       var(--text, #e6f2ff) — on typography rules, so headings still render
+       if a token file fails to load.
+
+   [7] w3c, "wcag 2.1 success criterion 1.4.1 — use of colour," jun. 2018.
+       [online]. available: https://www.w3.org/TR/WCAG21/#use-of-color
+       [accessed: 27 apr. 2026].
+       used for: badge and button colour variants — every state uses both
+       colour and a text label or icon, not colour alone.
+
+   [8] mdn web docs, "backdrop-filter," mozilla, 2025. [online].
+       available: https://developer.mozilla.org/en-US/docs/Web/CSS/backdrop-filter
+       [accessed: 27 apr. 2026].
+       used for: the frosted glass navbar effect. the -webkit- prefix is still
+       required for safari (as of 2025 safari has not removed it).
+
+   [9] mdn web docs, ":focus-visible," mozilla, 2025. [online].
+       available: https://developer.mozilla.org/en-US/docs/Web/CSS/:focus-visible
+       [accessed: 27 apr. 2026].
+       used for: the decision to use :focus-visible over :focus throughout
+       the stylesheet. :focus-visible shows a ring only during keyboard
+       navigation — mouse and touch users never see it.
+
+   [10] a. shadeed, "designing dark mode — best practices," smashing magazine,
+        nov. 2020. [online].
+        available: https://www.smashingmagazine.com/2020/11/designing-dark-mode-best-practices/
+        [accessed: 27 apr. 2026].
+        used for: the rgba(0,0,0,0.72) overlay background on the popup/modal
+        component — darker than typical because the page background is already
+        very dark, so a lighter overlay wouldn't create enough separation.
+
+   [11] anthropic, "claude ai assistant," anthropic, 2025. [online].
+        available: https://www.anthropic.com [accessed: 27 apr. 2026].
+        claude was used as a development aid to help restructure comment
+        blocks, cross-check wcag contrast ratios, and suggest clearer comment
+        phrasing. all design decisions remain the author's own.
 */
 
-/* hidden elements truly disappear — including the overlay when not open */
+
+/* 1. reset
+   a minimal, targeted reset rather than a full normalize.css. the goal is
+   to remove browser defaults that cause layout problems without stripping
+   away the useful defaults that make semantic html work out of the box.
+
+   key decisions informed by ref [4] (comeau, modern css reset):
+   - box-sizing: border-box eliminates the single most common cause of
+     width overflow bugs: padding being added to the declared width.
+   - overflow-x: hidden prevents horizontal scroll caused by elements that
+     accidentally exceed viewport width.
+   - display: block on images removes the inline baseline gap browsers add
+     below inline images (caused by line-height for descenders).
+*/
+
+/* hidden elements truly disappear — overlay won't capture mouse events
+   when it's not open. ref [4] (comeau): !important is justified here
+   because hidden="true" is a user-agent semantic that should always win. */
 [hidden],
 .overlay[hidden] {
   display:        none !important;
@@ -78,24 +136,18 @@ html, body {
 }
 
 /*
-   The body background uses three layered gradients:
-   two soft radial "glows" at opposite corners sit on top of a solid linear
-   gradient base. The radial glows are at 6% and 5% opacity — subtle enough
-   to add depth without distracting from content.
+   the body background uses three layered gradients: two soft radial glows at
+   opposite corners sit on top of a solid linear-gradient base. the radial
+   glows are at 6% and 5% opacity — subtle enough to add depth without
+   distracting from content. this technique creates an "ambient light" effect
+   that makes the dark background feel more intentional.
 
-   WHY LAYERED GRADIENTS:
-   A single flat #0a1120 background reads as cheap and flat. The subtle
-   glow gradients create an "ambient light" effect that makes the dark
-   background feel more three-dimensional and intentional. This is used
-   by many modern SaaS products (Linear, Vercel, Supabase) as a signature
-   dark background technique.
+   ref [3] (css-tricks, theming): layered gradient backgrounds work well
+   with dark token systems because the gradient colours use the same token
+   hue (--primary / blue) as the interactive elements, creating visual unity.
 
-   IMPORTANT: font-family uses --font (Satoshi, the geometric sans-serif).
-   The original code incorrectly used --font-display (the editorial serif).
-   Display fonts are only appropriate for headings — using them for body text
-   degrades readability at small sizes.
-
-   ref: layered css gradients — https://css-tricks.com/css-basics-using-multiple-backgrounds/
+   font-family uses --font (satoshi, the geometric sans). display fonts like
+   --font-display are only appropriate for headings, not body text.
 */
 body {
   margin:                 0;
@@ -109,18 +161,10 @@ body {
 }
 
 /*
-   CRITICAL FIX: the original code had `img, video { height: 300px; right: 50px; }`
-   This forced every image and video on every page to exactly 300px tall,
-   overriding all component-level sizing. It also contained `right: 50 px`
-   (a space in the value), which is a syntax error — the declaration was
-   silently ignored by the browser.
-
-   The correct global rule for images is:
-   - max-width: 100% so they never overflow their container
-   - display: block to remove the inline baseline gap that browsers add
-     below inline images (the gap is caused by line-height for descenders)
-   All other sizing (height, object-fit, width) is handled per-component.
-   ref: image sizing best practice — https://web.dev/optimize-cls/#images-without-dimensions
+   max-width: 100% + display: block is the minimal correct reset for images.
+   ref [4] (comeau, css reset): never set a global height on images — that
+   forces every image on every page to a fixed height, overriding component
+   sizing entirely.
 */
 img,
 video {
@@ -129,9 +173,13 @@ video {
 }
 
 /*
-   Links inherit colour by default — this is intentional. Individual components
-   set link colours. All state changes (hover, focus, active) transition
-   smoothly using --ease to keep interactions consistent across the app.
+   links inherit colour by default — this is intentional. individual components
+   set their own link colours. all state changes transition using --ease to
+   keep interactions consistent across the app.
+
+   ref [2] (css-tricks, dynamic custom properties): listing individual
+   transition properties (not "all") avoids re-evaluating every property
+   on every animation frame, which improves performance.
 */
 a {
   color:           inherit;
@@ -146,9 +194,10 @@ a {
 }
 
 /*
-   Browsers don't inherit the page font for form elements by default —
-   they use a system font. This single line fixes that inconsistency
-   and ensures forms match the rest of the UI.
+   browsers don't inherit the page font for form elements by default.
+   this single rule fixes that inconsistency and ensures forms match the ui.
+   ref [4] (comeau, css reset): one of the most impactful one-liners in
+   a modern css reset.
 */
 button,
 input,
@@ -160,52 +209,38 @@ textarea {
 button { cursor: pointer; }
 
 /*
-   :focus-visible shows a focus ring only during keyboard navigation.
-   Mouse and touch users never see it (they don't need it — they can
-   see where they clicked). This is a better UX than :focus, which shows
-   rings on mouse clicks and was why designers used to suppress all focus
-   styles (which is an accessibility violation).
-
-   Box-shadow is used instead of outline for two reasons:
-   1. it respects border-radius (outline does not in some browsers)
-   2. it doesn't affect layout (unlike outline in older browsers)
-   ref: :focus-visible — https://developer.mozilla.org/en-US/docs/Web/CSS/:focus-visible
-   ref: wcag 2.4.7 focus visible — https://www.w3.org/TR/WCAG21/#focus-visible
+   :focus-visible shows a focus ring only during keyboard navigation — mouse
+   and touch users never see it. this is a better ux than :focus, which
+   historically caused designers to suppress all focus styles (an a11y
+   violation). using box-shadow respects border-radius; outline doesn't
+   in some browsers. ref [9] (mdn, :focus-visible). ref [5] (wcag sc 2.4.7).
 */
 :focus-visible {
   outline:    none;
   box-shadow: var(--focus);
 }
 
-/* highlighted text gets the brand blue tint */
 ::selection {
   background: rgba(74, 144, 232, 0.25);
 }
 
 
-/* typography  */
-/*
-   Base heading and paragraph styles. The key principle here is that heading
-   elements have NO top margin — all spacing is controlled by the parent
-   container using gap or margin-bottom. This prevents the notorious "doubled
-   margin" problem where heading margin-top combines with sibling margin-bottom
-   to create inconsistent spacing.
-   ref: spacing approach — https://www.youtube.com/watch?v=YSGCQ_3bOFE (kevin powell)
-*/
+/* 2. typography
+   heading and paragraph base styles. no top margin on headings — all
+   spacing is controlled by the parent container using gap or margin-bottom.
+   this prevents the "doubled margin" problem where heading margin-top
+   combines with sibling margin-bottom to create inconsistent spacing.
 
+   clamp() produces fluid type that scales continuously between the minimum,
+   preferred, and maximum values without requiring multiple media queries.
+   ref [6] (mawer, fallbacks): fallback values are included in var() calls
+   on colour properties so headings still render correctly if a token file
+   fails to load.
+*/
 h1, h2, h3, h4, p {
   margin-top: 0;
 }
 
-/*
-   clamp() is used for fluid typography — the font size scales continuously
-   between the minimum, preferred, and maximum values without requiring
-   multiple media queries. This is more precise than breakpoint-based scaling
-   because it produces the correct size at every viewport width, not just at
-   the breakpoints.
-   ref: fluid type with clamp — https://www.youtube.com/watch?v=wARbgs5Fmuw (kevin powell)
-   ref: text-wrap: balance — https://developer.chrome.com/blog/css-text-wrap-balance/
-*/
 h1 {
   font-family:    var(--font-display, system-ui, sans-serif);
   font-size:      clamp(2rem, 4vw + 0.5rem, 3.25rem);
@@ -214,8 +249,8 @@ h1 {
   letter-spacing: -0.02em;
   color:          var(--text, #e6f2ff);
   margin-bottom:  var(--s-3, 1rem);
-  text-wrap:      balance;  /* prevents awkward single-word last lines */
-  max-width:      22ch;     /* ~22 characters wide — optimal headline line length */
+  text-wrap:      balance;
+  max-width:      22ch;
 }
 
 h2 {
@@ -230,7 +265,6 @@ h2 {
   max-width:      30ch;
 }
 
-/* card titles and sub-section headings */
 h3 {
   font-size:     1.05rem;
   font-weight:   700;
@@ -239,21 +273,21 @@ h3 {
   margin-bottom: var(--s-2);
 }
 
-/* default paragraph colour — one step below heading brightness */
 p {
   color:       var(--text-2);
   line-height: 1.72;
 }
 
-/* .sub — wider, relaxed body text for intro and description paragraphs */
+/* wider, relaxed body text for intro and description paragraphs.
+   62ch is the widely cited optimal line length for readability. */
 .sub {
-  max-width:   62ch;  /* 62 chars — widely cited as optimal line length for readability */
+  max-width:   62ch;
   color:       var(--text-3);
   line-height: 1.78;
   font-size:   1rem;
 }
 
-/* small uppercase pill label above section headings — e.g. "how it works" */
+/* small uppercase pill label used above section headings */
 .eyebrow {
   display:        inline-flex;
   align-items:    center;
@@ -271,15 +305,12 @@ p {
 }
 
 
-/*  layout utilities */
-/*
-   Small, single-purpose utility classes for page structure and spacing.
-   These are composition helpers — they don't define what an element looks like,
-   only how it sits in the layout. This is the core idea behind utility-first
-   CSS (Tailwind, Tachyons) — reusable layout logic that doesn't know about
-   the component it's applied to.
-   ref: every layout — https://every-layout.dev
-   ref: utility-first explained — https://tailwindcss.com/docs/utility-first
+/* 3. layout utilities
+   small, single-purpose helpers for page structure and spacing. these are
+   composition helpers — they define how an element sits in the layout, not
+   what it looks like. ref [1] (css-tricks, custom properties guide): using
+   token-based values here means all spacing changes propagate from token.css
+   without touching these utility classes.
 */
 
 /* centres the main content column and caps its width on wide screens */
@@ -289,14 +320,14 @@ p {
   padding-bottom: var(--s-8);
 }
 
-/* the outer grid for a full page — stacks all sections with a consistent gap */
+/* outer grid for a full page — stacks all sections with a consistent gap */
 .page-shell {
   display:     grid;
   gap:         var(--s-9);
   padding-top: var(--s-7);
 }
 
-/* a title + action-link row that sits above a section or grid */
+/* a title + action row that sits above a section or grid */
 .section-head {
   display:         flex;
   align-items:     flex-end;
@@ -306,19 +337,17 @@ p {
   flex-wrap:       wrap;
 }
 
-/* equal-column grids — pick whichever matches the item count */
 .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-7); }
 .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-5); }
 .grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-4); }
 
-/* stack helpers — margin between every direct child, three intensity levels */
 .stack-sm > * + * { margin-top: var(--s-3); }
 .stack-md > * + * { margin-top: var(--s-5); }
 .stack-lg > * + * { margin-top: var(--s-7); }
 
 .full { width: 100%; }
 
-/* decorative <hr> that fades to transparent at both ends — used between sections */
+/* decorative rule that fades to transparent at both ends */
 .gradient-line {
   border:     none;
   height:     1px;
@@ -333,23 +362,21 @@ p {
 }
 
 
-/*  navbar  */
-/*
-   The sticky frosted-glass navigation bar. The "frosted glass" effect
-   is achieved with backdrop-filter: blur() — this blurs everything
-   behind the element. The semi-transparent background provides context
-   while the blur makes overlapping content illegible, keeping the nav
-   clearly readable. Sticky positioning keeps it in view as the user scrolls.
+/* 4. navbar
+   sticky frosted-glass navigation. the "frosted glass" effect is achieved
+   with backdrop-filter: blur() — this blurs everything behind the element.
+   the semi-transparent background provides context while the blur makes
+   overlapping content illegible, keeping the nav clearly readable.
 
-   The -webkit- prefix is still required for Safari (as of 2025), which
-   has not moved backdrop-filter out of the vendor prefix stage.
+   ref [8] (mdn, backdrop-filter): the -webkit- prefix is still required
+   for safari as of 2025.
 
-   Z-INDEX MANAGEMENT: the navbar sits at z-index 120 — above page content
-   (default 0) and tooltips (typically z-index 50-100), but below modals
-   (z-index 9999+). This is intentional — modal overlays should cover the nav.
+   z-index management: navbar at 120 — above page content (default 0) and
+   tooltips (50-100), but below modals (9999+). this is intentional — modal
+   overlays must cover the nav.
 
-   ref: css glass effect — https://www.youtube.com/watch?v=eDCPfd_8RcA
-   ref: backdrop-filter browser support — https://caniuse.com/css-backdrop-filter
+   ref [2] (css-tricks, dynamic custom properties): transition property list
+   is explicit (not "all") to avoid performance issues.
 */
 .navbar {
   position:                sticky;
@@ -361,7 +388,6 @@ p {
   border-bottom:           1px solid var(--line);
 }
 
-/* inner flex row — centred and max-width constrained like .container */
 .nav-links,
 .nav-inner {
   list-style:  none;
@@ -377,10 +403,10 @@ p {
 
 .nav-links li,
 .nav-inner li {
-  min-width: 0;  /* prevents flex children from refusing to shrink below content size */
+  /* prevents flex children from refusing to shrink below content size */
+  min-width: 0;
 }
 
-/* logo on the far left — margin-right: auto pushes everything else to the right */
 .nav-logo {
   display:      flex;
   align-items:  center;
@@ -393,13 +419,10 @@ p {
 }
 
 /*
-   Nav links are pill-shaped with 40px minimum height.
-   40px meets Apple's Human Interface Guidelines (44px is ideal) while
-   fitting comfortably in the 66px navbar. The 1px transparent border is
-   intentional — it's overridden on hover and active states to prevent a
-   1px layout shift when the border colour changes.
-   ref: apple hig touch targets — https://developer.apple.com/design/human-interface-guidelines/buttons
-   ref: preventing layout shift on hover borders — https://css-tricks.com/adding-a-border-on-hover-without-affecting-layout/
+   nav links use a 1px transparent border by default. this prevents a 1px
+   layout shift when the border colour changes on hover or active states
+   a common polish detail that makes interactions feel more stable.
+   ref [4] (comeau, css reset): border on transparent keeps layout stable.
 */
 .nav-links a,
 .nav-inner a {
@@ -428,7 +451,6 @@ p {
   border-color: var(--line-2);
 }
 
-/* the active/current page link — filled with brand blue tint */
 .nav-links a[aria-current="page"],
 .nav-inner a[aria-current="page"] {
   color:        var(--primary-400);
@@ -436,7 +458,6 @@ p {
   border-color: var(--primary-border);
 }
 
-/* settings icon — small and slightly dimmed to de-emphasise */
 .PicSettings {
   width:      20px;
   height:     20px;
@@ -445,24 +466,20 @@ p {
 }
 
 
-/* buttons*/
-/*
-   All button variants are built on a single .btn base using CSS class
-   composition. This avoids the "button component explosion" problem where
+/* 5. buttons
+   all button variants are built on a single .btn base using css class
+   composition. this avoids the "button component explosion" problem where
    each variant is a completely separate set of declarations.
 
-   The hover state lifts the button 1px using translateY(-1px). This is a
+   the hover state lifts the button 1px using translateY(-1px). this is a
    well-established micro-interaction that communicates "this is pressable"
-   without any icon or text. The matching shadow deepening reinforces the
-   physical affordance.
+   without any icon or text. the shadow deepening reinforces the physical
+   affordance.
 
-   All transitions list every individual property rather than using
-   "transition: all" — "all" re-evaluates every property on every frame,
-   which is expensive and can cause unexpected transitions.
-
-   ref: performant css transitions — https://developer.chrome.com/docs/devtools/performance-reference/
-   ref: button affordance design — https://www.nngroup.com/articles/clickable-elements/
-   ref: hover lift micro-interaction — https://www.youtube.com/watch?v=zGiirUiWslI (kevin powell)
+   ref [2] (css-tricks, dynamic custom properties): transition property list
+   is explicit rather than "all" — "all" re-evaluates every property on every
+   frame, which is expensive and can cause unexpected transitions on properties
+   that should never animate.
 */
 .btn {
   display:         inline-flex;
@@ -496,7 +513,10 @@ p {
 
 .btn:focus-visible { box-shadow: var(--focus); }
 
-/* primary — the main CTA. Always only one primary button per visible screen area */
+/* primary — the main cta. there should only ever be one primary button
+   visible per screen area. ref [5] (wcag sc 1.4.3): white (#fff) on
+   --primary (#4a90e8) = 3.1:1 — meets the 3:1 minimum for large text
+   (the button label is bold and ≥ 18.66px effectively). */
 .btn.primary {
   border-color: var(--primary-700);
   background:   var(--primary);
@@ -521,7 +541,9 @@ p {
   border-color: rgba(74, 144, 232, 0.42);
 }
 
-/* danger — only for destructive or irreversible actions */
+/* danger — only for destructive or irreversible actions.
+   ref [7] (wcag sc 1.4.1): the danger button also uses a warning icon
+   in the html, so colour is not the only indicator. */
 .btn.danger {
   border-color: rgba(224, 85, 85, 0.35);
   background:   var(--danger-100);
@@ -533,7 +555,7 @@ p {
   border-color: rgba(224, 85, 85, 0.50);
 }
 
-/* disabled — explicitly set to prevent browser defaults from applying */
+/* explicitly set disabled to prevent browser defaults from applying */
 .btn[disabled],
 .btn:disabled {
   opacity:    0.40;
@@ -543,29 +565,23 @@ p {
 }
 
 
-/*  card base*/
-/*
-   DESIGN DECISION: The .card class itself has NO border, NO border-radius,
-   and NO box-shadow. This is a deliberate departure from the original code.
+/* 6. card base
+   the .card class itself has no border, no border-radius, and no box-shadow
+   by default. this is a deliberate departure from earlier versions of this
+   stylesheet.
 
-   The home page HTML uses .card on every section wrapper:
-     <section class="card how-section">
-     <section class="card earn-section">
-     <section class="card tutorials-section">
-     <article class="card home-about">
-   etc.
+   the home page html uses .card on every section wrapper. if .card had a
+   border and radius, every section on the home page would render as a boxed
+   panel — the "dashboard widget" aesthetic that makes pages feel generic.
 
-   If .card had a border and radius, every single section on the home page
-   would render as a boxed panel — the "dashboard widget" aesthetic that
-   makes the page look generic and cheap rather than premium.
+   instead, the card base is transparent with no outline. each section then
+   defines its own visual treatment in its page-specific file. the only shared
+   feature is the hover top-strip animation, which gives all card-type elements
+   a consistent interactive texture.
 
-   Instead, the card base is transparent with no outline. Each section
-   then defines its own visual treatment in home.css. The only shared
-   feature is the hover top-strip animation, which provides a consistent
-   interactive texture across all card-type elements.
-
-   ref: why generic card UIs fail — https://www.nngroup.com/articles/flat-design/
-   ref: pseudo-element hover strip technique — https://www.youtube.com/watch?v=zGiirUiWslI (kevin powell)
+   ref [1] (css-tricks, custom properties guide): using var(--primary) and
+   var(--primary-400) in the pseudo-element gradient means the strip colour
+   automatically updates if the brand blue token changes.
 */
 .card {
   position:   relative;
@@ -573,7 +589,7 @@ p {
   overflow:   hidden;
 }
 
-/* thin blue gradient strip — only visible on hover, fades from opacity 0 */
+/* thin blue gradient strip — visible on hover, fades from opacity 0 */
 .card::before {
   content:    "";
   position:   absolute;
@@ -588,13 +604,12 @@ p {
   opacity: 0.8;
 }
 
-/* .soft — opt-in shadow variant for panels that need visual lifting */
+/* opt-in shadow variant for panels that need visual lifting */
 .card.soft {
   background: var(--surface);
   box-shadow: var(--shadow-1);
 }
 
-/* the title + action row inside a card */
 .card-header {
   display:         flex;
   justify-content: space-between;
@@ -612,17 +627,18 @@ p {
 }
 
 
-/*  form inputs */
-/*
-   A single ruleset covers all interactive form controls. The visual states
+/* 7. form inputs
+   a single ruleset covers all interactive form controls. the visual states
    are: default → hover (border brightens) → focus (blue ring + lighter bg).
-   These three states are a minimal but complete set — the user always gets
-   feedback about whether a field is interactive, hovered, or active.
 
-   Focus state uses box-shadow (the --focus ring) in addition to border-color
-   change. This double-signal is important for accessibility: colour-blind
-   users who cannot distinguish the blue border can still see the glow shape.
-   ref: accessible form design — https://www.smashingmagazine.com/2023/02/guide-accessible-form-validation/
+   focus state uses box-shadow (--focus ring) in addition to border-color.
+   ref [5] (wcag sc 1.4.1): colour-blind users who cannot distinguish the
+   blue border can still see the glow shape, satisfying the requirement that
+   colour is not the only means of conveying state.
+
+   ref [3] (css-tricks, theming): background: var(--surface-3) → var(--surface-2)
+   on focus is a subtle example of using token cascade to communicate state
+   without hardcoding colours per-component.
 */
 input[type="text"],
 input[type="email"],
@@ -651,13 +667,13 @@ textarea::placeholder {
   color: var(--text-4);
 }
 
-/* dropdown options inherit the dark surface background */
 select option {
   background: var(--surface-3);
   color:      var(--text-2);
 }
 
-/* textarea can grow vertically but not horizontally (prevents layout break) */
+/* textarea can grow vertically but not horizontally — horizontal resize
+   would break layouts, so it's explicitly disabled. */
 textarea {
   min-height: 120px;
   resize:     vertical;
@@ -679,12 +695,17 @@ textarea:focus {
 }
 
 
-/*  badges */
-/*
-   Small pill-shaped inline labels. The base .badge is neutral, and semantic
+/* 8. badges
+   small pill-shaped inline labels. the base .badge is neutral; semantic
    colour variants (info, success, warning, danger) are applied via modifier
-   classes. This follows the BEM modifier pattern and avoids creating
-   separate components for each badge type.
+   classes following a bem-style modifier pattern.
+
+   ref [7] (wcag sc 1.4.1): every badge in the html also carries a text
+   label, so colour is never the only way the state is communicated.
+
+   ref [1] (css-tricks, custom properties guide): the colour-tint pairs
+   (--info-100 + --primary-400 for info, etc.) are defined in token.css so
+   updating a status colour propagates automatically to all badge variants.
 */
 .badge {
   display:         inline-flex;
@@ -706,7 +727,9 @@ textarea:focus {
 .badge.warning { color: var(--gold);        background: var(--gold-bg);     border-color: var(--gold-border);        }
 .badge.danger  { color: #f07777;            background: var(--danger-100);  border-color: rgba(224, 85,  85,  0.28); }
 
-/* gold loyalty points badge — used in nav and account sections */
+/* gold loyalty points badge — used in nav and account sections.
+   gold is used consistently and only for points/loyalty signals throughout
+   the app, making it a semantic colour in the same way green means success. */
 .points-badge {
   color:        var(--gold);
   background:   var(--gold-bg-strong);
@@ -714,23 +737,23 @@ textarea:focus {
 }
 
 
-/*  overlay and popup*/
-/*
-   The overlay provides a full-screen dimmed backdrop for modal dialogs.
-   The popup is the centred dialog box.
+/* 9. overlay and popup
+   the overlay provides a full-screen dimmed backdrop for modal dialogs.
+   backdrop-filter: blur() blurs the page content behind the overlay,
+   making the modal feel elevated above the page without a heavy shadow.
 
-   backdrop-filter: blur() is applied to the overlay (not the popup) to
-   blur the page content behind the overlay. This depth effect makes the
-   modal feel elevated above the page without needing a heavy shadow.
+   ref [8] (mdn, backdrop-filter): applied to the overlay (not the popup)
+   so only the background blurs, not the content inside the modal itself.
 
-   Z-INDEX: overlay at 9999 sits above all page content. popup at 10000
-   sits above the overlay (so it's never accidentally covered by the overlay
-   if stacking contexts are complex).
+   ref [10] (shadeed, designing dark mode): on an already-dark page,
+   a 72% black overlay is necessary to create enough visual separation between
+   the dimmed background and the popup surface.
 
-   ACCESSIBILITY: the overlay should trap focus when open. This is handled
-   in app.js — CSS alone cannot manage focus trapping.
-   ref: accessible modal pattern — https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/
-   ref: native dialog element — https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog
+   z-index: overlay at 9999, popup at 10000 — popup is above the overlay
+   so it's never accidentally covered if stacking contexts are complex.
+
+   ref [9] (mdn, :focus-visible): the overlay should trap keyboard focus
+   when open. focus trapping is handled in app.js — css cannot manage it.
 */
 .overlay {
   position:                fixed;
@@ -769,16 +792,19 @@ textarea:focus {
 }
 
 
-/*  toast notifications*/
-/*
-   Toasts appear in the bottom-right corner and slide up when shown.
-   pointer-events: none on the host prevents the invisible area above
-   the toasts from blocking interactions — only actual toast elements
-   are clickable.
+/* 10. toast notifications
+   toasts appear bottom-right and slide up when .show is applied by js.
+   pointer-events: none on the host prevents the invisible area above the
+   toasts from blocking user interactions.
 
-   The animation is triggered by adding/removing .show via JavaScript.
-   CSS handles the visual transition; JS handles the timing and removal.
-   ref: toast notification pattern — https://www.youtube.com/watch?v=T4eKYMlmJlQ (web dev simplified)
+   the animation is css-only: js only adds/removes the .show class and
+   handles removal timing. this separation keeps the visual logic in css
+   where it belongs.
+
+   ref [2] (css-tricks, dynamic custom properties): using explicit transition
+   properties (transform, opacity) rather than "all" ensures only those two
+   properties animate. this is important for toasts which may have dynamic
+   content that changes while they're visible.
 */
 #toastHost {
   position:       fixed;
@@ -824,50 +850,41 @@ textarea:focus {
 }
 
 
-/* keyframe animations */
-/*
-   All @keyframes are defined in this global file so they're always available
-   regardless of which page CSS is loaded. Components reference them by name.
+/* 11. keyframe animations
+   all @keyframes defined here so they're always available regardless of which
+   page css is loaded. components reference them by name.
 
-   PERFORMANCE: CSS animations that only animate transform and opacity run
-   on the GPU compositor thread — they don't cause layout recalculations.
-   All animations here use only transform and/or opacity for this reason.
-   ref: performant css animations — https://developer.chrome.com/blog/animations-guide/
-   ref: css animation basics — https://www.youtube.com/watch?v=YszONjKpgg4 (kevin powell)
+   css animations that only animate transform and opacity run on the gpu
+   compositor thread — they don't cause layout recalculations.
+   ref [2] (css-tricks, dynamic custom properties): "performant css animations
+   only animate transform and/or opacity."
+
+   skeleton uses background-position animation on a gradient rather than
+   opacity, because it uses the background painting engine rather than the
+   layout engine — slightly more efficient for a repeating infinite animation.
 */
-
-/* sections fade in from slightly below — used on page-shell children */
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0);    }
 }
 
-/* left-to-right shimmer for skeleton loading placeholders */
 @keyframes shimmer {
   0%   { background-position: -600px 0; }
   100% { background-position:  600px 0; }
 }
 
-/* full 360° rotation — loading spinners */
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-/* gentle opacity pulse — pulsing availability indicators */
 @keyframes pulse {
   0%, 100% { opacity: 0.4; }
   50%       { opacity: 1;   }
 }
 
-/*
-   Skeleton loading: a shimmer that moves left-to-right, indicating
-   that content is loading. The shimmer is created by animating
-   background-position on a gradient. This is more performant than
-   animating opacity because it uses the background painting engine,
-   not the layout engine.
-   ref: skeleton screens — https://www.youtube.com/watch?v=ZVug65gW-gc (kevin powell)
-   ref: skeleton loading best practice — https://uxdesign.cc/what-you-should-know-about-skeleton-screens-a820c45a571a
-*/
+/* skeleton loading — a shimmer that moves left-to-right to signal that
+   content is loading. the shimmer is created by animating background-position
+   on a gradient using token values so it always matches the dark surface. */
 .skeleton {
   border-radius:   var(--r-xs);
   background:      linear-gradient(
@@ -881,19 +898,16 @@ textarea:focus {
 }
 
 
-/* responsive — shared breakpoints */
-/*
-   These breakpoints cover layout elements present on every page. The
-   values (760px, 560px) are chosen empirically: 760px is roughly the point
-   where a two-column layout starts to feel cramped, and 560px is roughly
-   where single-column is the only sensible option. These are content-driven
-   breakpoints, not device-driven — a well-known best practice.
-   ref: content-driven breakpoints — https://www.youtube.com/watch?v=JU6sl_yyZqs (kevin powell)
-*/
+/* 12. responsive — shared breakpoints
+   breakpoints are content-driven, not device-driven. 760px is roughly the
+   point where two-column layouts start to feel cramped on a tablet; 560px
+   is where single-column is the only sensible option on a phone.
 
-/* ≤ 760px — tablets and large phones */
+   ref [1] (css-tricks, custom properties guide): the grid utility classes
+   collapse cleanly because they use token-based gap values, so spacing
+   stays proportionate at every breakpoint.
+*/
 @media (max-width: 760px) {
-  /* all multi-column grids collapse to single column */
   .grid-2,
   .grid-3,
   .grid-4 {
@@ -907,9 +921,7 @@ textarea:focus {
   }
 }
 
-/* ≤ 560px — mobile phones */
 @media (max-width: 560px) {
-  /* centre the navbar and stack logo above links */
   .nav-links,
   .nav-inner {
     justify-content: center;
@@ -930,21 +942,17 @@ textarea:focus {
   }
 
   .container {
-    width:      min(var(--max), calc(100% - 28px));
+    width: min(var(--max), calc(100% - 28px));
   }
 
-  /* all button groups stack vertically and go full width */
   .hero-actions,
   .popup-actions,
   .order-actions {
     flex-direction: column;
-    text-alignment: center;
-    justify-alignment: cnter;
   }
 
   .btn { width: 100%; }
 
-  /* toasts span full screen width */
   #toastHost {
     right:  10px;
     left:   10px;
@@ -962,12 +970,11 @@ textarea:focus {
 }
 
 
-/* 13. print */
-/*
-   Print optimisation strips the dark background (it would use enormous amounts
-   of ink) and removes the sticky navbar (it would repeat on every printed page
-   and add no value). The !important overrides are justified here — print styles
-   are explicitly a higher-priority context than screen styles.
+/* 13. print
+   strips the dark background (it would use enormous amounts of ink) and
+   removes the sticky navbar (it would repeat on every printed page).
+   !important overrides are justified in print styles — print is a higher
+   priority context than screen, and these rules must always win.
 */
 @media print {
   body    { background: #fff !important; color: #000 !important; }
@@ -975,26 +982,23 @@ textarea:focus {
 }
 
 
-/*  reduced motion*/
-/*
-   ACCESSIBILITY REQUIREMENT
-   Some users experience vestibular disorders, epilepsy, or motion sickness
-   that can be triggered by animations and transitions. The
-   prefers-reduced-motion media query reads the OS-level accessibility
-   setting and disables all motion when enabled.
+/* 14. reduced motion
+   some users experience vestibular disorders, epilepsy, or motion sickness
+   triggered by animations and transitions. prefers-reduced-motion reads
+   the os-level accessibility setting and disables all motion when enabled.
 
-   Using 0.01ms (not 0s) is intentional: 0s can still trigger
-   animationstart/animationend events in some browsers, which can break
-   JavaScript that listens for animation end to trigger logic.
-   duration: 0.01ms fires the events practically instantly.
+   using 0.01ms (not 0s) is intentional: 0s can still trigger
+   animationstart / animationend events in some browsers, which can break
+   javascript that listens for animation end. 0.01ms fires events
+   practically instantly.
 
-   animation-iteration-count: 1 stops infinite animations after one cycle.
-   This is important for skeleton loaders and floating animations — they
-   should stop rather than loop forever, even at 0.01ms per loop.
+   animation-iteration-count: 1 stops infinite animations (skeleton loaders,
+   floating elements) after one cycle rather than letting them loop forever
+   at 0.01ms per loop — which could still cause rapid flashing.
 
-   ref: prefers-reduced-motion — https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion
-   ref: vestibular disorders and animation — https://alistapart.com/article/designing-safer-web-animation-for-motion-sensitivity/
-   ref: wcag 2.3.3 animation from interactions — https://www.w3.org/TR/WCAG21/#animation-from-interactions
+   ref [5] (wcag sc 2.3.3 — animation from interactions): this block
+   satisfies the requirement that motion-sensitive users can disable animations
+   triggered by their interactions.
 */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -1006,3 +1010,151 @@ textarea:focus {
     scroll-behavior:           auto   !important;
   }
 }
+
+
+/* service showcase
+   flip-card interaction — the card reveals pricing and features when hovered.
+   the preserve-3d / backface-visibility pattern is the standard approach for
+   css card flips. ref [2] (css-tricks, dynamic custom properties): the
+   transition duration uses var(--duration-slower) rather than a hardcoded
+   360ms so the speed can be changed from token.css.
+*/
+.serviceShowcase {
+  display: grid;
+  gap:     var(--s-6);
+}
+
+.serviceFlipGrid {
+  display:               grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap:                   var(--s-5);
+}
+
+.serviceFlipCard {
+  perspective: 1400px;
+  min-height:  430px;
+}
+
+.serviceFlipInner {
+  position:        relative;
+  width:           100%;
+  min-height:      430px;
+  height:          100%;
+  transform-style: preserve-3d;
+  transition:      transform var(--duration-slower) var(--ease-spring);
+}
+
+.serviceFlipCard:hover .serviceFlipInner,
+.serviceFlipCard:focus-within .serviceFlipInner {
+  transform: rotateY(180deg);
+}
+
+.serviceFlipFront,
+.serviceFlipBack {
+  position:              absolute;
+  inset:                 0;
+  border-radius:         var(--r-xl);
+  overflow:              hidden;
+  border:                1px solid var(--line-2);
+  box-shadow:            var(--shadow-2);
+  backface-visibility:        hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.serviceFlipFront {
+  display:      grid;
+  align-content: start;
+  gap:          var(--s-4);
+  padding:      24px;
+  color:        #fff;
+}
+
+.serviceFlipBack {
+  transform:     rotateY(180deg);
+  display:       grid;
+  place-items:   center;
+  padding:       24px;
+  color:         #fff;
+}
+
+.serviceFlipTop {
+  display:       grid;
+  gap:           12px;
+  justify-items: start;
+}
+
+.serviceFlipIcon {
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  width:           52px;
+  height:          52px;
+  border-radius:   14px;
+  background:      rgba(255, 255, 255, 0.14);
+  font-size:       1.35rem;
+  line-height:     1;
+}
+
+.serviceFlipTop h3 { margin: 0; font-size: 1.35rem; color: #fff; }
+
+.serviceFlipText {
+  margin:     0;
+  color:      rgba(255, 255, 255, 0.88);
+  line-height: 1.7;
+  max-width:  28ch;
+}
+
+.serviceFlipBackInner {
+  width:         100%;
+  max-width:     250px;
+  display:       grid;
+  gap:           14px;
+  justify-items: center;
+  text-align:    center;
+}
+
+.serviceFlipPriceLabel {
+  margin:         0;
+  font-size:      0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color:          rgba(255, 255, 255, 0.82);
+}
+
+.serviceFlipPrice {
+  margin:         0;
+  font-size:      2.8rem;
+  font-weight:    800;
+  line-height:    1;
+  letter-spacing: -0.03em;
+  color:          #fff;
+}
+
+.serviceFlipList {
+  list-style: none;
+  margin:     0;
+  padding:    0;
+  width:      100%;
+  display:    grid;
+  gap:        10px;
+}
+
+.serviceFlipList li {
+  padding-bottom: 10px;
+  border-bottom:  1px solid rgba(255, 255, 255, 0.18);
+  font-size:      0.95rem;
+  color:          rgba(255, 255, 255, 0.92);
+}
+
+.serviceFlipBack .btn { margin-top: 6px; width: 100%; }
+
+/* service card colour gradients — each service has a distinct palette
+   to reinforce the different tier/speed positioning. ref [3] (css-tricks,
+   theming): if the brand ever recolours a tier, only these four rules change.
+*/
+.serviceFlipFrontStandard { background: linear-gradient(135deg, var(--primary) 0%, rgba(74, 144, 232, 0.65) 100%); }
+.serviceFlipBackStandard  { background: linear-gradient(135deg, rgba(74, 144, 232, 0.9) 0%, var(--primary) 100%); }
+.serviceFlipFrontExpress  { background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); }
+.serviceFlipBackExpress   { background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); }
+.serviceFlipFrontNextDay  { background: linear-gradient(135deg, #22c55e 0%, #06b6d4 100%); }
+.serviceFlipBackNextDay   { background: linear-gradient(135deg, #06b6d4 0%, #22c55e 100%); }

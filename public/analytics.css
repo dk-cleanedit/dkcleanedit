@@ -1,0 +1,257 @@
+/* ==========================================================================
+   Analytics page
+   Summary card styling adapted from the Bootdey order card example,
+   then redesigned to match DKcleanedit's token-based design system,
+   dark interface, and analytics layout.
+   Source: Bootdey (n.d.) ‘Order user-card’.
+   https://www.bootdey.com/snippets/view/order-user-card
+   Chart.js (n.d.) Chart.js documentation. Available at: https://www.chartjs.org/docs/latest/ (Accessed: 23 April 2026).
+   OpenAI (2026) ChatGPT. Used to assist with adapting and refining the analytics page HTML, CSS and JavaScript. Output was reviewed, edited and integrated into the final submission by the author.
+   ========================================================================== */
+
+.analyticsSection {
+  display: grid;
+  gap: var(--s-7);
+  padding: 28px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+}
+
+.analyticsHeader {
+  margin-bottom: var(--s-2);
+}
+
+/* top nav */
+.adminNavg {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.adminLinkPage {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 10px 16px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line-2);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-weight: 700;
+  transition:
+    background-color var(--ease),
+    border-color var(--ease),
+    color var(--ease),
+    transform var(--ease);
+}
+
+.adminLinkPage:hover {
+  background: var(--surface-hover);
+  border-color: var(--line-strong);
+  color: var(--text);
+  transform: translateY(-1px);
+}
+
+.analyticsActiveLink {
+  background: var(--primary-050);
+  border-color: var(--primary-border);
+  color: var(--primary-400);
+}
+
+/* summary cards */
+.analyticsSummary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--s-5);
+}
+
+.analyticsCard {
+  padding: 18px;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--line-2);
+  position: relative;
+  overflow: hidden;
+  min-height: 150px;
+}
+
+.analyticsCard::after {
+  content: "";
+  position: absolute;
+  right: -24px;
+  bottom: -24px;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  pointer-events: none;
+}
+
+.analyticsCardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.analyticsCardTop h3 {
+  margin: 0;
+  color: var(--text);
+}
+
+.analyticsIcon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.analyticsValue {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin-top: 8px;
+  color: var(--text);
+}
+
+.analyticsMeta {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: var(--text-3);
+  line-height: 1.5;
+}
+
+.analyticsMeta span {
+  float: right;
+  font-weight: 700;
+  color: var(--text-2);
+}
+
+/* card colours
+   adapted from the external card idea, but restyled to fit DKcleanedit */
+.blueCard {
+  background: linear-gradient(
+    135deg,
+    rgba(74, 144, 232, 0.22),
+    rgba(74, 144, 232, 0.10)
+  );
+  border-color: rgba(74, 144, 232, 0.28);
+  box-shadow: 0 8px 20px rgba(74, 144, 232, 0.12);
+}
+
+.steelblueCard {
+  background: linear-gradient(
+    135deg,
+    rgba(70, 130, 180, 0.24),
+    rgba(70, 130, 180, 0.10)
+  );
+  border-color: rgba(70, 130, 180, 0.30);
+  box-shadow: 0 8px 20px rgba(70, 130, 180, 0.12);
+}
+
+.goldCard {
+  background: linear-gradient(
+    135deg,
+    rgba(240, 184, 67, 0.22),
+    rgba(240, 184, 67, 0.10)
+  );
+  border-color: rgba(240, 184, 67, 0.28);
+  box-shadow: 0 8px 20px rgba(240, 184, 67, 0.12);
+}
+
+.purpleCard {
+  background: linear-gradient(
+    135deg,
+    rgba(140, 100, 255, 0.22),
+    rgba(140, 100, 255, 0.10)
+  );
+  border-color: rgba(140, 100, 255, 0.28);
+  box-shadow: 0 8px 20px rgba(140, 100, 255, 0.12);
+}
+
+/* extra kpi */
+.analyticsExtra {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--s-5);
+}
+
+.analyticsMiniCard {
+  padding: 20px;
+}
+
+.analyticsMiniCard h3 {
+  margin-bottom: 10px;
+}
+
+.analyticsMiniCard p {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* charts */
+.analyticsCharts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--s-6);
+  align-items: start;
+}
+
+.analyticsChartBox {
+  padding: 20px;
+  height: 380px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.analyticsChartBox h3 {
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.analyticsChartBox canvas {
+  display: block;
+  width: 100% !important;
+  height: 300px !important;
+  max-height: 300px !important;
+}
+
+/* responsive */
+@media (max-width: 980px) {
+  .analyticsSummary,
+  .analyticsExtra,
+  .analyticsCharts {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .analyticsSummary,
+  .analyticsExtra,
+  .analyticsCharts {
+    grid-template-columns: 1fr;
+  }
+
+  .analyticsSection {
+    padding: 20px;
+  }
+
+  .analyticsValue {
+    font-size: 1.5rem;
+  }
+
+  .analyticsMiniCard p {
+    font-size: 1.2rem;
+  }
+
+  .analyticsChartBox {
+    height: 340px;
+  }
+
+  .analyticsChartBox canvas {
+    height: 250px !important;
+    max-height: 250px !important;
+  }
+}

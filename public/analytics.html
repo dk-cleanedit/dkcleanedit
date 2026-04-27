@@ -1,60 +1,132 @@
 <!doctype html>
 <html lang="en">
+<!--
+  analytics.html — DKcleanedit Admin Analytics
+  References:
+  [1] Bootdey "Order user-card" — https://www.bootdey.com/snippets/view/order-user-card
+      (Accessed: 27 Apr. 2026). Card layout adapted.
+  [2] Chart.js — https://www.chartjs.org
+-->
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Analytics | DKCleanEdit</title>
-  <link rel="stylesheet" href="styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Analytics | DKcleanedit</title>
+  <script>
+    if (localStorage.getItem("theme") === "dark") {
+      document.documentElement.classList.add("dark-mode");
+    }
+  </script>
+  <link rel="stylesheet" href="token.css" />
+  <link rel="stylesheet" href="global.css" />
+  <link rel="stylesheet" href="analytics.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="admin-body">
+
+  <!-- Admin-only nav -->
   <nav class="navbar" aria-label="Primary">
     <ul class="nav-links">
-      <li><a href="home.html">Home</a></li>
-      <li><a href="booking.html">Booking</a></li>
-      <li><a href="track.html">Tracking</a></li>
-      <li><a href="customer.html">My Account</a></li>
-      <li><a href="admin.html">Admin</a></li>
-      <li><a href="analytics.html" aria-current="page">Analytics</a></li>
-        <li><a href="settings.html">Settings</a></li>
+      <li class="nav-logo">
+        <a href="home.html" aria-label="DKcleanedit home">
+          <img src="videos/logo.png" class="logo" alt="DKcleanedit logo" />
+        </a>
+      </li>
+      <li><a href="admin.html"    id="navAdmin">Orders</a></li>
+      <li><a href="schedule.html" id="navSchedule">Schedule</a></li>
+      <li><a href="analytics.html"id="navAnalytics" aria-current="page">Analytics</a></li>
+      <li><a href="admin_account.html" id="navStaff">Staff</a></li>
+      <li><a href="#" id="navLogout" hidden>Logout</a></li>
     </ul>
   </nav>
 
-  <main class="container admin-layout">
-      <nav class="admin-nav">
-        <a class="admin-link" href="admin.html">Orders</a>
-        <a class="admin-link active" href="analytics.html">Analytics</a>
-      </nav>
-    </aside>
+  <main class="container page-shell">
 
-    <section class="card admin-main">
-      <header class="admin-header">
+    <!-- Top nav for admin pages -->
+    <nav class="adminNavg" aria-label="Admin sections">
+      <a class="adminLinkPage" href="admin.html">Orders</a>
+      <a class="adminLinkPage" href="schedule.html">Schedule</a>
+      <a class="adminLinkPage analyticsActiveLink" href="analytics.html">Analytics</a>
+      <a class="adminLinkPage" href="admin_account.html">Staff</a>
+    </nav>
+
+    <section class="analyticsSection">
+      <header class="analyticsHeader">
         <div>
           <h1>Analytics</h1>
-          <p class="sub">Business performance and order trends.</p>
+          <p class="sub">Business performance, customer activity, and booking trends.</p>
         </div>
       </header>
 
-      <section class="kpi-grid">
-        <div class="card kpi-card"><h3>Total Orders</h3><p id="kpiTotal">0</p></div>
-        <div class="card kpi-card"><h3>Completed</h3><p id="kpiCompleted">0</p></div>
-        <div class="card kpi-card"><h3>Active</h3><p id="kpiActive">0</p></div>
-        <div class="card kpi-card"><h3>Cancelled</h3><p id="kpiCancelled">0</p></div>
-        <div class="card kpi-card"><h3>Points Awarded</h3><p id="kpiPoints">0</p></div>
-        <div class="card kpi-card"><h3>Repeat Customers</h3><p id="kpiRepeat">0</p></div>
+      <!-- KPI summary cards — layout adapted from Ref [1] (Bootdey order-user-card) -->
+      <section class="analyticsSummary">
+        <div class="analyticsCard blueCard">
+          <div class="analyticsCardTop">
+            <h3>Total Orders</h3>
+            <span class="analyticsIcon">📦</span>
+          </div>
+          <div class="analyticsValue" id="kpiTotal">0</div>
+          <p class="analyticsMeta">Completed: <span id="kpiCompletedInline">0</span></p>
+        </div>
+
+        <div class="analyticsCard greenCard">
+          <div class="analyticsCardTop">
+            <h3>Revenue</h3>
+            <span class="analyticsIcon">💷</span>
+          </div>
+          <div class="analyticsValue" id="kpiRevenue">£0</div>
+          <p class="analyticsMeta">Completed only: <span id="kpiCompletedRevenue">£0</span></p>
+        </div>
+
+        <div class="analyticsCard purpleCard">
+          <div class="analyticsCardTop">
+            <h3>Unique Customers</h3>
+            <span class="analyticsIcon">👥</span>
+          </div>
+          <div class="analyticsValue" id="kpiCustomers">0</div>
+          <p class="analyticsMeta">Loyalty pts awarded: <span id="kpiPoints">0</span></p>
+        </div>
+
+        <div class="analyticsCard redCard">
+          <div class="analyticsCardTop">
+            <h3>Cancellations</h3>
+            <span class="analyticsIcon">❌</span>
+          </div>
+          <div class="analyticsValue" id="kpiCancelled">0</div>
+          <p class="analyticsMeta">Rate: <span id="kpiCancelRate">0%</span></p>
+        </div>
       </section>
 
-      <section class="chart-grid">
-        <div class="card"><canvas id="statusChart"></canvas></div>
-        <div class="card"><canvas id="serviceChart"></canvas></div>
-        <div class="card"><canvas id="locationChart"></canvas></div>
-        <div class="card"><canvas id="dayChart"></canvas></div>
-        <div class="card"><canvas id="timeSlotChart"></canvas></div>
-        <div class="card"><canvas id="pointsChart"></canvas></div>
-      </section>
+      <!-- Charts -->
+      <div class="analyticsChartsGrid">
+        <div class="analyticsChartBox">
+          <h3>Orders by status</h3>
+          <canvas id="chartStatus" height="260"></canvas>
+        </div>
+        <div class="analyticsChartBox">
+          <h3>Revenue over time</h3>
+          <canvas id="chartRevenue" height="260"></canvas>
+        </div>
+        <div class="analyticsChartBox">
+          <h3>Orders by service</h3>
+          <canvas id="chartService" height="260"></canvas>
+        </div>
+        <div class="analyticsChartBox">
+          <h3>Orders by location</h3>
+          <canvas id="chartLocation" height="260"></canvas>
+        </div>
+        <div class="analyticsChartBox">
+          <h3>Busiest time slots</h3>
+          <canvas id="chartTimeSlot" height="260"></canvas>
+        </div>
+        <div class="analyticsChartBox">
+          <h3>Top customers</h3>
+          <canvas id="chartCustomers" height="260"></canvas>
+        </div>
+      </div>
+
     </section>
   </main>
 
-<script type="module" src="./analytics.js"></script>
+  <script type="module" src="./analytics.js"></script>
 </body>
 </html>

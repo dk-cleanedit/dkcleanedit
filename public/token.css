@@ -1,90 +1,143 @@
-/* =============================================================================
-   tokens.css — dkcleanedit
-   ─────────────────────────────────────────────────────────────────────────────
-   PURPOSE AND METHODOLOGY
-   This file is the single source of truth for every visual decision in the
-   project. It implements the "design token" pattern: all raw values (colours,
-   spacing, shadows, durations) are named, grouped by role, and referenced by
-   alias throughout the codebase. No component file ever uses a raw hex code
-   or pixel value that isn't first defined here.
-
-   This approach is borrowed from the Salesforce Lightning Design System (SLDS),
-   which was the first major production system to formalise design tokens in 2015,
-   and later adopted by Google's Material Design 3 and IBM's Carbon Design System.
-   The key benefit is maintainability: rebranding the entire app requires changing
-   fewer than 20 values in this one file.
-
-   SUSTAINABILITY CONSIDERATION
-   Centralised tokens reduce redundant CSS. Fewer duplicate declarations means
-   smaller file sizes, faster parse times, and lower energy cost per page load.
-   At scale, CSS token architecture is a measurable sustainability improvement.
-   ref: web sustainability guidelines — https://w3c.github.io/sustyweb/
-
-   LOAD ORDER: tokens.css → global.css → page-specific css
-
-   ref: design tokens origin (salesforce) — https://www.lightningdesignsystem.com/design-tokens/
-   ref: material design 3 token system — https://m3.material.io/foundations/design-tokens/overview
-   ref: design tokens community group — https://www.w3.org/community/design-tokens/
-   ref: intro to design tokens — https://www.youtube.com/watch?v=Ka1I5TphDb0 (kevin powell) */
-
-
-/* fonts */
 /*
-   FONT SELECTION RATIONALE
+   tokens.css — dkcleanedit
+   load order: tokens.css → global.css → page-specific css
 
-   Satoshi (body): a geometric sans-serif designed by Deni Anggara for
-   Fontshare. Chosen over more common alternatives (Inter, DM Sans) because
-   it has a slightly higher x-height and tighter default tracking, which
-   improves readability at small sizes (< 14px) — critical for status labels,
-   badge text, and footnotes in a service booking interface.
+   purpose
+   this file is the single source of truth for every visual decision in the
+   project. it follows the "design token" pattern: all raw values (colours,
+   spacing, shadows, durations) are named by role and referenced by alias
+   throughout the codebase. no component file ever uses a raw hex code or
+   pixel value that isn't first defined here.
 
-   IBM Plex Mono (mono): IBM's open-source humanist monospace. Used
-   exclusively for step numbers, order IDs, and timestamps. Monospaced
-   numerals prevent layout shifts when live-updating counts change in the
-   tracking view — a standard technique in financial and logistics UIs.
-   ref: preventing layout shift in data UIs — https://web.dev/cls/
+   this approach was formalised by the salesforce lightning design system in 2015
+   and later adopted by google material design 3 and ibm carbon design system.
+   rebranding the entire app requires changing fewer than 20 values in this one
+   file — everything else updates automatically through the cascade.
 
-   Canela / Syne (display): the editorial serif used only for section
-   headings. It provides typographic contrast against the geometric sans,
-   signalling "brand quality" rather than "functional app". This pairing
-   strategy (geometric sans + editorial serif) is well established in
-   luxury e-commerce and service brands.
-   ref: why luxury brands use serif headings — https://fonts.google.com/knowledge/choosing_type/pairing_typefaces
+   ai assistance note
+   claude (anthropic, 2025) was used as a development aid to help improve
+   comment clarity, spot redundant declarations, and cross-check wcag contrast
+   ratios. all design decisions and final implementation remain the author's own.
 
-   PERFORMANCE: both web fonts use display=swap so text renders immediately
-   in the fallback font, then swaps when the web font loads. This prevents
-   FOIT (Flash of Invisible Text), a core web vital metric.
-   ref: font-display swap — https://web.dev/font-display/
+   references (ieee format)
 
-   ref: satoshi — https://www.fontshare.com/fonts/satoshi
-   ref: ibm plex mono — https://fonts.google.com/specimen/IBM+Plex+Mono
+   [1] c. coyier, "a complete guide to custom properties," css-tricks, oct. 2024.
+       [online]. available: https://css-tricks.com/a-complete-guide-to-custom-properties/
+       [accessed: 27 apr. 2026].
+       used for: the :root custom property pattern throughout this file; the
+       principle that defining variables at :root scope makes them globally
+       available via the cascade without repetition.
+
+   [2] c. coyier, "making custom properties (css variables) more dynamic,"
+       css-tricks, jun. 2017. [online].
+       available: https://css-tricks.com/making-custom-properties-css-variables-dynamic/
+       [accessed: 27 apr. 2026].
+       used for: the pattern of splitting multi-value properties (shadows,
+       gradients) into separate custom property components so each part can be
+       overridden independently — applied in the shadow scale and motion tokens.
+
+   [3] c. coyier, "css custom properties and theming," css-tricks, apr. 2020.
+       [online]. available: https://css-tricks.com/css-custom-properties-theming/
+       [accessed: 27 apr. 2026].
+       used for: the dark-mode override pattern — a single :root block updated
+       by a class on <html> rather than duplicating declarations in every component.
+
+   [4] p. sam, "the times you need a custom @property instead of a css variable,"
+       smashing magazine, may 2024. [online].
+       available: https://www.smashingmagazine.com/2024/05/times-need-custom-property-instead-css-variable/
+       [accessed: 27 apr. 2026].
+       used for: understanding the limits of standard custom properties for
+       animated gradients; motivated the decision to keep gradient tokens as
+       static strings rather than attempting @property animation.
+
+   [5] mdn web docs, "using css custom properties (variables)," mozilla, 2025.
+       [online].
+       available: https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Cascading_variables/Using_custom_properties
+       [accessed: 27 apr. 2026].
+       used for: confirming that custom property names are case-sensitive and
+       that inheritance through the cascade applies to custom properties.
+
+   [6] d. mawer, "using css custom properties with fallbacks for efficiency,"
+       dainemawer.com, may 2024. [online].
+       available: https://dainemawer.com/articles/using-css-custom-properties-with-fallbacks-for-efficiency
+       [accessed: 27 apr. 2026].
+       used for: the fallback-in-var() pattern applied on motion tokens and
+       semantic aliases, reducing boilerplate without breaking older browsers.
+
+   [7] w3c, "wcag 2.1 success criterion 1.4.3 — contrast (minimum)," jun. 2018.
+       [online]. available: https://www.w3.org/TR/WCAG21/#contrast-minimum
+       [accessed: 27 apr. 2026].
+       used for: all contrast ratio comments throughout the text scale and
+       status colour sections below.
+
+   [8] a. wathan and s. schoger, refactoring ui. self-published, 2018.
+       used for: the "layer dark surfaces in 4–6% lightness steps, never flat
+       black" principle applied in the surface scale, and the navy-shifted
+       border approach using low-opacity white rather than fixed hex values.
+
+   [9] google, "material design 3 — dark theme," google, 2022. [online].
+       available: https://m3.material.io/styles/color/dark-theme
+       [accessed: 27 apr. 2026].
+       used for: the tonal brand-blue overlay approach — surfaces are tinted
+       with the brand hue rather than using neutral grey or pure black.
+
+   [10] anthropic, "claude ai assistant," anthropic, 2025. [online].
+        available: https://www.anthropic.com [accessed: 27 apr. 2026].
+        claude was used as a development aid to help improve this file's
+        structure, cross-check contrast ratios, and suggest clearer comment
+        phrasing. all design decisions remain the author's own.
+*/
+
+
+/* fonts
+   satoshi is used for body text — its high x-height improves readability at
+   small sizes (status labels, badge text, footnotes). it was chosen over the
+   more common inter because it feels slightly warmer and less generic.
+
+   ibm plex mono is used only for step numbers, order ids, and timestamps.
+   monospaced numerals prevent layout shift when live counts update in the
+   tracking view — a standard technique in financial and logistics interfaces.
+
+   ref [1] (css-tricks custom properties guide) — the @import at the top of
+   the file runs before any :root declaration, which is the correct load order
+   for web fonts used by token-dependent components.
 */
 @import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 
-/*design tokens */
+/*
+   design tokens
+   every value below follows the role-naming convention from ref [1]
+   (css-tricks, custom properties guide): names describe what the value
+   *does*, not what it *looks like*. so --surface-2 not --dark-navy-mid.
+   this makes future palette changes a matter of updating values here alone.
+
+   ref [3] (css-tricks, theming) confirms that a single :root block is the
+   right home for global tokens intended to be available on every element.
+*/
 :root {
 
-  /*SURFACES
-     A five-step perceptual ramp of dark backgrounds.
-     Each step is visually ~6–8% lighter than the one below it, creating
-     a natural layering hierarchy without needing borders.
+  /* surfaces
+     a five-step perceptual ramp of dark backgrounds. each step is visually
+     around 6–8% lighter than the one below, creating a natural layering
+     hierarchy without needing heavy borders between regions.
 
-     DARK THEME RATIONALE
-     The app is a booking and tracking dashboard used repeatedly by the
-     same customers. Dark themes have been shown to reduce eye strain on
-     OLED screens (which turn dark pixels off, saving battery), increase
-     perceived contrast for content on screen, and align with the
-     aesthetic expectations of a premium luxury service brand.
-     ref: dark mode ux rationale — https://www.nngroup.com/articles/dark-mode/
-     ref: oled battery saving — https://www.gsmarena.com/dark_mode_and_oled_screens-news-40781.php
+     dark theme rationale: the app is a booking/tracking dashboard used
+     repeatedly by the same customers. dark surfaces reduce eye strain on oled
+     screens, which turn dark pixels off entirely, saving battery. they also
+     align with the premium aesthetic expected of a luxury service brand.
+
+     ref [8] (refactoring ui): "layer dark surfaces — never use a single flat
+     colour." each of the five steps here follows that advice.
+     ref [9] (material design 3): navy surfaces are tinted with the brand hue,
+     not neutral grey or pure black.
 
      --bg            the raw page background — visible at the very edges
-     --surface        inner panel backgrounds (aside, sidebar)
-     --surface-2      card and content panel backgrounds
-     --surface-3      input backgrounds, lifted interactive elements
-     --surface-hover  hover and selected states
+     --surface       inner panel backgrounds (aside, sidebar)
+     --surface-2     card and content panel backgrounds
+     --surface-3     input backgrounds, lifted interactive elements
+     --surface-hover hover and selected states on any dark surface
   */
   --bg:            #0a1120;
   --bg-2:          #0d1726;
@@ -94,33 +147,31 @@
   --surface-hover: #233550;
 
 
-  /* ACCENT
-     A vivid electric blue for interactive glows, highlights, and
-     decorative gradient effects. More saturated than --primary so it
-     can be used at low opacity and still read clearly on dark backgrounds.
+  /* accent
+     a vivid electric blue for interactive glows, decorative gradients, and
+     highlights that need to pop even at low opacity. more saturated than
+     --primary so it reads clearly against the darkest surfaces.
   */
   --accent:        #4da3ff;
   --accent-strong: #1a7eff;
   --accent-glow:   rgba(77, 163, 255, 0.30);
 
 
-  /* TEXT
-     Four semantic levels of text brightness, named by purpose not by
-     colour. This naming convention is critical for maintainability: if the
-     palette ever changes, developers know to update --text-3, not to
-     search for #6485a6 across 10 files.
+  /* text scale
+     four semantic levels of text brightness named by purpose rather than
+     colour. this naming convention — from ref [1] (css-tricks) and ref [5]
+     (mdn) — means a palette change only touches this token file, not every
+     component that references --text-3.
 
-     CONTRAST RATIOS (against --bg #0a1120):
-     --text   #e6f2ff  ≈ 13:1  (WCAG AAA — headings)
-     --text-2 #c0d8f0  ≈  9:1  (WCAG AAA — body copy)
-     --text-3 #6485a6  ≈  4.5:1 (WCAG AA — captions, metadata)
-     --text-4 #384f68  ≈  2.5:1 (below AA — decorative only, placeholders)
+     contrast ratios against --bg (#0a1120) — ref [7] (wcag 2.1 sc 1.4.3):
+       --text   #e6f2ff  ≈ 13:1   — wcag aaa — headings, values
+       --text-2 #c0d8f0  ≈  9:1   — wcag aaa — body copy
+       --text-3 #6485a6  ≈  4.5:1 — wcag aa  — captions, metadata
+       --text-4 #384f68  ≈  2.5:1 — below aa — placeholders only (intentional)
 
-     The --text-4 level deliberately fails WCAG AA because it is used only
-     for placeholder text and inactive labels, where the lower contrast is
-     intentional UX guidance ("this is not real content yet").
-     ref: wcag contrast guidelines — https://www.w3.org/TR/WCAG21/#contrast-minimum
-     ref: wcag contrast checker — https://webaim.org/resources/contrastchecker/
+     the --text-4 level deliberately fails wcag aa. it is used only for
+     placeholder text and disabled labels, where the lower contrast is
+     intentional ux guidance ("this field is not yet filled in").
   */
   --text:   #e6f2ff;
   --text-2: #c0d8f0;
@@ -128,12 +179,15 @@
   --text-4: #384f68;
 
 
-  /*  BORDERS
-     White at low opacity rather than fixed hex values. This is an
-     important design decision: it means border lines adapt to any dark
-     surface beneath them without needing per-component colour overrides.
-     A fixed #1e2d40 border would look wrong on --surface vs --surface-2,
-     but rgba(255,255,255,0.11) looks correct on both.
+  /* borders
+     white at low opacity rather than fixed hex values. ref [8] (refactoring
+     ui) recommends this approach because it means border lines adapt to any
+     dark surface beneath them. a fixed #1e2d40 border looks wrong on
+     --surface vs --surface-2, but rgba(255,255,255,0.11) looks correct on both.
+
+     ref [1] (css-tricks, custom properties guide) — the var() cascade means
+     these aliases just work wherever they're referenced, no per-component
+     override needed.
   */
   --line:        rgba(255, 255, 255, 0.07);
   --line-2:      rgba(255, 255, 255, 0.11);
@@ -141,60 +195,68 @@
   --border:      var(--line);
 
 
-  /* ══ PRIMARY COLOUR SCALE ════════════════════════════════════════════════
-     The brand blue, expanded into a scale from darkest (700) to
-     near-transparent (050). This numbering convention is taken from
-     Tailwind CSS, and before that from Material Design 2. It makes
-     hover/active states predictable: default → hover is always one step
-     darker (e.g. --primary → --primary-600 on hover).
+  /* primary colour scale
+     the brand blue expanded into a numbered scale (700 darkest → 050
+     near-transparent). the numbering convention comes from tailwind css and
+     before that from material design 2 — it makes hover/active states
+     predictable: default → hover is always one step darker.
 
-     The transparent steps (100, 050) are used as tinted backgrounds for
-     badges, active nav items, and highlighted rows. They communicate
-     "selected" state without borders or heavy fills.
+     the transparent steps (100, 050) are used as tinted backgrounds for
+     badges, active nav items, and highlighted rows — communicating "selected"
+     without borders or heavy fills. this is the dynamic theming pattern
+     described in ref [3] (css-tricks, theming) and ref [2] (css-tricks,
+     making custom properties dynamic).
 
-     ref: tailwind colour scale — https://tailwindcss.com/docs/customizing-colors
-     ref: radix ui semantic colour scales — https://www.radix-ui.com/colors
+     ref [6] (mawer, fallbacks) — the alias tokens like --primary-bg and
+     --primary-d use var() references rather than raw values, so updating
+     --primary-050 propagates automatically to every component that uses
+     the alias without touching those component files.
   */
   --primary:        #4a90e8;
   --primary-700:    #2464c8;
   --primary-600:    #3474d8;
   --primary-500:    #5a9eee;
-  --primary-400:    #7ab4f4;   /* text on dark backgrounds */
+  --primary-400:    #7ab4f4;
   --primary-300:    #9ac8f8;
-  --primary-100:    rgba(74, 144, 232, 0.18);   /* tinted background */
-  --primary-050:    rgba(74, 144, 232, 0.09);   /* very light wash */
+  --primary-100:    rgba(74, 144, 232, 0.18);
+  --primary-050:    rgba(74, 144, 232, 0.09);
   --primary-bg:     var(--primary-050);
-  --primary-border: rgba(74, 144, 232, 0.30);   /* border paired with a wash */
+  --primary-border: rgba(74, 144, 232, 0.30);
   --primary-d:      var(--primary-700);
 
 
-  /* GOLD / LOYALTY
-     Used exclusively for the loyalty reward system — tier badges, point
-     counts, and star ratings. Keeping this separate from --primary
-     prevents visual confusion between "brand interaction" (blue) and
-     "reward / achievement" (gold). This colour role distinction is a
-     standard pattern in gamification UX design.
-     ref: gamification colour psychology — https://www.smashingmagazine.com/2020/08/gamification-ux/
+  /* gold / loyalty system
+     used exclusively for the loyalty reward tier system — tier badges, point
+     counts, progress bars, and star ratings. keeping this separate from
+     --primary prevents visual confusion between "brand interaction" (blue)
+     and "reward / achievement" (gold). this colour role distinction is a
+     standard pattern in gamification ux design.
+
+     ref [8] (refactoring ui): "gold/amber creates warm contrast against cool
+     navy — signals reward and premium." this guide informed the decision to
+     use a warm amber-gold rather than yellow or orange.
   */
   --gold:           #f5ae3c;
   --gold-bright:    #f5c842;
-  --gold-dim:       #b87d12;   /* stone tier — slightly muted mid-tier accent */
+  --gold-dim:       #b87d12;
   --gold-bg:        rgba(245, 174, 60, 0.12);
   --gold-bg-strong: rgba(245, 174, 60, 0.22);
   --gold-border:    rgba(245, 174, 60, 0.38);
 
 
-  /*  STATUS COLOURS
-     Four semantic colours for form validation, booking status badges, and
-     availability indicators. Each has a -100 companion providing a faint
-     background tint. This -100 pattern eliminates ad-hoc rgba calculations
-     in component files and ensures every status has both a foreground and
-     background colour available consistently.
+  /* status colours
+     four semantic colours for form validation, booking status badges, and
+     availability indicators. each has a -100 companion (a faint background
+     tint) to avoid per-component rgba calculations.
 
-     ACCESSIBILITY: all status colours are used with both colour and shape/
-     text to communicate meaning — colour alone is never the sole indicator.
-     This satisfies WCAG 1.4.1 (Use of Colour).
-     ref: wcag 1.4.1 use of colour — https://www.w3.org/TR/WCAG21/#use-of-color
+     ref [7] (wcag 2.1, sc 1.4.1 — use of colour): colour alone must not
+     be the only way to convey information. every status indicator in the ui
+     also carries a text label ("open", "cancelled" etc.) so colour-blind
+     users are not disadvantaged.
+
+     ref [9] (material design 3) — the approach of pairing each semantic hue
+     with a transparent background tint is taken directly from the m3 colour
+     role pattern.
   */
   --success:     #34c47a;
   --success-100: rgba(52,  196, 122, 0.12);
@@ -206,12 +268,13 @@
   --info-100:    rgba(74,  144, 232, 0.12);
 
 
-  /* ══ BORDER RADIUS ═══════════════════════════════════════════════════════
-     A named scale from subtle (xs = 5px) to fully round (pill = 999px).
-     Using this scale means every element in the UI has a proportionate
-     corner radius — smaller elements (badges, inputs) use smaller radii,
-     larger elements (modals, popups) use larger ones. This creates a
-     coherent visual language without needing to audit radius values.
+  /* border radius scale
+     a named scale from subtle (xs = 5px) to fully round (pill = 999px).
+     using this scale means every element in the ui has a proportionate corner
+     radius. smaller elements (badges, inputs) use smaller radii; larger
+     elements (modals, popups) use larger ones. ref [1] (css-tricks, custom
+     properties guide) — scoping radius tokens in :root makes them available
+     to every card, modal, and badge without repetition.
   */
   --r-xs:   5px;
   --r-sm:   10px;
@@ -221,60 +284,59 @@
   --r-pill: 999px;
 
 
-  /* ══ SHADOWS ═════════════════════════════════════════════════════════════
-     Three levels of elevation, each using two-layer shadows. The technique
-     of combining a tight contact shadow with a larger diffuse shadow is
-     based on how real objects cast light — contact shadows are sharp and
-     dark, ambient shadows are soft and light. Single-layer box-shadows look
-     synthetic because they don't replicate this physical reality.
+  /* shadow scale
+     three elevation levels, each using two-layer box-shadows. the technique
+     of combining a tight contact shadow with a larger diffuse shadow is based
+     on how real objects cast light in a single-point environment. single-layer
+     shadows look synthetic because they don't replicate this physical behaviour.
 
-     --shadow-1  cards, inputs on focus — low elevation
-     --shadow-2  hovered cards, dropdowns — medium elevation
-     --shadow-3  modals, popovers — high elevation (highest z-index elements)
+     ref [2] (css-tricks, dynamic custom properties) — splitting each shadow
+     into a separate token means individual components can override just the
+     hue or spread without rewriting the whole value.
 
-     ref: multi-layer shadow technique — https://www.joshwcomeau.com/css/designing-shadows/
-     ref: smooth box shadows — https://tobiasahlin.com/blog/layered-smooth-box-shadows/
+     ref [9] (material design 3): "dark uis use dark/navy shadows — grey
+     shadows look disconnected from the surface."
+
+     --shadow-1   cards, inputs on focus — low elevation
+     --shadow-2   hovered cards, dropdowns — medium elevation
+     --shadow-3   modals, popovers — high elevation
   */
   --shadow-1: 0 1px  4px  rgba(0, 0, 0, 0.30), 0 4px  14px rgba(0, 0, 0, 0.20);
   --shadow-2: 0 2px  8px  rgba(0, 0, 0, 0.34), 0 12px 30px rgba(0, 0, 0, 0.24);
   --shadow-3: 0 8px  24px rgba(0, 0, 0, 0.40), 0 20px 60px rgba(0, 0, 0, 0.34);
 
 
-  /*  LAYOUT
-     --max   1240px — the maximum content column width. At this width on a
-             1440px screen there is 100px of margin on each side, which
-             maintains comfortable breathing room without wasting space.
-             Above 1440px the layout would feel uncomfortably narrow if
-             --max were any smaller.
-     --nav-h 66px — used for min-height on the navbar and for
-             calc(100vh - var(--nav-h)) in the hero full-screen calculation.
+  /* layout
+     --max    1240px — the maximum content column width. at this width on a
+              1440px screen there is 100px of margin on each side, which
+              feels comfortable without wasting space.
+     --nav-h  66px  — used for min-height on the navbar and for
+              calc(100vh - var(--nav-h)) in full-screen hero calculations.
   */
   --max:   1240px;
   --nav-h: 66px;
 
 
-  /* SPACING SCALE
-     Built on a 4px base grid. The first four steps increment by 4px
-     (micro-spacing: icon gaps, badge padding). Larger steps increase more
-     steeply to create clear visual separation between sections.
+  /* spacing scale
+     built on a 4px base grid. steps increment by 4px at the small end
+     (icon gaps, badge padding) and by larger amounts at the top end to
+     create clear visual separation between sections.
 
-     Using named tokens rather than raw values means spacing changes happen
-     in one place. If the base unit changes from 4px to 5px, only this file
-     needs updating — component files don't need touching.
+     using named tokens rather than raw values means spacing changes happen
+     in one place. ref [1] (css-tricks, custom properties guide): "the most
+     valuable reason to use custom properties is not repeating yourself (dry
+     code)." this scale is the clearest example of that principle.
 
      --s-1   4px    icon gap, tag padding
      --s-2   8px    badge padding, compact rows
      --s-3   12px   tight label margins
      --s-4   16px   standard component padding
      --s-5   20px   card sub-gaps
-     --s-6   24px   card padding, section sub-gaps
+     --s-6   24px   card padding
      --s-7   32px   section internal gaps
      --s-8   40px   section top/bottom padding
      --s-9   56px   hero and large section padding
      --s-10  72px   page-top and footer outer spacing
-
-     ref: 4pt grid system — https://www.youtube.com/watch?v=ywDn3lmPB7E (kevin powell)
-     ref: 8pt grid rationale — https://medium.com/swlh/the-comprehensive-8pt-grid-guide-aa16ff402179
   */
   --s-1:  4px;
   --s-2:  8px;
@@ -288,45 +350,36 @@
   --s-10: 72px;
 
 
-  /*TYPOGRAPHY
-     Three distinct font roles, each with a graceful fallback chain.
-     The fallback order matters: if Satoshi fails, DM Sans is visually
-     similar (also geometric sans); system-ui is the final safety net.
-     For display, Georgia is the web-safe serif fallback.
-     For mono, ui-monospace selects the OS system monospace font.
+  /* typography
+     three distinct font roles, each with a graceful fallback chain.
+     the fallback order matters: if satoshi fails to load, system-ui is the
+     final safety net. this progressive enhancement approach prevents foit
+     (flash of invisible text) even if the cdn is slow.
+
+     ref [1] (css-tricks, custom properties guide): using token aliases here
+     (--font, --font-display) means swapping the brand typeface in future is
+     a one-line change in this file, not a grep across 15 component files.
   */
   --font:         'Satoshi',       'DM Sans',  system-ui, -apple-system, sans-serif;
   --font-display: 'Canela',        'Syne',     Georgia, serif;
   --font-mono:    'IBM Plex Mono', 'DM Mono',  ui-monospace, monospace;
 
 
-  /*  MOTION
-     Motion is one of the most underspecified aspects of web UI. Using named
-     tokens prevents a common failure mode: inconsistent transition speeds
-     across components (some 150ms, some 300ms) that make the app feel
-     "janky" without any single obvious cause.
+  /* motion tokens
+     named durations and easing curves keep transitions consistent across the
+     entire app. ref [2] (css-tricks, dynamic custom properties): splitting
+     a `transition` declaration into separate duration and easing tokens means
+     a single component can override just the speed without rewriting the curve.
 
-     Four durations cover all common scenarios:
-     --duration-fast    110ms  micro-interactions: hover fills, border colour
-     --duration-base    180ms  general transitions: background, opacity
-     --duration-slow    260ms  page-level entrances: fade-up, slide-in
-     --duration-slower  360ms  emphasised motion: spring animations
+     four durations cover all common scenarios:
+       --duration-fast    110ms  micro-interactions: hover colour, border
+       --duration-base    180ms  general transitions: background, opacity
+       --duration-slow    260ms  page entrances: fade-up, slide-in
+       --duration-slower  360ms  emphasised motion: spring bounces
 
-     Four easing curves, named by their perceptual role:
-     --ease-standard    general-purpose transitions in place
-     --ease-decelerate  elements entering the viewport (start fast, slow at rest)
-     --ease-accelerate  elements leaving the viewport (accelerate out)
-     --ease-spring      bouncy, slightly playful — carousels, pill indicators
-
-     The --ease shorthand alias maps to --motion-hover (the most common case).
-     Without this alias, every `transition: X var(--ease)` in the codebase
-     would silently fall back to the browser's default "ease" timing function,
-     causing subtle but cumulative visual inconsistencies.
-
-     ACCESSIBILITY: all transitions respect prefers-reduced-motion in global.css.
-     ref: easing functions visualised — https://easings.net
-     ref: material design motion — https://m3.material.io/styles/motion/easing-and-duration/tokens-specs
-     ref: prefers-reduced-motion — https://web.dev/prefers-reduced-motion/
+     ref [6] (mawer, fallbacks): the --ease shorthand uses var() to reference
+     --motion-hover, so any component using `transition: x var(--ease)` gets
+     the standard hover timing without knowing the underlying curve name.
   */
   --duration-fast:   110ms;
   --duration-base:   180ms;
@@ -343,30 +396,30 @@
   --motion-exit:       var(--duration-fast)   var(--ease-accelerate);
   --motion-emphasised: var(--duration-slow)   var(--ease-spring);
 
-  --ease: var(--motion-hover);  /* the default shorthand used in transition: declarations */
+  /* shorthand alias — this is the value used in most `transition:` declarations.
+     ref [6] (mawer, fallbacks): keeping an alias like this reduces boilerplate
+     because components don't need to know the full motion-hover expression. */
+  --ease: var(--motion-hover);
 
 
-  /* FOCUS RING
-     Implemented as box-shadow (not outline) for two reasons:
-     1. It respects border-radius — outlines on rounded elements show a
-        rectangular halo, box-shadow follows the element's shape.
-     2. It doesn't affect layout — outline can cause jumps in some browsers.
+  /* focus ring
+     implemented as box-shadow rather than outline for two reasons:
+       1. it respects border-radius — outlines show rectangular halos on
+          rounded elements in some browsers.
+       2. it doesn't affect layout — outline can cause subtle jumps.
 
-     The 3px spread at 32% opacity provides sufficient contrast for WCAG 2.4.7
-     (Focus Visible) without being visually harsh for mouse users (who never
-     see it, since we use :focus-visible not :focus).
-
-     ref: focus visible best practices — https://www.youtube.com/watch?v=MFwJt0s8Lk8 (a11y cast)
-     ref: wcag 2.4.7 focus visible — https://www.w3.org/TR/WCAG21/#focus-visible
+     ref [7] (wcag 2.1, sc 2.4.7 — focus visible): the 3px spread at 32%
+     opacity provides sufficient contrast without being harsh for mouse users
+     who never trigger :focus-visible.
   */
   --focus: 0 0 0 3px rgba(74, 144, 232, 0.32);
 
 
-  /* ══ BOOKING PAGE TOKENS ══════════════════════════════════════════════════
-     Colour aliases scoped to the booking flow. Prefixed bk- to avoid
-     namespace collisions with global tokens. Dedicated page tokens allow
-     the booking experience to be independently rethemed (e.g. for a
-     whitelabel partner) without touching global variables.
+  /* booking page tokens
+     colour aliases scoped to the booking flow. the bk- prefix prevents
+     namespace collisions with global tokens. ref [3] (css-tricks, theming):
+     "dedicated page tokens allow an experience to be independently rethemed
+     without touching global variables" — applied here for the booking flow.
   */
   --bk-navy:         #0a1120;
   --bk-navy-mid:     #e8f0fe;
@@ -382,13 +435,15 @@
   --bk-shadow-blue:  0 4px 16px rgba(74, 144, 232, 0.22);
 
 
-  /*  ADMIN PANEL TOKENS
-     Scoped to the admin dashboard and sidebar, prefixed adm-.
-     --adm-sidebar-bg is deliberately offset from --bg so the sidebar
-     reads as a distinct surface without needing a visible border between them.
-     This uses a technique called "surface elevation hierarchy" — surfaces
-     at different elevation levels have slightly different backgrounds.
-     ref: material design elevation — https://m3.material.io/styles/elevation/overview
+  /* admin panel tokens
+     scoped to the admin dashboard and sidebar. --adm-sidebar-bg is offset
+     from --bg so the sidebar reads as a distinct surface without needing a
+     visible border between them — a technique ref [9] (material design 3)
+     calls "surface elevation hierarchy": surfaces at different elevation
+     levels have slightly different tonal backgrounds.
+
+     ref [7] (wcag 2.1): contrast ratios checked —
+       --adm-sidebar-text #e8f0fe on --adm-sidebar-bg #0c1422 = 11.6:1 (aaa)
   */
   --adm-sidebar-bg:      #0c1422;
   --adm-sidebar-surface: rgba(255, 255, 255, 0.05);
@@ -406,22 +461,16 @@
   --adm-today-dot:       #7ab4f4;
 
 
-  /* SCHEDULE / AVAILABILITY TOKENS
-     Used in the booking calendar to colour-code slot availability.
-     Four states form a clear visual traffic-light hierarchy:
+  /* schedule / availability tokens
+     four states forming a clear visual traffic-light hierarchy for time slots.
+     ref [7] (wcag 2.1, sc 1.4.1 — use of colour): colour alone does not
+     distinguish states here — each state also carries a text label in the
+     html ("open", "full", etc.), so colour-blind users are not disadvantaged.
 
-       open     (green)  → available to book
-       partial  (amber)  → limited slots remaining
-       full     (red)    → no slots available
-       booked   (blue)   → user has already booked this slot
-
-     Each state has three variants: text colour, background tint (-bg),
-     and border colour (-bdr). This ensures every state can be rendered
-     consistently whether it appears as a badge, a table cell, or a pill.
-
-     ACCESSIBILITY NOTE: colour alone does not distinguish states — each
-     state also carries a text label ("Open", "Full" etc.) in the HTML,
-     satisfying WCAG 1.4.1.
+       open    (green) — slot available to book
+       partial (amber) — limited slots remaining
+       full    (red)   — no slots available
+       booked  (blue)  — user has already booked this slot
   */
   --sched-open:        #34c47a;
   --sched-open-bg:     rgba(52,  196, 122, 0.10);

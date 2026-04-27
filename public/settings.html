@@ -1,151 +1,291 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+<!--
+  settings.html — DKcleanedit Account Settings
+  References:
+  [1] Bootdey "Profile Edit Settings" —
+      https://www.bootdey.com/snippets/view/profile-edit-settings
+      (Accessed: 27 Apr. 2026). Avatar-left / form-right layout adapted.
+  [2] MDN FileReader — https://developer.mozilla.org/en-US/docs/Web/API/FileReader
+  [3] Firebase Storage — https://firebase.google.com/docs/storage
+-->
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Settings</title>
-
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Settings | DKcleanedit</title>
   <script>
     if (localStorage.getItem("theme") === "dark") {
       document.documentElement.classList.add("dark-mode");
     }
   </script>
-    <link rel="stylesheet" href="token.css">
-<link rel="stylesheet" href="global.css">
-<link rel="stylesheet" href="auth.css">
+  <link rel="stylesheet" href="token.css" />
+  <link rel="stylesheet" href="global.css" />
+  <link rel="stylesheet" href="auth.css" />
+  <style>
+    /* Bootdey profile-edit-settings layout — Ref [1] */
+    .settings-wrap {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 28px;
+      padding-block: 2rem;
+      align-items: start;
+    }
+    @media (max-width: 640px) { .settings-wrap { grid-template-columns: 1fr; } }
+
+    .settings-sidebar-card {
+      text-align: center;
+      padding: 28px 20px;
+    }
+    .s-avatar {
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--line-2);
+      margin-bottom: 14px;
+    }
+    .s-name  { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .s-email { font-size: 0.8rem; color: var(--text-3); word-break: break-all; margin-bottom: 14px; }
+    .s-tier  {
+      display: inline-block;
+      padding: 3px 12px;
+      border-radius: var(--r-pill);
+      background: var(--primary-050);
+      color: var(--primary-400);
+      font-size: 0.72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.04em;
+      margin-bottom: 14px;
+    }
+    .s-pts-row { border-top: 1px solid var(--line); padding-top: 12px; }
+    .s-pts-num { font-size: 1.6rem; font-weight: 800; color: var(--text); }
+    .s-pts-lbl { font-size: 0.72rem; color: var(--text-3); }
+
+    /* upload label — Ref [1] (Bootdey avatar upload) */
+    .s-upload-label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--primary-400);
+      cursor: pointer;
+      text-decoration: underline;
+      margin-bottom: 6px;
+    }
+    .s-upload-input { display: none; }
+    .s-upload-feedback { font-size: 0.72rem; color: var(--text-3); min-height: 16px; }
+
+    /* Right panel */
+    .settings-panel-card { padding: 28px; }
+    .settings-tabs {
+      display: flex;
+      gap: 4px;
+      border-bottom: 2px solid var(--line);
+      margin-bottom: 24px;
+    }
+    .settings-tab {
+      background: none; border: none;
+      border-bottom: 3px solid transparent;
+      padding: 8px 14px;
+      font-size: 0.88rem; font-weight: 600;
+      color: var(--text-3);
+      cursor: pointer;
+      margin-bottom: -2px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .settings-tab:hover { color: var(--text); }
+    .settings-tab.active { color: var(--primary-400); border-bottom-color: var(--primary); }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .s-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 16px; }
+    .s-label {
+      font-size: 0.75rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.04em;
+      color: var(--text-3);
+    }
+    .s-input {
+      padding: 10px 14px;
+      border: 1.5px solid var(--line-2);
+      border-radius: 10px;
+      background: var(--surface-3);
+      color: var(--text);
+      font-size: 0.92rem;
+      transition: border-color 0.15s;
+    }
+    .s-input:focus { outline: none; border-color: var(--primary); }
+    .s-input[readonly] { opacity: 0.5; cursor: default; }
+
+    .s-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 480px) { .s-row { grid-template-columns: 1fr; } }
+
+    .s-save-row {
+      display: flex; align-items: center; gap: 14px;
+      margin-top: 20px; padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+    .s-status { font-size: 0.84rem; flex: 1; }
+
+    .appearance-row {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+      gap: 16px;
+    }
+    .appearance-row:last-child { border-bottom: none; }
+    .ar-title { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+    .ar-sub   { font-size: 0.78rem; color: var(--text-3); margin-top: 2px; }
+  </style>
 </head>
 <body>
+
   <nav class="navbar" aria-label="Primary">
     <ul class="nav-links">
       <li class="nav-logo">
-        <a href="home.html" aria-label="Go to home">
-          <img src="videos/logo.png" class="logo" alt="DKCleanEdit Logo" />
+        <a href="home.html" aria-label="DKcleanedit home">
+          <img src="videos/logo.png" class="logo" alt="DKcleanedit logo" />
         </a>
       </li>
-
-      <li><a href="home.html" id="navHome">Home</a></li>
-      <li><a href="booking.html" id="navBooking" data-requires-auth="true">Booking</a></li>
-      <li><a href="track.html" id="navTracking" data-requires-auth="true">Tracking</a></li>
-      <li><a href="admin.html" id="navAdmin" data-requires-auth="true">Admin</a></li>
-      <li><a href="login.html" id="navLogin">Login</a></li>
+      <li><a href="home.html"     id="navHome">Home</a></li>
+      <li><a href="booking.html"  id="navBooking"  data-requires-auth="true">Booking</a></li>
+      <li><a href="track.html"    id="navTracking" data-requires-auth="true">Tracking</a></li>
+      <li><a href="customer.html" id="navAccount"  data-requires-auth="true">My Account</a></li>
+      <li><a href="admin.html"    id="navAdmin"    data-requires-auth="true" hidden>Admin</a></li>
+      <li><a href="schedule.html" id="navSchedule" data-requires-auth="true" hidden>Schedule</a></li>
+      <li><a href="analytics.html"id="navAnalytics"data-requires-auth="true" hidden>Analytics</a></li>
+      <li><a href="login.html"    id="navLogin">Login</a></li>
       <li><a href="register.html" id="navRegister">Register</a></li>
-      <li><a href="#" id="navLogout" hidden>Logout</a></li>
-      <li><span id="navPointsBadge" class="badge" hidden>Points: 0</span></li>
+      <li><a href="#"             id="navLogout" hidden>Logout</a></li>
       <li>
-        <a href="settings.html" aria-current="page" aria-label="Settings">
-          <img
-            class="PicSettings"
-            src="https://img.icons8.com/ios-filled/100/666666/settings.png"
-            alt="Settings"
-          />
+        <span id="navPointsBadge" class="badge info points-badge" hidden>0 pts</span>
+      </li>
+      <li>
+        <a href="settings.html" aria-label="Settings" aria-current="page">
+          <img class="PicSettings"
+               src="https://img.icons8.com/ios-filled/100/666666/settings.png"
+               alt="" aria-hidden="true" />
         </a>
       </li>
     </ul>
   </nav>
 
-  <main class="container page-shell settings-page">
-    <section class="card account-card">
-      <div class="stack-sm">
-        <span class="eyebrow">Account Settings</span>
-        <h1>Change your settings</h1>
-        <p class="sub">
-          Update your profile information, manage your password, and customise your appearance.
-        </p>
+  <main class="container" style="padding-block:0 3rem;">
+    <div class="stack-sm" style="padding-top:2rem;margin-bottom:0;">
+      <p class="eyebrow">Account</p>
+      <h1>Settings</h1>
+    </div>
+
+    <!-- Two-column layout — Ref [1] (Bootdey profile-edit-settings) -->
+    <div class="settings-wrap">
+
+      <!-- Left: avatar sidebar -->
+      <div class="card settings-sidebar-card">
+        <img
+          id="sAvatarImg"
+          src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+          alt="Your profile picture"
+          class="s-avatar"
+        />
+        <p class="s-name"  id="sDisplayName">—</p>
+        <p class="s-email" id="sDisplayEmail">—</p>
+        <span class="s-tier" id="sDisplayTier">Carbon</span>
+        <div class="s-pts-row">
+          <div class="s-pts-num" id="sDisplayPoints">0</div>
+          <div class="s-pts-lbl">loyalty pts</div>
+        </div>
+
+        <!-- Avatar upload — Ref [2] (MDN FileReader), Ref [3] (Firebase Storage) -->
+        <label class="s-upload-label" for="sAvatarInput" style="margin-top:16px;">
+          Change photo
+        </label>
+        <input type="file" id="sAvatarInput" class="s-upload-input"
+               accept="image/jpeg,image/png,image/webp"
+               aria-label="Upload profile picture" />
+        <p class="s-upload-feedback" id="sUploadFeedback"></p>
       </div>
 
-      <div class="stats-grid profile-grid">
-        <article class="stat">
-          <div class="stat-title">Name</div>
-          <div class="stat-value" id="custName">-</div>
-        </article>
+      <!-- Right: tabbed panels -->
+      <div class="card settings-panel-card">
 
-        <article class="stat stat-avatar">
-          <div class="stat-title">Profile picture</div>
+        <div class="settings-tabs" role="tablist">
+          <button class="settings-tab active" data-panel="panelProfile"
+                  role="tab" aria-selected="true">Profile</button>
+          <button class="settings-tab" data-panel="panelPassword"
+                  role="tab" aria-selected="false">Password</button>
 
-          <div class="avatar-wrap">
-            <img
-              id="custAvatar"
-              src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
-              class="profile-avatar"
-              alt="Profile picture"
-            />
+        </div>
+
+        <!-- Profile tab -->
+        <div class="tab-panel active" id="panelProfile" role="tabpanel">
+          <div class="s-row">
+            <div class="s-field">
+              <label class="s-label" for="sName">Full name</label>
+              <input id="sName" class="s-input" type="text"
+                     autocomplete="name" placeholder="Your name" />
+            </div>
+            <div class="s-field">
+              <label class="s-label" for="sPhone">Phone</label>
+              <input id="sPhone" class="s-input" type="tel"
+                     autocomplete="tel" placeholder="+44 7700 000000" />
+            </div>
           </div>
-
-          <label for="avatarUpload" class="btn secondary upload-btn">Upload picture</label>
-          <input
-            type="file"
-            accept="image/*"
-            class="profile-upload"
-            id="avatarUpload"
-          />
-
-          <div class="stat-meta" id="custPicture">No file selected</div>
-        </article>
-
-        <article class="stat">
-          <div class="stat-title">Email</div>
-          <div class="stat-value" id="custEmail">-</div>
-        </article>
-
-        <article class="stat">
-          <div class="stat-title">Loyalty Points</div>
-          <div class="stat-value" id="custPoints">0</div>
-        </article>
-      </div>
-    </section>
-
-    <section class="card password-card">
-      <div class="stack-sm">
-        <h2>Change password</h2>
-        <p class="sub">Enter your current password first, then choose a new one.</p>
-      </div>
-
-      <form class="settings-form" id="passwordForm" novalidate>
-        <div class="form-group">
-          <label for="curPass">Current password</label>
-          <input
-            id="curPass"
-            type="password"
-            name="currentPassword"
-            autocomplete="current-password"
-            placeholder="Enter current password"
-          />
+          <div class="s-field">
+            <label class="s-label" for="sEmail">
+              Email <span style="font-weight:400;text-transform:none;">(read-only)</span>
+            </label>
+            <input id="sEmail" class="s-input" type="email" readonly aria-readonly="true" />
+          </div>
+          <div class="s-row">
+            <div class="s-field">
+              <label class="s-label" for="sTier">Tier</label>
+              <input id="sTier" class="s-input" type="text" readonly aria-readonly="true" />
+            </div>
+            <div class="s-field">
+              <label class="s-label" for="sPoints">Points</label>
+              <input id="sPoints" class="s-input" type="text" readonly aria-readonly="true" />
+            </div>
+          </div>
+          <div class="s-save-row">
+            <button id="btnSaveProfile" class="btn primary" type="button">Save changes</button>
+            <p id="profileMsg" class="s-status" role="status" aria-live="polite"></p>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="newPass">New password</label>
-          <input
-            id="newPass"
-            type="password"
-            name="newPassword"
-            autocomplete="new-password"
-            placeholder="Enter new password"
-          />
+        <!-- Password tab -->
+        <div class="tab-panel" id="panelPassword" role="tabpanel">
+          <p class="sub" style="margin-bottom:20px;">
+            Must be at least 8 characters. Enter your current password first.
+          </p>
+          <div class="s-field">
+            <label class="s-label" for="curPass">Current password</label>
+            <input id="curPass" class="s-input" type="password"
+                   autocomplete="current-password" placeholder="Current password" />
+          </div>
+          <div class="s-row">
+            <div class="s-field">
+              <label class="s-label" for="newPass">New password</label>
+              <input id="newPass" class="s-input" type="password"
+                     autocomplete="new-password" placeholder="Min 8 characters" minlength="8" />
+            </div>
+            <div class="s-field">
+              <label class="s-label" for="confirmPass">Confirm</label>
+              <input id="confirmPass" class="s-input" type="password"
+                     autocomplete="new-password" placeholder="Repeat new password" />
+            </div>
+          </div>
+          <div class="s-save-row">
+            <button id="btnChangePass" class="btn primary" type="button">Update password</button>
+            <p id="passMsg" class="s-status" role="status" aria-live="polite"></p>
+            <p id="msg" style="display:none;" aria-live="polite"></p>
+          </div>
         </div>
 
-        <button id="btnChangePass" class="btn primary full" type="button">
-          Update password
-        </button>
+          </div>
+        </div>
 
-        <p class="form-message sub" id="passMsg" aria-live="polite"></p>
-        <p class="form-message" id="msg" aria-live="polite"></p>
-      </form>
-    </section>
+      </div>
+    </div>
   </main>
 
-  <aside class="theme-switcher">
-    <div class="theme-switcher__text">Background colour</div>
-    <input type="checkbox" class="switch" id="themeToggle" />
-    <label for="themeToggle" class="Darkmode" aria-label="Toggle dark mode"></label>
-  </aside>
-
   <script type="module" src="./app.js"></script>
-  <script type="module" src="./theme.js"></script>
-  <script type="module" src="./tracking.js"></script>
-  <script>
-    if (typeof initSettings === "function") {
-      initSettings();
-    }
-  </script>
 </body>
 </html>

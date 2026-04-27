@@ -1,41 +1,118 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Tracking | DKcleanedit</title>
 
+  <!--
+    REFERENCES (IEEE format)
+
+    [1] Bootdey (n.d.) "Shop Order Tracking." Available at:
+        https://www.bootdey.com/snippets/view/Shop-Order-Tracking
+        [Accessed: 27 Apr. 2026].
+        The order status progress tracker layout and tracking card
+        structure on this page were informed by this reference.
+        All HTML and CSS is original work.
+
+    [2] Bootdey (n.d.) "Order details." Available at:
+        https://www.bootdey.com/snippets/view/order-details
+        [Accessed: 27 Apr. 2026].
+        The order lookup card (Find order / Latest order / Refresh
+        action row) and the selected-order detail panel layout were
+        informed by this reference. All code is original.
+
+    [3] Bootdey (n.d.) "Services section page." Available at:
+        https://www.bootdey.com/snippets/view/services-section-page
+        [Accessed: 27 Apr. 2026].
+        The FAQ accordion section (details/summary elements) at the
+        bottom of this page was informed by this reference.
+
+    [4] MDN Web Docs (n.d.) "HTMLElement.hidden." Available at:
+        https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/hidden
+        [Accessed: 27 Apr. 2026].
+        Used for: nav links shown/hidden per role by app.js setupNav(),
+        and the signupOverlay hidden attribute toggled by initTracking().
+
+    [5] MDN Web Docs (n.d.) "Using ARIA." Available at:
+        https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA
+        [Accessed: 27 Apr. 2026].
+        Used for: aria-live="polite" on #orders and
+        #trackingSelectedOrder so screen readers announce order updates,
+        and role="dialog" on the sign-in overlay.
+
+    [6] Anthropic (2025) Claude AI Assistant. Available at:
+        https://www.anthropic.com [Accessed: 27 Apr. 2026].
+        Used as a development aid for debugging and code structure
+        guidance. All final implementation decisions remain the
+        author's own.
+
+    [7] ProjectWorlds (n.d.) "Order Tracking System with Source Code."
+        Available at:
+        https://projectworlds.com/500-coding-projects-with-source-code/
+        [Accessed: 27 Apr. 2026].
+        The order status progress-bar and tracking page flow rendered
+        by renderProgress() and initTracking() in app.js were informed
+        by this reference.
+  -->
+
+  <!-- Flash-prevention: apply saved theme before first paint — no FOUC -->
   <script>
     if (localStorage.getItem("theme") === "dark") {
       document.documentElement.classList.add("dark-mode");
     }
   </script>
-    <!-- EmailJS -->
+
+  <!-- EmailJS — used by app.js for notification emails (not Twilio) -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <script>(function(){ emailjs.init({ publicKey: "v1GO4hYhLibhbnt_N" }); })();</script>
+  <script>
+    (function () { emailjs.init({ publicKey: "v1GO4hYhLibhbnt_N" }); })();
+  </script>
+
+  <link rel="stylesheet" href="token.css" />
+  <link rel="stylesheet" href="global.css" />
+  <link rel="stylesheet" href="order-tracking.css" />
 </head>
 
-  <link rel="stylesheet" href="token.css">
-<link rel="stylesheet" href="global.css">
-<link rel="stylesheet" href="order-tracking.css">
-</head>
 <body>
-  <nav class="navbar">
+
+  <!-- ══════════════════════════════════════════════════════════
+       NAVIGATION BAR
+       Links shown/hidden by setupNav() in app.js.
+       Ref [4] MDN HTMLElement.hidden.
+  ══════════════════════════════════════════════════════════════ -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
     <ul class="nav-inner">
+
       <li class="nav-logo">
-        <a href="home.html">
+        <a href="home.html" aria-label="DKcleanedit — go to homepage">
           <img src="videos/logo.png" class="logo" alt="DKcleanedit" />
         </a>
       </li>
-      <li><a href="home.html" id="navHome">Home</a></li>
-      <li><a href="booking.html" id="navBooking" data-requires-auth="true">Booking</a></li>
-      <li><a href="track.html" id="navTracking" data-requires-auth="true" aria-current="page">Tracking</a></li>
-      <li><a href="customer.html" id="navAccount" data-requires-auth="true">My Account</a></li>
-      <li><a href="admin.html" id="navAdmin" data-requires-auth="true">Admin</a></li>
-      <li><a href="login.html" id="navLogin">Login</a></li>
+
+      <li><a href="home.html"     id="navHome">Home</a></li>
+      <li><a href="booking.html"  id="navBooking"  data-requires-auth="true">Booking</a></li>
+      <li>
+        <a href="track.html" id="navTracking" data-requires-auth="true"
+           aria-current="page">Tracking</a>
+      </li>
+      <li><a href="customer.html" id="navAccount"  data-requires-auth="true">My Account</a></li>
+      <li><a href="admin.html"    id="navAdmin"    data-requires-auth="true">Admin</a></li>
+      <li><a href="login.html"    id="navLogin">Login</a></li>
       <li><a href="register.html" id="navRegister">Register</a></li>
-      <li><a href="#" id="navLogout" hidden>Logout</a></li>
-      <li><span id="navPointsBadge" class="badge info points-badge" hidden>Points: 0</span></li>
+      <li><a href="#"             id="navLogout"   hidden>Logout</a></li>
+
+      <li>
+        <!-- Points badge — shown for customers, filled by setupNav() -->
+        <span
+          id="navPointsBadge"
+          class="badge info points-badge"
+          hidden
+          aria-live="polite"
+          aria-label="Loyalty points"
+        >Points: 0</span>
+      </li>
+
       <li>
         <a href="settings.html" aria-label="Settings">
           <img
@@ -45,33 +122,64 @@
           />
         </a>
       </li>
+
     </ul>
   </nav>
 
-  <div id="signupOverlay" class="overlay" hidden>
+
+  <!-- ══════════════════════════════════════════════════════════
+       SIGN-IN OVERLAY
+       Shown by initTracking() when no user is authenticated.
+       Closed by wireOverlay() in app.js.
+       Ref [5] MDN ARIA — role="dialog", aria-modal.
+       Ref [4] MDN HTMLElement.hidden — hidden attribute toggled by JS.
+  ══════════════════════════════════════════════════════════════ -->
+  <div
+    id="signupOverlay"
+    class="overlay"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="overlayHeading"
+    hidden
+  >
     <div class="popup">
-      <h2>Sign in to track</h2>
+      <h2 id="overlayHeading">Sign in to track</h2>
       <p>Create an account to book services and track your orders.</p>
       <div class="popup-actions">
-        <a class="btn primary" href="login.html">Log in</a>
+        <a class="btn primary"   href="login.html">Log in</a>
         <a class="btn secondary" href="register.html">Register</a>
-        <button id="closePopupBtn" class="btn" type="button">Close</button>
+        <button id="closePopupBtn" class="btn" type="button"
+                aria-label="Close sign-in prompt">Close</button>
       </div>
     </div>
   </div>
 
-  <main class="container tracking-page">
-    <section class="tracking-hero">
-      <h1>Track your order</h1>
+
+  <!-- ══════════════════════════════════════════════════════════
+       MAIN CONTENT
+  ══════════════════════════════════════════════════════════════ -->
+  <main class="container tracking-page" id="main">
+
+    <!-- Hero section -->
+    <section class="tracking-hero" aria-labelledby="trackHeading">
+      <h1 id="trackHeading">Track your order</h1>
       <p class="sub">
-        Follow every stage of your restoration in real time, from collection to delivery.
+        Follow every stage of your restoration in real time,
+        from collection to delivery.
       </p>
-      <div class="hero-glow hero-glow--blue"></div>
-      <div class="hero-glow hero-glow--gold"></div>
+      <div class="hero-glow hero-glow--blue"  aria-hidden="true"></div>
+      <div class="hero-glow hero-glow--gold"  aria-hidden="true"></div>
     </section>
 
-    <section class="g2 tracking-top">
+
+    <!-- ── Order lookup card ─────────────────────────────────────
+         Layout informed by Ref [2] Bootdey "Order details".
+         IDs required by app.js: trackOrderSearch, btnFindOrder,
+           btnShowLatest, btnRefresh, trackLookupMsg.
+    ──────────────────────────────────────────────────────────── -->
+    <section class="g2 tracking-top" aria-label="Find a specific order">
       <div class="card lookup-card">
+
         <div class="card-mini-title">Find an order</div>
 
         <div class="field">
@@ -81,71 +189,129 @@
             type="text"
             placeholder="e.g. Firestore order ID"
             autocomplete="off"
+            aria-describedby="trackLookupMsg"
           />
         </div>
 
         <div class="action-row">
-          <button class="btn primary" id="btnFindOrder" type="button">Find order</button>
-          <button class="btn secondary" id="btnShowLatest" type="button">Latest order</button>
-          <button class="btn" id="btnRefresh" type="button">Refresh</button>
+          <button class="btn primary"   id="btnFindOrder"   type="button">Find order</button>
+          <button class="btn secondary" id="btnShowLatest"  type="button">Latest order</button>
+          <button class="btn"           id="btnRefresh"     type="button">Refresh</button>
         </div>
 
-        <p id="trackLookupMsg" class="helper-msg"></p>
+        <p id="trackLookupMsg" class="helper-msg" aria-live="polite"></p>
+
       </div>
     </section>
 
-    <section id="trackingSelectedOrder" class="selected-order" aria-live="polite"></section>
 
+    <!-- ── Selected order detail panel ──────────────────────────
+         Populated by initTracking() in app.js when a specific order
+         is looked up. Progress bar rendered by renderProgress().
+         Ref [1] Bootdey "Shop Order Tracking" — progress tracker layout.
+         Ref [7] ProjectWorlds — progress bar flow informed by this.
+         Ref [5] MDN ARIA — aria-live so updates are announced.
+    ──────────────────────────────────────────────────────────── -->
+    <section
+      id="trackingSelectedOrder"
+      class="selected-order"
+      aria-live="polite"
+      aria-label="Selected order detail"
+    ></section>
+
+
+    <!-- ── My orders + sidebar ──────────────────────────────────
+         #orders list injected by initTracking() → renderOrderCard().
+         Ref [1] Bootdey "Shop Order Tracking" — order card layout.
+         Ref [5] MDN ARIA — aria-live on #orders.
+    ──────────────────────────────────────────────────────────── -->
     <section class="g2 tracking-main">
+
       <div class="card">
         <div class="section-top">
           <h2 class="section-title">My orders</h2>
         </div>
 
-        <div id="orders" class="orders-grid" aria-live="polite"></div>
-        <p id="msg" class="helper-msg"></p>
+        <div
+          id="orders"
+          class="orders-grid"
+          aria-live="polite"
+          aria-label="Your orders"
+        ></div>
+
+        <p id="msg" class="helper-msg" role="alert" aria-live="assertive"></p>
       </div>
 
+
+      <!-- Sidebar: notify + FAQ -->
       <div class="side-stack">
+
+        <!-- Notify me card -->
         <div class="card">
           <div class="card-mini-title">Notify me</div>
 
           <div class="field">
             <label for="notifyEmail">Email for updates</label>
-            <input id="notifyEmail" type="email" placeholder="you@email.com" />
+            <input
+              id="notifyEmail"
+              type="email"
+              placeholder="you@email.com"
+              autocomplete="email"
+            />
           </div>
 
-          <button class="btn primary full" id="btnNotify" type="button">Subscribe</button>
-          <p id="notifyMsg" class="helper-msg small"></p>
+          <button class="btn primary full" id="btnNotify" type="button">
+            Subscribe
+          </button>
+          <p id="notifyMsg" class="helper-msg small" aria-live="polite"></p>
         </div>
 
-        <div class="card">
+
+        <!-- FAQ accordion
+             Ref [3] Bootdey "Services section page" — accordion layout informed
+             by this reference. HTML uses native details/summary elements.
+        -->
+        <div class="card" aria-label="Frequently asked questions">
           <div class="card-mini-title">FAQ</div>
 
           <div class="faq-list">
+
             <details class="faq-item">
               <summary>How long does a clean take?</summary>
-              <p class="sub">Standard cleans take 24–48 hours. Express is same-day.</p>
+              <p class="sub">
+                Standard cleans take 24–48 hours. Express is same-day.
+              </p>
             </details>
 
             <details class="faq-item">
               <summary>Can I cancel my order?</summary>
-              <p class="sub">You can cancel up to 24 hours before your scheduled slot.</p>
+              <p class="sub">
+                You can cancel up to 24 hours before your scheduled slot.
+              </p>
             </details>
 
             <details class="faq-item">
               <summary>How are points awarded?</summary>
               <p class="sub">
-                Points are credited when your order reaches Completed status. Tiers:
-                Carbon (50–99), Stone (100–499), Pearl (500+).
+                Points are credited when your order reaches Completed status.
+                Tiers: Carbon (0–99 pts), Stone (100–499 pts), Pearl (500+ pts).
               </p>
             </details>
+
           </div>
         </div>
+
       </div>
     </section>
+
   </main>
 
+
+  <!-- ══════════════════════════════════════════════════════════
+       SCRIPTS
+       app.js calls initTracking() which wires all tracking logic.
+       theme.js applies the user's saved colour scheme preference.
+  ══════════════════════════════════════════════════════════════ -->
   <script type="module" src="./app.js"></script>
   <script type="module" src="./theme.js"></script>
 

@@ -1,39 +1,29 @@
 <!doctype html>
 <html lang="en">
+<!--
+  admin_account.html — DKcleanedit Staff Management
+  References:
+  [1] Firebase Firestore — https://firebase.google.com/docs/firestore
+-->
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Staff | DKcleanedit</title>
-
   <script>
     if (localStorage.getItem("theme") === "dark") {
       document.documentElement.classList.add("dark-mode");
     }
   </script>
+  <link rel="stylesheet" href="token.css" />
+  <link rel="stylesheet" href="global.css" />
+  <link rel="stylesheet" href="admin.css" />
   <link rel="stylesheet" href="staff.css" />
-  <link rel="stylesheet" href="styles.css" />
-
-
-  <!-- ── EmailJS ──────────────────────────────────────────────────
-       Must load here in <head>, BEFORE app.js, so that window.emailjs
-       exists when app.js runs and sets window.sendStaffShiftEmail.
-       If this loads after app.js the shift email function will throw
-       "EmailJS not loaded" on the first click.
-       📺 EmailJS setup → https://www.youtube.com/watch?v=RPhHqEBjCOk
-  ── -->
-  <script type="text/javascript"
-          src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
-  </script>
-  <script type="text/javascript">
-    // Initialise EmailJS with our public key.
-    // Runs synchronously so emailjs is ready before the page scripts execute.
-    (function(){ emailjs.init({ publicKey: "v1GO4hYhLibhbnt_N" }); })();
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>(function(){ emailjs.init({ publicKey: "v1GO4hYhLibhbnt_N" }); })();</script>
 </head>
+<body class="admin-body">
 
-<body class="staff-body">
-
-  <!-- NAVBAR -->
+  <!-- Navbar — mirrors admin.html exactly -->
   <nav class="navbar" aria-label="Primary">
     <ul class="nav-links">
       <li class="nav-logo">
@@ -41,228 +31,240 @@
           <img src="videos/logo.png" class="logo" alt="DKcleanedit logo" />
         </a>
       </li>
-      <li><a href="home.html"     id="navHome">Home</a></li>
-      <li><a href="booking.html"  id="navBooking"  data-requires-auth="true">Booking</a></li>
-      <li><a href="track.html"    id="navTracking" data-requires-auth="true">Tracking</a></li>
-      <li><a href="customer.html" id="navAccount"  data-requires-auth="true">My Account</a></li>
-      <li><a href="admin.html"    id="navAdmin"    data-requires-auth="true">Admin</a></li>
-      <li><a href="schedule.html" id="navSchedule" data-requires-auth="true">Schedule</a></li>
-      <li><a href="staff.html"    id="navStaff"    data-requires-auth="true" aria-current="page">Staff</a></li>
-      <li><a href="login.html"    id="navLogin">Login</a></li>
-      <li><a href="register.html" id="navRegister">Register</a></li>
-      <li><a href="#"             id="navLogout" hidden>Logout</a></li>
-      <li><span id="navPointsBadge" class="badge info points-badge" hidden>Points: 0</span></li>
+      <li><a href="admin.html"         id="navAdmin">Orders</a></li>
+      <li><a href="schedule.html"      id="navSchedule">Schedule</a></li>
+      <li><a href="analytics.html"     id="navAnalytics">Analytics</a></li>
+      <li><a href="admin_account.html" id="navStaff" aria-current="page">Staff</a></li>
+      <li><a href="#"                  id="navLogout" hidden>Logout</a></li>
       <li>
-        <a href="settings.html" aria-label="Settings">
-          <img class="settings-icon"
-               src="https://img.icons8.com/ios-filled/100/666666/settings.png"
-               alt="Settings" />
-        </a>
+        <span id="navPointsBadge" class="badge info points-badge" hidden>0 pts</span>
       </li>
     </ul>
   </nav>
 
-  <main class="staff-shell">
+  <main class="container admin-layout">
 
-    <!-- PAGE HEADER -->
-    <header class="staff-hero">
-      <div class="staff-hero-text">
-        <h1 class="staff-title">Staff Management</h1>
-        <p class="staff-subtitle">Assign roles, locations, and shifts for your team.</p>
+    <!-- Sidebar — matches admin.html including debug block -->
+    <aside class="card admin-sidebar">
+      <div class="admin-brand">
+        <div class="brand-title">DKcleanedit</div>
+        <div class="sub">Staff management</div>
       </div>
-      <div class="staff-hero-links">
-        <a href="admin.html"    class="btn primary">Admin panel</a>
-        <a href="schedule.html" class="btn secondary">View schedule</a>
-      </div>
-    </header>
 
-    <!-- QUICK STATS -->
-    <div class="staff-stats-row">
-      <div class="staff-stat">
-        <span class="stat-number" id="statTotalStaff">0</span>
-        <span class="stat-label">Total staff</span>
+      <!-- Admin profile — populated by initStaff() -->
+      <div class="admin-profile" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line);">
+        <p id="adminName"  style="font-weight:500;margin:0 0 2px;">—</p>
+        <p id="adminEmail" class="sub" style="margin:0 0 8px;">—</p>
+        <button id="btnEditAdmin" class="btn" style="font-size:0.8rem;padding:4px 10px;">Edit profile</button>
       </div>
-      <div class="staff-stat">
-        <span class="stat-number" id="statActiveStaff">0</span>
-        <span class="stat-label">Active today</span>
-      </div>
-      <div class="staff-stat">
-        <span class="stat-number" id="statOffStaff">0</span>
-        <span class="stat-label">Off today</span>
-      </div>
-      <div class="staff-stat">
-        <span class="stat-number" id="statShiftsToday">0</span>
-        <span class="stat-label">Shifts assigned</span>
-      </div>
-    </div>
 
-    <div class="staff-layout">
+      <nav class="admin-side-nav" style="margin-top:14px;">
+        <a class="admin-side-link"        href="admin.html">Orders</a>
+        <a class="admin-side-link"        href="schedule.html">Schedule</a>
+        <a class="admin-side-link"        href="analytics.html">Analytics</a>
+        <a class="admin-side-link active" href="admin_account.html">Staff</a>
+      </nav>
 
-      <!-- LEFT: Admin card + add staff -->
-      <aside class="staff-sidebar">
+      <!-- Debug info — mirrors admin.html -->
+      <div class="admin-debug sub" style="margin-top:auto;padding-top:16px;border-top:1px solid var(--line);">
+        <div>UID: <span id="debugUid">—</span></div>
+        <div>Role: <span id="debugRole">—</span></div>
+      </div>
+    </aside>
 
-        <!-- Admin profile card -->
-        <section class="admin-card card" id="adminCard">
-          <h2 class="section-title">Admin</h2>
-          <div class="admin-profile">
-            <img class="avatar-img"
-                 src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
-                 alt="Admin avatar"
-                 width="60" height="60" />
-            <div class="admin-info">
-              <h3 class="admin-name" id="adminName">—</h3>
-              <p class="admin-email" id="adminEmail">—</p>
-              <p class="admin-access">All locations · Full access</p>
+    <!-- Main panel -->
+    <div class="admin-main">
+
+      <!-- Stats row — IDs match updateStats() in staff.js -->
+      <div class="admin-stats">
+        <div class="card admin-stat-box">
+          <div class="admin-stat-lbl">Total</div>
+          <div class="admin-stat-val" id="statTotalStaff">—</div>
+        </div>
+        <div class="card admin-stat-box">
+          <div class="admin-stat-lbl">Active</div>
+          <div class="admin-stat-val" id="statActiveStaff">—</div>
+        </div>
+        <div class="card admin-stat-box">
+          <div class="admin-stat-lbl">Off today</div>
+          <div class="admin-stat-val" id="statOffStaff">—</div>
+        </div>
+        <div class="card admin-stat-box">
+          <div class="admin-stat-lbl">Shifts assigned</div>
+          <div class="admin-stat-val" id="statShiftsToday">—</div>
+        </div>
+      </div>
+
+      <!-- Tabs — mirrors admin.html tab pattern -->
+      <div class="admin-tabs" role="tablist">
+        <button class="admin-tab active" data-tab="list"   role="tab" aria-selected="true">Staff list</button>
+        <button class="admin-tab"        data-tab="add"    role="tab" aria-selected="false">Add member</button>
+      </div>
+
+      <!-- Search / filter toolbar — IDs match applyFilters() in staff.js -->
+      <div class="admin-toolbar">
+        <input  id="staffSearch"         class="admin-search" type="search"
+                placeholder="Search name or email…" aria-label="Search staff" />
+        <select id="staffFilterRole"     class="admin-filter" aria-label="Filter by role">
+          <option value="all">All roles</option>
+          <option value="cleaning">Shoe cleaning</option>
+          <option value="pickup">Shoe pickup</option>
+          <option value="delivery">Deliver shoes</option>
+          <option value="both">Pickup + cleaning</option>
+          <option value="manager">Floor manager</option>
+        </select>
+        <select id="staffFilterLocation" class="admin-filter" aria-label="Filter by location">
+          <option value="all">All locations</option>
+          <option value="leicester">Leicester</option>
+          <option value="canada-water">Canada Water</option>
+        </select>
+      </div>
+
+      <!-- Tab panels -->
+
+      <!-- Staff list panel — id="staffList" matches staff.js -->
+      <div class="admin-tab-panel active" id="tabList">
+        <div id="staffList" class="orders-grid">
+          <div class="order-card"><div class="order-title">Loading staff…</div></div>
+        </div>
+        <p id="staffEmpty" class="sub" style="padding:1rem;display:none;">No staff match your filters.</p>
+      </div>
+
+      <!-- Add staff panel — input IDs match btnAddStaff handler in staff.js -->
+      <div class="admin-tab-panel" id="tabAdd">
+        <div class="card" style="padding:24px;max-width:560px;">
+          <h3 style="margin:0 0 16px;">New staff member</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div>
+              <label class="sub" for="newStaffName">Name</label>
+              <input id="newStaffName" type="text" class="admin-search"
+                     style="width:100%;margin-top:4px;" placeholder="Full name" />
+            </div>
+            <div>
+              <label class="sub" for="newStaffEmail">Email</label>
+              <input id="newStaffEmail" type="email" class="admin-search"
+                     style="width:100%;margin-top:4px;" placeholder="staff@example.com" />
+            </div>
+            <div>
+              <label class="sub" for="newStaffRole">Role</label>
+              <select id="newStaffRole" class="admin-filter" style="width:100%;margin-top:4px;">
+                <option value="cleaning">Shoe cleaning</option>
+                <option value="pickup">Shoe pickup</option>
+                <option value="delivery">Deliver shoes</option>
+                <option value="both">Pickup + cleaning</option>
+                <option value="manager">Floor manager</option>
+              </select>
+            </div>
+            <div>
+              <label class="sub" for="newStaffLocation">Location</label>
+              <select id="newStaffLocation" class="admin-filter" style="width:100%;margin-top:4px;">
+                <option value="leicester">Leicester</option>
+                <option value="canada-water">Canada Water</option>
+              </select>
+            </div>
+            <div>
+              <label class="sub" for="newStaffStatus">Status</label>
+              <select id="newStaffStatus" class="admin-filter" style="width:100%;margin-top:4px;">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
             </div>
           </div>
-          <div class="admin-btn-row">
-            <button type="button" id="btnEditAdmin" class="btn secondary">Edit profile</button>
-            <a href="admin.html"    class="btn primary">Orders</a>
-            <a href="schedule.html" class="btn secondary">Schedule</a>
-          </div>
-        </section>
-
-        <!-- Add staff form -->
-        <section class="add-staff-card card" id="addStaffCard">
-          <h2 class="section-title">Add new staff</h2>
-
-          <label for="newStaffName">Full name</label>
-          <input type="text"  id="newStaffName"  name="staff_name"  placeholder="e.g. Sam Jones" />
-
-          <label for="newStaffEmail">Email</label>
-          <input type="email" id="newStaffEmail" name="staff_email" placeholder="e.g. sam@kicksco.com" />
-
-          <label for="newStaffRole">Role</label>
-          <select id="newStaffRole" name="staff_role">
-            <option value="pickup">Shoe pickup</option>
-            <option value="delivery">Deliver a pair of shoes</option>
-            <option value="cleaning" selected>Shoe cleaning</option>
-            <option value="both">Pickup + cleaning</option>
-            <option value="manager">Floor manager</option>
-          </select>
-
-          <label for="newStaffLocation">Location</label>
-          <select id="newStaffLocation" name="staff_location">
-            <option value="leicester">Leicester</option>
-            <option value="canada-water">Canada Water</option>
-          </select>
-
-          <label for="newStaffStatus">Status</label>
-          <select id="newStaffStatus" name="staff_status">
-            <option value="active">Active</option>
-            <option value="off">Off today</option>
-          </select>
-
-          <button type="button" id="btnAddStaff" class="btn primary">Add staff member</button>
-        </section>
-
-      </aside>
-
-      <!-- RIGHT: Staff list -->
-      <section class="staff-main">
-
-        <div class="staff-list-header">
-          <h2 class="section-title">Staff</h2>
-          <div class="staff-list-controls">
-            <input type="text" id="staffSearch" placeholder="Search by name or email…" />
-            <select id="staffFilterRole">
-              <option value="all">All roles</option>
-              <option value="pickup">Shoe pickup</option>
-              <option value="delivery">Delivery</option>
-              <option value="cleaning">Shoe cleaning</option>
-              <option value="both">Pickup + cleaning</option>
-              <option value="manager">Floor manager</option>
-            </select>
-            <select id="staffFilterLocation">
-              <option value="all">All locations</option>
-              <option value="leicester">Leicester</option>
-              <option value="canada-water">Canada Water</option>
-            </select>
+          <div style="margin-top:20px;">
+            <button id="btnAddStaff" class="btn primary">Add staff member</button>
           </div>
         </div>
-
-        <!-- Staff cards are injected here by staff.js -->
-        <!-- Starting empty is intentional — the Firestore listener fills it -->
-        <div id="staffList"></div>
-
-        <!-- Shown when search/filter returns no results -->
-        <p class="staff-empty" id="staffEmpty" hidden>No staff members match your search.</p>
-
-      </section>
+      </div>
 
     </div>
   </main>
 
-
-  <!-- ── ASSIGN SHIFT MODAL ──────────────────────────────────────── -->
-  <div id="shiftModal" class="modal-overlay" hidden
-       role="dialog" aria-modal="true" aria-labelledby="shiftModalTitle">
-    <div class="modal-box">
-      <h2 class="modal-title" id="shiftModalTitle">Assign shift</h2>
-
-      <label for="shiftRole">Role</label>
-      <select id="shiftRole" name="role">
-        <option value="pickup">Shoe pickup</option>
-        <option value="delivery">Deliver a pair of shoes</option>
-        <option value="cleaning">Shoe cleaning</option>
-        <option value="both">Pickup + cleaning</option>
-        <option value="manager">Floor manager</option>
-      </select>
-
-      <label for="shiftLocation">Location</label>
-      <select id="shiftLocation" name="location">
-        <option value="leicester">Leicester</option>
-        <option value="canada-water">Canada Water</option>
-      </select>
-
-      <label for="shiftStart">Shift start</label>
-      <input type="time" id="shiftStart" name="shift_start" value="09:00" />
-
-      <label for="shiftEnd">Shift end</label>
-      <input type="time" id="shiftEnd" name="shift_end" value="17:00" />
-
-      <label for="shiftDate">Date</label>
-      <input type="date" id="shiftDate" name="shift_date" />
-
-      <div class="modal-btn-row">
-        <button type="button" id="btnSaveShift"   class="btn primary">Save shift</button>
-        <button type="button" id="btnCancelShift" class="btn secondary">Cancel</button>
+  <!-- ── Shift modal — IDs match openShiftModal() / btnSaveShift in staff.js ── -->
+  <div id="shiftModal" role="dialog" aria-modal="true"
+       aria-labelledby="shiftModalTitle" hidden
+       style="position:fixed;inset:0;background:rgba(0,0,0,.45);
+              display:flex;align-items:center;justify-content:center;z-index:200;">
+    <div class="card" style="width:min(480px,92vw);padding:28px;position:relative;">
+      <h3 id="shiftModalTitle" style="margin:0 0 18px;">Assign shift</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div>
+          <label class="sub" for="shiftRole">Role</label>
+          <select id="shiftRole" class="admin-filter" style="width:100%;margin-top:4px;">
+            <option value="cleaning">Shoe cleaning</option>
+            <option value="pickup">Shoe pickup</option>
+            <option value="delivery">Deliver shoes</option>
+            <option value="both">Pickup + cleaning</option>
+            <option value="manager">Floor manager</option>
+          </select>
+        </div>
+        <div>
+          <label class="sub" for="shiftLocation">Location</label>
+          <select id="shiftLocation" class="admin-filter" style="width:100%;margin-top:4px;">
+            <option value="leicester">Leicester</option>
+            <option value="canada-water">Canada Water</option>
+          </select>
+        </div>
+        <div>
+          <label class="sub" for="shiftDate">Date</label>
+          <input id="shiftDate" type="date" class="admin-search"
+                 style="width:100%;margin-top:4px;" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div>
+            <label class="sub" for="shiftStart">Start</label>
+            <input id="shiftStart" type="time" class="admin-search"
+                   style="width:100%;margin-top:4px;" value="09:00" />
+          </div>
+          <div>
+            <label class="sub" for="shiftEnd">End</label>
+            <input id="shiftEnd" type="time" class="admin-search"
+                   style="width:100%;margin-top:4px;" value="17:00" />
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:20px;">
+        <button id="btnSaveShift"   class="btn primary">Save shift</button>
+        <button id="btnCancelShift" class="btn">Cancel</button>
       </div>
     </div>
   </div>
 
-
-  <!-- ── STAFF HISTORY MODAL ─────────────────────────────────────── -->
-  <div id="historyModal" class="modal-overlay" hidden
-       role="dialog" aria-modal="true" aria-labelledby="historyModalTitle">
-    <div class="modal-box">
-      <h2 class="modal-title" id="historyModalTitle">Shift history</h2>
-      <!-- Content injected by openHistoryModal() in staff.js -->
-      <div id="historyContent">
-        <p class="history-empty">No history available yet.</p>
+  <!-- ── History modal — IDs match openHistoryModal() / closeHistoryModal() ── -->
+  <div id="historyModal" role="dialog" aria-modal="true"
+       aria-labelledby="historyModalTitle" hidden
+       style="position:fixed;inset:0;background:rgba(0,0,0,.45);
+              display:flex;align-items:center;justify-content:center;z-index:200;">
+    <div class="card" style="width:min(600px,94vw);max-height:80vh;
+                             display:flex;flex-direction:column;padding:28px;position:relative;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <h3 id="historyModalTitle" style="margin:0;">Shift &amp; order history</h3>
+        <button id="btnCloseHistory" class="btn" aria-label="Close history">✕</button>
       </div>
-      <div class="modal-btn-row">
-        <button type="button" id="btnCloseHistory" class="btn secondary">Close</button>
+      <div id="historyContent"
+           style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:10px;">
+        <p class="history-empty sub">Loading…</p>
       </div>
     </div>
   </div>
 
-
-  <div id="toastHost"></div>
-
-  <!-- ── SCRIPT LOAD ORDER (this order matters) ────────────────────
-       1. EmailJS SDK + init  ← already loaded in <head> above
-       2. app.js              ← sets window.sendStaffShiftEmail and window._staffList
-       3. staff.js            ← uses window.sendStaffShiftEmail for shift emails
-       4. theme.js            ← dark mode toggle, independent of the others
-
-       ES modules are deferred by default so they run after the HTML is parsed,
-       but they run in the order they appear in the document.
-       📺 Script loading order → https://www.youtube.com/watch?v=BMuFBYw91UQ
-  ── -->
-  <script type="module" src="./app.js"></script>
   <script type="module" src="./staff.js"></script>
-  <script type="module" src="./theme.js"></script>
 
+  <script>
+    /* Tab switching — same pattern as admin.html */
+    document.querySelectorAll(".admin-tab").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".admin-tab").forEach(t => {
+          t.classList.remove("active");
+          t.setAttribute("aria-selected", "false");
+        });
+        document.querySelectorAll(".admin-tab-panel").forEach(p => p.classList.remove("active"));
+        btn.classList.add("active");
+        btn.setAttribute("aria-selected", "true");
+        const key = btn.dataset.tab;
+        const id  = "tab" + key.charAt(0).toUpperCase() + key.slice(1);
+        document.getElementById(id)?.classList.add("active");
+      });
+    });
+  </script>
 </body>
 </html>
