@@ -84,6 +84,7 @@ npx live-server
 |------|-------|-------|
 | Admin | dkcleaneditnotts@gmail.com | Access to orders, schedule, analytics, staff |
 | Customer | Register via `register.html` | Full booking and tracking access |
+ password - danielasouzu
 
 After login, a 4-digit OTP is sent to the email address to complete 2FA before accessing the app.
 
