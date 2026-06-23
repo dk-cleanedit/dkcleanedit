@@ -1,0 +1,573 @@
+/* ═══════════════════════════════════════════════════════════════
+   mobile.css — dkcleanedit
+   Complete mobile design overrides.
+   Load LAST after all other CSS files.
+   ═══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+
+  /* ── NAVBAR ───────────────────────────────────────────────── */
+
+  .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 120;
+    padding: 0;
+  }
+
+  .nav-links,
+  .nav-inner {
+    display:         flex;
+    flex-direction:  row;
+    flex-wrap:       nowrap;
+    align-items:     center;
+    justify-content: space-between;
+    padding:         0 16px;
+    min-height:      60px;
+    gap:             0;
+    width:           100%;
+    margin:          0;
+  }
+
+  /* Logo always visible */
+  .nav-logo {
+    display:     flex !important;
+    align-items: center;
+    flex-shrink: 0;
+    margin-right: auto;
+  }
+
+  .logo {
+    width:  90px;
+    height: auto;
+  }
+
+  /* Hide all nav links by default on mobile */
+  .nav-links li:not(.nav-logo),
+  .nav-inner li:not(.nav-logo) {
+    display: none;
+  }
+
+  /* Show hamburger */
+  .nav-hamburger {
+    display:        flex !important;
+    flex-direction: column;
+    justify-content: center;
+    gap:            5px;
+    width:          44px;
+    height:         44px;
+    padding:        10px;
+    background:     var(--surface-2);
+    border:         1px solid var(--line-2);
+    border-radius:  10px;
+    cursor:         pointer;
+    flex-shrink:    0;
+    z-index:        130;
+    margin-left:    12px;
+  }
+
+  .nav-hamburger span {
+    display:          block;
+    width:            100%;
+    height:           2px;
+    background:       var(--text);
+    border-radius:    2px;
+    transition:       transform 0.3s ease, opacity 0.3s ease;
+    transform-origin: center;
+  }
+
+  /* X animation when open */
+  .nav-mobile-open .nav-hamburger span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+  .nav-mobile-open .nav-hamburger span:nth-child(2) {
+    opacity: 0;
+  }
+  .nav-mobile-open .nav-hamburger span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  /* Full screen menu when open */
+  .nav-mobile-open .nav-links,
+  .nav-mobile-open .nav-inner {
+    flex-direction:  column;
+    align-items:     flex-start;
+    justify-content: flex-start;
+    position:        fixed;
+    top:             60px;
+    left:            0;
+    right:           0;
+    bottom:          0;
+    background:      rgba(8, 14, 26, 0.98);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding:         20px 16px;
+    gap:             4px;
+    overflow-y:      auto;
+    border-top:      1px solid var(--line-2);
+    z-index:         119;
+    min-height:      unset;
+    width:           100%;
+  }
+
+  /* Show all links when menu is open */
+  .nav-mobile-open .nav-links li,
+  .nav-mobile-open .nav-inner li {
+    display: block !important;
+    width:   100%;
+  }
+
+  /* Hide logo from dropdown list */
+  .nav-mobile-open .nav-links .nav-logo,
+  .nav-mobile-open .nav-inner .nav-logo {
+    display: none !important;
+  }
+
+  /* Mobile menu link style */
+  .nav-mobile-open .nav-links a,
+  .nav-mobile-open .nav-inner a {
+    display:       flex;
+    align-items:   center;
+    width:         100%;
+    min-height:    54px;
+    padding:       0 16px;
+    font-size:     1.05rem;
+    font-weight:   600;
+    color:         var(--text-2);
+    border-radius: 10px;
+    border:        1px solid transparent;
+  }
+
+  .nav-mobile-open .nav-links a:hover,
+  .nav-mobile-open .nav-inner a:hover,
+  .nav-mobile-open .nav-links a[aria-current="page"],
+  .nav-mobile-open .nav-inner a[aria-current="page"] {
+    background:   var(--surface-2);
+    border-color: var(--line-2);
+    color:        var(--text);
+  }
+
+  /* Points badge in mobile menu */
+  .nav-mobile-open #navPointsBadge {
+    margin: 8px 0 0 16px;
+  }
+
+
+  /* ── HERO ─────────────────────────────────────────────────── */
+
+  .hero {
+    display:        flex;
+    flex-direction: column;
+    padding:        32px 0 24px;
+    min-height:     unset;
+    gap:            24px;
+    text-align:     center;
+  }
+
+  .hero-copy {
+    align-items: center;
+    gap:         20px;
+  }
+
+  #heroHeading {
+    font-size:   clamp(2.4rem, 10vw, 3.2rem);
+    max-width:   100%;
+    line-height: 1;
+  }
+
+  .hero-sub {
+    font-size: 0.95rem;
+    max-width: 100%;
+    text-align: center;
+  }
+
+  .hero-metrics {
+    flex-direction: column;
+    width:          100%;
+    border-radius:  12px;
+  }
+
+  .metric-pill {
+    padding:    12px 16px;
+    width:      100%;
+  }
+
+  .metric-pill + .metric-pill::before {
+    display: none;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    width:          100%;
+    gap:            10px;
+  }
+
+  .hero-actions .btn {
+    width:      100%;
+    min-height: 52px;
+    font-size:  1rem;
+  }
+
+  /* Hide the floating shoe on small screens */
+  .hero-media {
+    display: none;
+  }
+
+
+  /* ── CONTAINER ────────────────────────────────────────────── */
+
+  .container {
+    width:   calc(100% - 32px);
+    padding: 0;
+  }
+
+  .page-shell {
+    gap:         40px;
+    padding-top: 24px;
+  }
+
+
+  /* ── CARDS ────────────────────────────────────────────────── */
+
+  .home-about {
+    padding: 20px 16px;
+  }
+
+  .home-about p {
+    font-size: 0.92rem;
+  }
+
+
+  /* ── HOW IT WORKS ─────────────────────────────────────────── */
+
+  .steps-grid {
+    grid-template-columns: 1fr;
+    gap:                   16px;
+  }
+
+  .steps-grid::before {
+    display: none;
+  }
+
+  .step-card {
+    flex-direction: row;
+    align-items:    flex-start;
+    gap:            16px;
+    padding:        16px;
+    background:     var(--surface-2);
+    border:         1px solid var(--line);
+    border-radius:  12px;
+  }
+
+  .step-num {
+    width:      44px;
+    height:     44px;
+    font-size:  0.7rem;
+    flex-shrink: 0;
+  }
+
+  .step-card h3 {
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+  }
+
+  .step-card p {
+    font-size: 0.85rem;
+  }
+
+
+  /* ── SERVICE CARDS ────────────────────────────────────────── */
+
+  .serviceFlipGrid {
+    grid-template-columns: 1fr;
+    gap:                   16px;
+  }
+
+  .serviceFlipCard {
+    min-height: unset;
+    perspective: none;
+  }
+
+  .serviceFlipInner {
+    height:          auto;
+    transform-style: flat;
+    transition:      none;
+  }
+
+  /* On mobile show both faces stacked, no flip */
+  .serviceFlipFront,
+  .serviceFlipBack {
+    position: relative;
+    transform: none !important;
+    backface-visibility: visible;
+    -webkit-backface-visibility: visible;
+    border-radius: 16px;
+    inset: unset;
+  }
+
+  .serviceFlipCard:hover .serviceFlipInner {
+    transform: none;
+  }
+
+  .serviceFlipFront {
+    padding:       20px;
+    border-radius: 16px 16px 0 0;
+    border-bottom: none;
+  }
+
+  .serviceFlipBack {
+    border-radius: 0 0 16px 16px;
+    padding:       20px;
+    border-top:    1px solid rgba(255,255,255,0.08);
+  }
+
+  .serviceFlipBackInner {
+    align-items: flex-start;
+  }
+
+  .serviceFlipPrice {
+    font-size: 3rem;
+  }
+
+  .serviceFlipList {
+    width: 100%;
+  }
+
+  .serviceFlipBack .btn {
+    width: 100%;
+  }
+
+
+  /* ── LOYALTY TIERS ────────────────────────────────────────── */
+
+  .tier-cards {
+    grid-template-columns: 1fr;
+    gap:                   16px;
+  }
+
+  .tier-card,
+  .tier-card.tier--stone {
+    transform: none !important;
+  }
+
+  .tier-card:hover,
+  .tier-card.tier--stone:hover {
+    transform: translateY(-4px) !important;
+  }
+
+  .tier-card .tier-head {
+    padding: 20px 16px 16px;
+  }
+
+  .tier-num {
+    font-size: 2rem;
+  }
+
+
+  /* ── TUTORIALS ────────────────────────────────────────────── */
+
+  .tutorial-grid {
+    grid-template-columns: 1fr;
+    gap:                   16px;
+  }
+
+
+  /* ── TESTIMONIALS ─────────────────────────────────────────── */
+
+  .testimonials-grid {
+    grid-template-columns: 1fr;
+    gap:                   16px;
+  }
+
+  .testimonial-card {
+    padding: 20px 16px;
+  }
+
+  .testimonial-quote p {
+    font-size: 0.9rem;
+  }
+
+
+  /* ── BOOKING PAGE ─────────────────────────────────────────── */
+
+  .booking-layout {
+    display:        flex;
+    flex-direction: column-reverse;
+    gap:            20px;
+  }
+
+  .booking-summary {
+    order: -1;
+  }
+
+  .booking-form {
+    order: 1;
+  }
+
+  .booking-hero h1 {
+    font-size: clamp(1.8rem, 7vw, 2.4rem);
+  }
+
+  .svc-opts {
+    grid-template-columns: 1fr;
+    gap:                   10px;
+  }
+
+  .time-slots {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap:     8px;
+  }
+
+  .booking-steps {
+    gap: 8px;
+  }
+
+  .step-label {
+    font-size: 0.75rem;
+  }
+
+  .frow {
+    flex-direction: column;
+    gap:            12px;
+  }
+
+
+  /* ── ORDER TRACKING ───────────────────────────────────────── */
+
+  .order-tracker {
+    grid-template-columns: repeat(4, minmax(44px, 1fr));
+    gap:                   4px;
+    overflow-x:            auto;
+  }
+
+  .label {
+    font-size: 9px;
+    max-width: 52px;
+  }
+
+  .order-card {
+    padding: 14px;
+  }
+
+  .order-top {
+    flex-direction: column;
+    align-items:    flex-start;
+  }
+
+
+  /* ── CUSTOMER ACCOUNT ─────────────────────────────────────── */
+
+  .acct-strip {
+    flex-direction: column;
+    text-align:     center;
+    padding:        20px 16px;
+  }
+
+  .acct-mid {
+    flex-direction: column;
+    gap:            16px;
+  }
+
+  .stat-col {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+
+  /* ── ADMIN PAGES ──────────────────────────────────────────── */
+
+  .admin-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-sidebar {
+    display: none;
+  }
+
+  .admin-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap:                   10px;
+  }
+
+  .admin-toolbar {
+    flex-direction: column;
+    gap:            8px;
+  }
+
+  .admin-toolbar input,
+  .admin-toolbar select {
+    width: 100%;
+  }
+
+
+  /* ── FOOTER ───────────────────────────────────────────────── */
+
+  .site-footer {
+    width:  calc(100% - 32px);
+    margin: 0 auto 40px;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap:                   28px;
+  }
+
+  .footer-tagline {
+    max-width: 100%;
+  }
+
+
+  /* ── BUTTONS ──────────────────────────────────────────────── */
+
+  .btn.full,
+  .hero-actions .btn {
+    width:      100%;
+    min-height: 52px;
+  }
+
+
+  /* ── AUTH PAGES ───────────────────────────────────────────── */
+
+  .auth-card {
+    padding: 24px 20px;
+    margin:  16px;
+  }
+
+  .settings-wrap {
+    grid-template-columns: 1fr;
+  }
+
+  .s-row {
+    grid-template-columns: 1fr;
+  }
+
+
+  /* ── TOAST ────────────────────────────────────────────────── */
+
+  #toastHost {
+    right:  10px;
+    left:   10px;
+    bottom: 80px;
+  }
+
+  .toast {
+    max-width: 100%;
+    width:     100%;
+  }
+
+}
+
+/* Extra small phones */
+@media (max-width: 380px) {
+  #heroHeading {
+    font-size: 2rem;
+  }
+
+  .time-slots {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .admin-stats {
+    grid-template-columns: 1fr;
+  }
+}
