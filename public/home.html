@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>dkcleanedit | luxury sneaker cleaning</title>
-  <meta name="description" content="professional sneaker cleaning and restoration in leicester and london." />
+  <title>DKCleanedit | Sneaker Cleaning &amp; Restoration</title>
+  <meta name="description" content="Professional sneaker cleaning and restoration in Leicester and London. Book online, track in real time, earn loyalty rewards." />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -20,52 +20,48 @@
   <link rel="stylesheet" href="home.css" />
 
   <style>
-    /* ═══════════════════════════════════════════════
-       TOKENS
-    ═══════════════════════════════════════════════ */
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       DESIGN TOKENS
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
     :root {
-      --ink:       #0f0f0f;
-      --ink-2:     #555;
-      --ink-3:     #888;
-      --surface:   #ffffff;
-      --surface-2: #f4f4f4;
-      --surface-3: #ebebeb;
-      --accent:    #0f0f0f;
-      --accent-fg: #ffffff;
+      --ink:       #0a0a0a;
+      --ink-2:     #4a4a4a;
+      --ink-3:     #8a8a8a;
+      --surface:   #0a0a0a;
+      --surface-2: #141414;
+      --surface-3: #1e1e1e;
+      --surface-4: #252525;
+      --gold:      #c9a84c;
+      --gold-light:#e8c97a;
+      --gold-dark: #9a7a2e;
+      --white:     #f5f5f5;
       --radius-sm: 10px;
       --radius-md: 14px;
-      --gap:       12px;
       --side:      16px;
     }
-    .dark-mode {
-      --ink:       #f0f0f0;
-      --ink-2:     #aaa;
-      --ink-3:     #666;
-      --surface:   #111111;
-      --surface-2: #1c1c1c;
-      --surface-3: #282828;
-      --accent:    #f0f0f0;
-      --accent-fg: #111111;
-    }
 
-    /* ═══════════════════════════════════════════════
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
        RESET
-    ═══════════════════════════════════════════════ */
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
 
     body {
       font-family: 'DM Sans', sans-serif;
       font-size: 14px;
       line-height: 1.55;
-      color: var(--ink);
+      color: var(--white);
       background: var(--surface);
       overflow-x: hidden;
-      padding-top: 56px;
-      padding-bottom: calc(64px + env(safe-area-inset-bottom));
+      padding-top: 60px;
+      padding-bottom: calc(68px + env(safe-area-inset-bottom));
       -webkit-font-smoothing: antialiased;
     }
 
-    /* crush any existing layout bleeds */
+    /* sidebar open — lock scroll */
+    body.sidebar-open { overflow: hidden; }
+
     .container, .page-shell {
       padding-left: var(--side) !important;
       padding-right: var(--side) !important;
@@ -74,512 +70,1064 @@
     }
 
     img { display: block; max-width: 100%; }
-    a { color: inherit; }
+    a { color: inherit; text-decoration: none; }
     ul { list-style: none; }
+    button { cursor: pointer; border: none; background: none; }
 
-    /* ═══════════════════════════════════════════════
-       TYPOGRAPHY
-    ═══════════════════════════════════════════════ */
-    .t-display {
-      font-family: 'Syne', sans-serif;
-      font-size: 28px;
-      font-weight: 800;
-      line-height: 1.1;
-      letter-spacing: -0.5px;
-      color: var(--ink);
-    }
-    .t-title {
-      font-family: 'Syne', sans-serif;
-      font-size: 17px;
-      font-weight: 700;
-      line-height: 1.25;
-      color: var(--ink);
-    }
-    .t-label {
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: var(--ink-3);
-    }
-    .t-body { font-size: 13px; line-height: 1.6; color: var(--ink-2); }
-    .t-small { font-size: 12px; color: var(--ink-3); }
-
-    /* override any h1/h2/h3 from home.css */
-    h1, h2, h3, h4 { font-weight: inherit; font-size: inherit; margin: 0; }
-
-    /* ═══════════════════════════════════════════════
-       NAVBAR
-    ═══════════════════════════════════════════════ */
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TOP NAVBAR
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
     .navbar {
       position: fixed; top: 0; left: 0; right: 0; z-index: 900;
-      height: 56px; padding: 0 12px;
+      height: 60px; padding: 0 14px;
       display: flex; align-items: center;
-      background: rgba(255,255,255,0.94);
-      -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
-      border-bottom: 1px solid rgba(0,0,0,0.06);
-    }
-    .dark-mode .navbar {
-      background: rgba(17,17,17,0.94);
-      border-bottom-color: rgba(255,255,255,0.06);
+      background: rgba(10,10,10,0.96);
+      -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(201,168,76,0.18);
     }
     .nav-links { display: none !important; }
-
     .nav-mobile-bar { display: flex; align-items: center; width: 100%; }
-    .nav-mobile-left  { flex: 0 0 72px; display: flex; align-items: center; }
-    .nav-mobile-center { flex: 1; display: flex; justify-content: center; }
-    .nav-mobile-right { flex: 0 0 72px; display: flex; align-items: center; justify-content: flex-end; gap: 2px; }
 
-    .nav-mobile-center img { height: 26px; width: auto; }
+    /* left: hamburger */
+    .nav-mobile-left { flex: 0 0 72px; display: flex; align-items: center; gap: 4px; }
+    /* centre: logo */
+    .nav-mobile-center { flex: 1; display: flex; justify-content: center; align-items: center; }
+    .nav-mobile-center img { height: 34px; width: auto; }
+    /* right: search + cart */
+    .nav-mobile-right { flex: 0 0 72px; display: flex; align-items: center; justify-content: flex-end; gap: 2px; }
 
     .nav-icon-btn {
       width: 38px; height: 38px; border-radius: 9px;
       display: flex; align-items: center; justify-content: center;
-      border: none; background: transparent; cursor: pointer;
-      color: var(--ink); text-decoration: none;
+      color: var(--gold); background: transparent;
       -webkit-tap-highlight-color: transparent;
+      transition: background 0.12s;
     }
-    .nav-icon-btn:active { background: var(--surface-2); }
-    .nav-icon-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .nav-icon-btn:active { background: rgba(201,168,76,0.12); }
+    .nav-icon-btn svg {
+      width: 20px; height: 20px;
+      stroke: currentColor; fill: none;
+      stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+    }
 
     .cart-wrap { position: relative; }
     .cart-badge {
       position: absolute; top: 4px; right: 4px;
       min-width: 14px; height: 14px; padding: 0 3px;
-      background: var(--ink); color: var(--surface);
+      background: var(--gold); color: #000;
       border-radius: 8px; font-size: 8px; font-weight: 700;
       display: flex; align-items: center; justify-content: center;
       border: 2px solid var(--surface); pointer-events: none;
     }
 
-    /* ═══════════════════════════════════════════════
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SIDEBAR
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .sidebar-overlay {
+      position: fixed; inset: 0; z-index: 950;
+      background: rgba(0,0,0,0.6);
+      -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .sidebar-overlay.open { opacity: 1; pointer-events: all; }
+
+    .sidebar {
+      position: fixed; top: 0; left: -280px; bottom: 0; z-index: 960;
+      width: 272px;
+      background: var(--surface-2);
+      border-right: 1px solid rgba(201,168,76,0.15);
+      display: flex; flex-direction: column;
+      transition: left 0.28s cubic-bezier(0.4,0,0.2,1);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .sidebar.open { left: 0; }
+
+    .sidebar-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 16px 16px;
+      border-bottom: 1px solid rgba(201,168,76,0.12);
+    }
+    .sidebar-header img { height: 30px; width: auto; }
+    .sidebar-close {
+      width: 34px; height: 34px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold); -webkit-tap-highlight-color: transparent;
+    }
+    .sidebar-close:active { background: var(--surface-3); }
+    .sidebar-close svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+
+    .sidebar-nav { flex: 1; overflow-y: auto; padding: 12px 0; }
+
+    .sidebar-link {
+      display: flex; align-items: center; gap: 14px;
+      padding: 13px 20px;
+      color: #ccc; font-size: 15px; font-weight: 500;
+      text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: color 0.12s, background 0.12s;
+      border-left: 3px solid transparent;
+    }
+    .sidebar-link:active, .sidebar-link.active {
+      color: var(--gold);
+      background: rgba(201,168,76,0.07);
+      border-left-color: var(--gold);
+    }
+    .sidebar-link svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+    .sidebar-divider { height: 1px; background: rgba(201,168,76,0.1); margin: 8px 20px; }
+
+    .sidebar-label {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--gold); padding: 12px 20px 6px;
+    }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(201,168,76,0.12);
+    }
+    .sidebar-socials { display: flex; gap: 12px; }
+    .sidebar-social {
+      width: 36px; height: 36px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--surface-3); color: var(--gold);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .sidebar-social svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
        SEARCH OVERLAY
-    ═══════════════════════════════════════════════ */
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
     .search-overlay {
-      position: fixed; inset: 0; z-index: 1000;
-      background: rgba(0,0,0,0.5);
+      position: fixed; inset: 0; z-index: 970;
+      background: rgba(0,0,0,0.6);
       display: none; flex-direction: column;
     }
     .search-overlay.open { display: flex; }
     .search-sheet {
-      background: var(--surface); padding: 10px 14px;
+      background: var(--surface-2); padding: 12px 14px;
       display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid rgba(201,168,76,0.15);
     }
     .search-input {
-      flex: 1; height: 42px; border: 1.5px solid var(--surface-3);
+      flex: 1; height: 42px; border: 1.5px solid var(--surface-4);
       border-radius: 10px; padding: 0 14px; font-size: 16px;
-      font-family: 'DM Sans', sans-serif; background: var(--surface-2);
-      color: var(--ink); outline: none; -webkit-appearance: none;
+      font-family: 'DM Sans', sans-serif; background: var(--surface-3);
+      color: var(--white); outline: none; -webkit-appearance: none;
     }
-    .search-input:focus { border-color: var(--ink); background: var(--surface); }
+    .search-input:focus { border-color: var(--gold); }
     .search-cancel {
       font-size: 14px; font-family: 'DM Sans', sans-serif; font-weight: 500;
-      color: var(--ink-2); border: none; background: transparent; cursor: pointer;
+      color: var(--gold); border: none; background: transparent; cursor: pointer;
       white-space: nowrap; padding: 4px;
     }
     .search-backdrop { flex: 1; }
 
-    /* ═══════════════════════════════════════════════
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
        BOTTOM TAB BAR
-    ═══════════════════════════════════════════════ */
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
     .bottom-nav {
       position: fixed; bottom: 0; left: 0; right: 0; z-index: 900;
       height: calc(64px + env(safe-area-inset-bottom));
       padding-bottom: env(safe-area-inset-bottom);
-      background: rgba(255,255,255,0.94);
-      -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
-      border-top: 1px solid rgba(0,0,0,0.06);
+      background: rgba(10,10,10,0.97);
+      -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+      border-top: 1px solid rgba(201,168,76,0.18);
       display: flex; align-items: stretch;
-    }
-    .dark-mode .bottom-nav {
-      background: rgba(17,17,17,0.94);
-      border-top-color: rgba(255,255,255,0.06);
     }
     .bottom-tab {
       flex: 1; display: flex; flex-direction: column;
       align-items: center; justify-content: center; gap: 3px;
-      text-decoration: none; color: var(--ink-3);
+      text-decoration: none; color: #555;
       font-size: 10px; font-weight: 500;
       -webkit-tap-highlight-color: transparent;
       padding-top: 6px;
+      transition: color 0.14s;
     }
-    .bottom-tab.active { color: var(--ink); }
+    .bottom-tab.active { color: var(--gold); }
     .bottom-tab svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 
     .bottom-tab-book {
       flex: 1; display: flex; flex-direction: column;
       align-items: center; justify-content: center; gap: 4px;
-      text-decoration: none; color: var(--ink);
-      font-size: 10px; font-weight: 600;
+      text-decoration: none; color: #000;
+      font-size: 10px; font-weight: 700;
       -webkit-tap-highlight-color: transparent;
     }
     .book-pill {
-      width: 44px; height: 44px; background: var(--ink); border-radius: 13px;
+      width: 46px; height: 46px;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      border-radius: 14px;
       display: flex; align-items: center; justify-content: center;
-      margin-top: -12px; box-shadow: 0 4px 16px rgba(0,0,0,0.22);
+      margin-top: -14px;
+      box-shadow: 0 4px 20px rgba(201,168,76,0.4);
     }
-    .book-pill svg { width: 20px; height: 20px; stroke: var(--surface); fill: none; stroke-width: 2.2; stroke-linecap: round; }
+    .book-pill svg { width: 20px; height: 20px; stroke: #000; fill: none; stroke-width: 2.2; stroke-linecap: round; }
 
-    /* ═══════════════════════════════════════════════
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
        PAGE SHELL
-    ═══════════════════════════════════════════════ */
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
     .page-shell {
       display: flex !important;
       flex-direction: column !important;
-      gap: var(--gap) !important;
-      padding-top: 16px !important;
-      padding-bottom: 16px !important;
+      gap: 14px !important;
+      padding-top: 0 !important;
+      padding-bottom: 20px !important;
+      padding-left: 0 !important;
+      padding-right: 0 !important;
     }
 
-    /* ═══════════════════════════════════════════════
-       CARD BASE
-    ═══════════════════════════════════════════════ */
-    .dk-card {
-      background: var(--surface-2);
-      border-radius: var(--radius-md);
-      overflow: hidden;
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SECTION WRAPPER
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .sec { padding: 0 var(--side); }
+
+    .sec-label {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.2px; color: var(--gold); margin-bottom: 6px;
     }
-    .dk-card-pad { padding: 16px; }
+    .sec-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 20px; font-weight: 800;
+      color: var(--white); line-height: 1.2;
+      margin-bottom: 8px;
+    }
+    .sec-body {
+      font-size: 13px; line-height: 1.65; color: #999;
+    }
 
-    /* ═══════════════════════════════════════════════
-       HERO
-    ═══════════════════════════════════════════════ */
-    .m-hero { display: flex; flex-direction: column; gap: 14px; padding: 4px 0 8px; }
-    .m-hero .t-display { margin-bottom: 6px; }
-    .m-hero .t-body { margin-bottom: 4px; }
+    /* gold line divider */
+    .gold-rule {
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--gold), transparent);
+      border: none; margin: 0;
+    }
 
-    /* pill row — horizontal scroll */
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       BUTTONS
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .btn-gold {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; padding: 14px;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      color: #000; font-family: 'DM Sans', sans-serif;
+      font-size: 14px; font-weight: 700;
+      border-radius: var(--radius-sm); text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 4px 18px rgba(201,168,76,0.25);
+    }
+    .btn-gold:active { opacity: 0.88; }
+
+    .btn-outline {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; padding: 13px;
+      background: transparent; color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px; font-weight: 600;
+      border-radius: var(--radius-sm); text-decoration: none;
+      border: 1px solid rgba(255,255,255,0.15);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-outline:active { background: var(--surface-3); }
+
+    .cta-stack { display: flex; flex-direction: column; gap: 9px; }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       HERO VIDEO
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .hero-video-wrap {
+      position: relative; width: 100%;
+      height: 420px; overflow: hidden;
+      background: #000;
+    }
+    .hero-video-wrap video {
+      width: 100%; height: 100%;
+      object-fit: cover; display: block;
+    }
+    /* dark gradient overlay */
+    .hero-video-wrap::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(to bottom,
+        rgba(10,10,10,0.2) 0%,
+        rgba(10,10,10,0.1) 40%,
+        rgba(10,10,10,0.85) 100%
+      );
+    }
+    .hero-video-content {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 24px var(--side) 20px;
+      z-index: 2;
+    }
+    .hero-tag {
+      display: inline-block;
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.5px; color: var(--gold);
+      border: 1px solid rgba(201,168,76,0.4);
+      border-radius: 20px; padding: 4px 10px;
+      margin-bottom: 10px;
+    }
+    .hero-headline {
+      font-family: 'Syne', sans-serif;
+      font-size: 30px; font-weight: 800;
+      color: var(--white); line-height: 1.1;
+      letter-spacing: -0.5px; margin-bottom: 6px;
+    }
+    .hero-headline span { color: var(--gold); }
+    .hero-sub {
+      font-size: 13px; color: rgba(255,255,255,0.7);
+      margin-bottom: 18px; line-height: 1.5;
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       STAT PILLS
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
     .pill-row {
       display: flex; gap: 8px;
       overflow-x: auto; -webkit-overflow-scrolling: touch;
-      padding-bottom: 2px; scrollbar-width: none;
+      padding: 2px var(--side) 4px;
+      scrollbar-width: none;
+    }
+    .pill-row::-webkit-scrollbar { display: none; }
+    .stat-pill {
+      flex: 0 0 auto;
+      background: var(--surface-2);
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 20px; padding: 7px 14px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .stat-pill strong { font-size: 12px; font-weight: 700; color: var(--gold); white-space: nowrap; }
+    .stat-pill span { font-size: 11px; color: #777; white-space: nowrap; }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       ABOUT
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .about-wrap {
+      background: var(--surface-2);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      margin: 0 var(--side);
+      border: 1px solid rgba(201,168,76,0.12);
+    }
+    .about-video-wrap { position: relative; height: 210px; overflow: hidden; }
+    .about-video-wrap video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .about-video-wrap::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0; height: 80px;
+      background: linear-gradient(to bottom, transparent, var(--surface-2));
+    }
+    .about-body { padding: 16px; }
+    .about-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 19px; font-weight: 800;
+      color: var(--white); margin-bottom: 5px;
+    }
+    .about-bar {
+      width: 36px; height: 3px; border-radius: 3px;
+      background: var(--gold); margin-bottom: 12px;
+    }
+    .about-text { font-size: 13px; color: #999; line-height: 1.65; margin-bottom: 10px; }
+    .about-socials { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+    .about-social-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px; border-radius: 20px;
+      border: 1px solid rgba(201,168,76,0.25);
+      background: var(--surface-3); color: var(--gold);
+      font-size: 12px; font-weight: 600;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .about-social-btn:active { background: var(--surface-4); }
+    .about-social-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; }
+    .about-social-btn--cta {
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      color: #000; border-color: transparent; font-weight: 700;
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SERVICES SLIDER
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .services-slider-wrap {
+      overflow: hidden;
+      padding: 0 var(--side);
+    }
+    .services-slider {
+      display: flex; gap: 10px;
+      overflow-x: auto; -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x mandatory;
+      padding-bottom: 4px;
+      scrollbar-width: none;
       margin: 0 calc(-1 * var(--side));
       padding-left: var(--side); padding-right: var(--side);
     }
-    .pill-row::-webkit-scrollbar { display: none; }
+    .services-slider::-webkit-scrollbar { display: none; }
 
-    .stat-pill {
-      flex: 0 0 auto;
-      background: var(--surface-3);
-      border-radius: 20px;
-      padding: 7px 14px;
-      display: flex; align-items: center; gap: 6px;
+    .service-slide {
+      flex: 0 0 260px;
+      scroll-snap-align: start;
+      background: var(--surface-2);
+      border: 1px solid rgba(201,168,76,0.12);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      display: flex; flex-direction: column;
     }
-    .stat-pill strong { font-size: 12px; font-weight: 700; color: var(--ink); white-space: nowrap; }
-    .stat-pill span { font-size: 11px; color: var(--ink-3); white-space: nowrap; }
+    .service-slide-header {
+      padding: 16px 16px 0;
+      display: flex; align-items: flex-start; justify-content: space-between;
+    }
+    .service-badge {
+      font-size: 9px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.8px; padding: 3px 8px; border-radius: 20px;
+    }
+    .badge-standard { background: rgba(201,168,76,0.12); color: var(--gold); }
+    .badge-express  { background: rgba(255,165,0,0.12);  color: #ffa500; }
+    .badge-nextday  { background: rgba(255,80,80,0.12);  color: #ff6060; }
+    .badge-addon    { background: rgba(120,180,255,0.12);color: #7bb4ff; }
 
-    /* CTA stack */
-    .cta-stack { display: flex; flex-direction: column; gap: 8px; }
+    .service-price-wrap { text-align: right; }
+    .service-price-from { font-size: 9px; color: #666; }
+    .service-price { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--gold); line-height: 1; }
 
-    .btn-primary {
-      display: block; width: 100%; padding: 14px;
-      background: var(--ink); color: var(--surface);
-      font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+    .service-slide-body { padding: 12px 16px 16px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .service-name { font-size: 15px; font-weight: 700; color: var(--white); }
+    .service-desc { font-size: 12px; color: #777; line-height: 1.5; }
+    .service-features { display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
+    .service-features li {
+      font-size: 12px; color: #aaa;
+      padding-left: 14px; position: relative;
+    }
+    .service-features li::before { content: "✓"; position: absolute; left: 0; color: var(--gold); font-size: 10px; }
+
+    .service-slide-cta { padding: 0 16px 16px; }
+    .service-cta-btn {
+      display: block; width: 100%; padding: 11px;
+      background: rgba(201,168,76,0.1);
+      border: 1px solid rgba(201,168,76,0.25);
+      color: var(--gold); font-size: 13px; font-weight: 600;
       text-align: center; border-radius: var(--radius-sm);
-      text-decoration: none; border: none; cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
+      text-decoration: none; -webkit-tap-highlight-color: transparent;
     }
-    .btn-secondary {
-      display: block; width: 100%; padding: 13px;
-      background: transparent; color: var(--ink);
-      font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
-      text-align: center; border-radius: var(--radius-sm);
-      text-decoration: none; border: 1.5px solid var(--surface-3); cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
+    .service-cta-btn:active { background: rgba(201,168,76,0.2); }
+
+    /* scroll dots for services */
+    .slider-dots { display: flex; justify-content: center; gap: 5px; margin-top: 10px; }
+    .slider-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--surface-4); border: none; padding: 0; cursor: pointer;
+      transition: background 0.2s, width 0.2s;
     }
-    .btn-primary:active { opacity: 0.85; }
-    .btn-secondary:active { background: var(--surface-2); }
+    .slider-dot.active { background: var(--gold); width: 16px; border-radius: 3px; }
 
-    /* ═══════════════════════════════════════════════
-       SECTION HEADER
-    ═══════════════════════════════════════════════ */
-    .sec-head { margin-bottom: 12px; }
-    .sec-head .t-title { margin-bottom: 2px; }
-
-    /* ═══════════════════════════════════════════════
-       CAROUSEL
-    ═══════════════════════════════════════════════ */
-    .m-carousel {}
-    .carousel-viewport { position: relative; border-radius: var(--radius-sm); overflow: hidden; background: var(--surface-3); }
-    .carousel-track { display: flex; transition: transform 0.3s ease; }
-    .carousel-track img { width: 100%; flex: 0 0 100%; height: 200px; object-fit: cover; }
-    .carousel-btn {
-      position: absolute; top: 50%; transform: translateY(-50%);
-      width: 32px; height: 32px; border-radius: 50%;
-      background: rgba(255,255,255,0.85); border: none; cursor: pointer;
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TRUST SECTION
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .trust-grid { display: flex; flex-direction: column; gap: 10px; }
+    .trust-card {
+      background: var(--surface-2);
+      border: 1px solid rgba(201,168,76,0.1);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex; gap: 14px; align-items: flex-start;
+    }
+    .trust-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: rgba(201,168,76,0.1);
       display: flex; align-items: center; justify-content: center;
-      font-size: 18px; color: #111; -webkit-tap-highlight-color: transparent;
+      flex-shrink: 0;
     }
-    .carousel-btn.prev { left: 8px; }
-    .carousel-btn.next { right: 8px; }
-    .carousel-dots { display: flex; justify-content: center; gap: 5px; padding: 10px 0 4px; }
-    .carousel-dots button {
-      width: 6px; height: 6px; border-radius: 50%;
-      border: none; background: var(--surface-3); cursor: pointer; padding: 0;
-    }
-    .carousel-dots button.active { background: var(--ink); width: 18px; border-radius: 3px; }
+    .trust-icon svg { width: 20px; height: 20px; stroke: var(--gold); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .trust-title { font-size: 14px; font-weight: 700; color: var(--white); margin-bottom: 3px; }
+    .trust-text { font-size: 12px; color: #888; line-height: 1.55; }
 
-    /* ═══════════════════════════════════════════════
-       HOW IT WORKS
-    ═══════════════════════════════════════════════ */
-    .steps-list { display: flex; flex-direction: column; gap: 2px; }
-    .step-row {
-      display: flex; align-items: flex-start; gap: 12px;
-      padding: 12px 0;
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       WHY CHOOSE US
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .why-list { display: flex; flex-direction: column; gap: 0; }
+    .why-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 0;
       border-bottom: 1px solid var(--surface-3);
     }
-    .step-row:last-child { border-bottom: none; padding-bottom: 0; }
-    .step-num-badge {
-      flex: 0 0 28px; height: 28px; border-radius: 8px;
-      background: var(--surface-3);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 700; color: var(--ink-3);
-      margin-top: 1px;
-    }
-    .step-text h3 { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 2px; }
-    .step-text p { font-size: 12px; color: var(--ink-2); line-height: 1.5; }
-
-    /* ═══════════════════════════════════════════════
-       SERVICE CARDS
-    ═══════════════════════════════════════════════ */
-    .service-list { display: flex; flex-direction: column; gap: 8px; }
-    .service-card {
-      background: var(--surface-2);
-      border-radius: var(--radius-sm);
-      padding: 14px;
-      display: flex; align-items: center; gap: 12px;
-      text-decoration: none;
-      border: 1px solid var(--surface-3);
-    }
-    .service-card:active { background: var(--surface-3); }
-    .service-price-col { flex: 0 0 auto; text-align: right; }
-    .service-price {
+    .why-row:last-child { border-bottom: none; }
+    .why-num {
       font-family: 'Syne', sans-serif;
-      font-size: 20px; font-weight: 700; color: var(--ink);
-      line-height: 1;
+      font-size: 28px; font-weight: 800;
+      color: rgba(201,168,76,0.2);
+      flex: 0 0 36px; line-height: 1;
     }
-    .service-price-from { font-size: 10px; color: var(--ink-3); margin-bottom: 2px; }
-    .service-info { flex: 1; }
-    .service-name { font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
-    .service-features { display: flex; flex-direction: column; gap: 2px; }
-    .service-features li { font-size: 11px; color: var(--ink-2); padding-left: 12px; position: relative; }
-    .service-features li::before { content: "·"; position: absolute; left: 3px; color: var(--ink-3); }
-    .service-arrow { flex: 0 0 auto; color: var(--ink-3); font-size: 16px; }
+    .why-content {}
+    .why-title { font-size: 14px; font-weight: 700; color: var(--white); margin-bottom: 2px; }
+    .why-text { font-size: 12px; color: #888; line-height: 1.5; }
 
-    /* service badge */
-    .service-badge {
-      display: inline-block; font-size: 9px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.5px;
-      padding: 2px 6px; border-radius: 4px; margin-bottom: 5px;
-    }
-    .badge-standard  { background: #e8f4e8; color: #2d7a2d; }
-    .badge-express   { background: #fff3e0; color: #b36000; }
-    .badge-nextday   { background: #fce4ec; color: #b71c4a; }
-    .dark-mode .badge-standard { background: #1a2e1a; color: #6fcf6f; }
-    .dark-mode .badge-express  { background: #2e1f0a; color: #f0a830; }
-    .dark-mode .badge-nextday  { background: #2e0a18; color: #f06090; }
-
-    /* ═══════════════════════════════════════════════
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
        LOYALTY TIERS
-    ═══════════════════════════════════════════════ */
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
     .tier-list { display: flex; flex-direction: column; gap: 8px; }
     .tier-row {
       display: flex; align-items: center; gap: 12px;
       padding: 13px 14px; border-radius: var(--radius-sm);
-      border: 1px solid var(--surface-3);
+      background: var(--surface-2);
+      border: 1px solid rgba(201,168,76,0.1);
       text-decoration: none;
     }
+    .tier-row:active { background: var(--surface-3); }
     .tier-icon {
       width: 36px; height: 36px; border-radius: 10px;
+      background: rgba(201,168,76,0.1);
       display: flex; align-items: center; justify-content: center;
-      font-size: 16px; flex: 0 0 auto;
+      font-size: 18px; flex-shrink: 0;
     }
-    .tier-carbon .tier-icon { background: #1a1a1a; color: #888; }
-    .tier-stone  .tier-icon { background: #e8e4dc; color: #6b6560; }
-    .tier-pearl  .tier-icon { background: #f0eef6; color: #9b8ab0; }
-    .dark-mode .tier-stone .tier-icon { background: #2a2520; color: #c0b8a8; }
-    .dark-mode .tier-pearl .tier-icon { background: #1e1a2a; color: #c0b0d8; }
     .tier-info { flex: 1; }
-    .tier-name { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 1px; text-transform: capitalize; }
-    .tier-range { font-size: 11px; color: var(--ink-3); margin-bottom: 3px; }
-    .tier-perk { font-size: 12px; color: var(--ink-2); }
-    .tier-chevron { color: var(--ink-3); font-size: 14px; flex: 0 0 auto; }
-    .tier-popular-tag {
-      font-size: 9px; font-weight: 700; background: var(--ink); color: var(--surface);
-      padding: 2px 5px; border-radius: 4px; margin-left: 6px;
-      vertical-align: middle;
+    .tier-name { font-size: 13px; font-weight: 700; color: var(--white); margin-bottom: 1px; text-transform: capitalize; }
+    .tier-range { font-size: 11px; color: #666; margin-bottom: 2px; }
+    .tier-perk { font-size: 12px; color: var(--gold); }
+    .tier-chevron { color: #444; font-size: 16px; }
+    .tier-tag {
+      font-size: 9px; font-weight: 700; background: var(--gold); color: #000;
+      padding: 2px 5px; border-radius: 4px; margin-left: 5px; vertical-align: middle;
     }
 
-    /* ═══════════════════════════════════════════════
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       HOW IT WORKS
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .steps-list { display: flex; flex-direction: column; }
+    .step-row {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 14px 0; border-bottom: 1px solid var(--surface-3);
+    }
+    .step-row:last-child { border-bottom: none; }
+    .step-badge {
+      width: 30px; height: 30px; border-radius: 8px;
+      background: rgba(201,168,76,0.1);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 800; color: var(--gold);
+      flex-shrink: 0; margin-top: 1px;
+    }
+    .step-title { font-size: 13px; font-weight: 700; color: var(--white); margin-bottom: 2px; }
+    .step-text { font-size: 12px; color: #888; line-height: 1.5; }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       RESTORATION CAROUSEL
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .carousel-viewport { position: relative; overflow: hidden; background: var(--surface-2); }
+    .carousel-track { display: flex; transition: transform 0.3s ease; }
+    .carousel-track img { width: 100%; flex: 0 0 100%; height: 220px; object-fit: cover; display: block; }
+    .carousel-btn {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(0,0,0,0.55); border: 1px solid rgba(201,168,76,0.3);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold); font-size: 20px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .carousel-btn.prev { left: 10px; }
+    .carousel-btn.next { right: 10px; }
+    .carousel-dots { display: flex; justify-content: center; gap: 5px; padding: 10px 0 4px; }
+    .carousel-dots button {
+      width: 5px; height: 5px; border-radius: 50%;
+      border: none; background: var(--surface-4); cursor: pointer; padding: 0;
+    }
+    .carousel-dots button.active { background: var(--gold); width: 16px; border-radius: 3px; }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TESTIMONIALS
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .review-list { display: flex; flex-direction: column; gap: 10px; }
+    .review-card {
+      background: var(--surface-2); border-radius: var(--radius-sm);
+      border: 1px solid rgba(201,168,76,0.1); padding: 14px;
+    }
+    .review-stars { color: var(--gold); font-size: 12px; letter-spacing: 2px; margin-bottom: 8px; }
+    .review-quote { font-size: 13px; color: #999; line-height: 1.6; margin-bottom: 10px; font-style: italic; }
+    .review-author { font-size: 13px; font-weight: 700; color: var(--white); }
+    .review-meta { font-size: 11px; color: #666; margin-top: 1px; }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
        TUTORIALS
-    ═══════════════════════════════════════════════ */
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
     .tutorial-list { display: flex; flex-direction: column; gap: 10px; }
     .tutorial-row {
       display: flex; gap: 12px; align-items: center;
       text-decoration: none; padding: 2px 0;
     }
-    .tutorial-thumb-sm {
+    .tutorial-thumb {
       flex: 0 0 80px; height: 60px; border-radius: 8px;
       overflow: hidden; background: var(--surface-3); position: relative;
     }
-    .tutorial-thumb-sm img { width: 100%; height: 100%; object-fit: cover; }
-    .tutorial-thumb-sm .play-dot {
-      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-      background: rgba(0,0,0,0.25);
+    .tutorial-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .tutorial-thumb .play-dot {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.35);
     }
     .play-dot::after {
-      content: '';
-      border-left: 12px solid #fff;
+      content: ''; border-left: 12px solid var(--gold);
       border-top: 7px solid transparent;
-      border-bottom: 7px solid transparent;
-      margin-left: 3px;
+      border-bottom: 7px solid transparent; margin-left: 3px;
     }
-    .tutorial-meta { flex: 1; }
-    .tutorial-meta h3 { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 2px; line-height: 1.3; }
-    .tutorial-meta p { font-size: 11px; color: var(--ink-3); line-height: 1.4; }
-    .tutorial-tag { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--ink-3); margin-bottom: 4px; }
+    .tutorial-meta h3 { font-size: 13px; font-weight: 600; color: var(--white); margin-bottom: 2px; line-height: 1.3; }
+    .tutorial-meta p { font-size: 11px; color: #666; }
+    .tutorial-tag { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gold); margin-bottom: 4px; }
 
-    /* full video */
-    .tutorial-video-full {
-      width: 100%; border-radius: var(--radius-sm);
-      overflow: hidden; background: #000;
+    .video-full { border-radius: var(--radius-sm); overflow: hidden; background: #000; }
+    .video-full video { width: 100%; height: 190px; display: block; object-fit: cover; }
+    .video-caption { padding: 10px 12px 12px; background: var(--surface-2); }
+    .video-caption .tutorial-tag { display: block; margin-bottom: 3px; }
+    .video-caption p { font-size: 13px; font-weight: 600; color: var(--white); }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       PAYMENT
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .payment-grid { display: flex; flex-direction: column; gap: 10px; }
+    .payment-card {
+      background: var(--surface-2); border-radius: var(--radius-sm);
+      border: 1px solid rgba(201,168,76,0.1); padding: 14px;
+      display: flex; gap: 12px; align-items: center;
     }
-    .tutorial-video-full video { width: 100%; height: 190px; display: block; object-fit: cover; }
-
-    /* ═══════════════════════════════════════════════
-       TESTIMONIALS
-    ═══════════════════════════════════════════════ */
-    .review-list { display: flex; flex-direction: column; gap: 10px; }
-    .review-card {
-      padding: 14px; border-radius: var(--radius-sm);
-      background: var(--surface-2); border: 1px solid var(--surface-3);
+    .payment-icon {
+      width: 40px; height: 40px; border-radius: 9px;
+      background: var(--surface-3); display: flex;
+      align-items: center; justify-content: center; flex-shrink: 0;
     }
-    .review-stars { color: #f5a623; font-size: 12px; letter-spacing: 1px; margin-bottom: 8px; }
-    .review-quote { font-size: 13px; color: var(--ink-2); line-height: 1.55; margin-bottom: 10px; font-style: italic; }
-    .review-author { font-size: 12px; font-weight: 600; color: var(--ink); }
-    .review-meta { font-size: 11px; color: var(--ink-3); margin-top: 1px; }
-
-    /* ═══════════════════════════════════════════════
-       ABOUT CARD
-    ═══════════════════════════════════════════════ */
-    .about-card { display: flex; flex-direction: column; gap: 10px; }
-    .about-card p { font-size: 13px; color: var(--ink-2); line-height: 1.6; }
-
-    /* ═══════════════════════════════════════════════
-       DIVIDER
-    ═══════════════════════════════════════════════ */
-    .m-divider {
-      height: 1px; background: var(--surface-3); border: none; margin: 2px 0;
+    .payment-icon svg { width: 20px; height: 20px; stroke: var(--gold); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .payment-name { font-size: 14px; font-weight: 700; color: var(--white); margin-bottom: 2px; }
+    .payment-desc { font-size: 12px; color: #777; }
+    .payment-logos { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; align-items: center; }
+    .payment-logo-chip {
+      background: var(--surface-3); border: 1px solid var(--surface-4);
+      border-radius: 6px; padding: 6px 12px;
+      font-size: 12px; font-weight: 700; color: #aaa;
+      letter-spacing: 0.5px;
     }
+    .secure-note { display: flex; align-items: center; gap: 6px; margin-top: 12px; }
+    .secure-note svg { width: 14px; height: 14px; stroke: var(--gold); fill: none; stroke-width: 2; stroke-linecap: round; }
+    .secure-note span { font-size: 11px; color: #777; }
 
-    /* ═══════════════════════════════════════════════
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       CARD WRAPPER (padded section)
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .dk-section {
+      margin: 0 var(--side);
+      background: var(--surface-2);
+      border: 1px solid rgba(201,168,76,0.1);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+    .dk-section-header { margin-bottom: 14px; }
+    .dk-section-header .sec-label { margin-bottom: 4px; }
+    .dk-section-header .sec-title { margin-bottom: 0; }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
        FOOTER
-    ═══════════════════════════════════════════════ */
-    .m-footer { padding: 20px var(--side) calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid var(--surface-3); }
-    .footer-brand { margin-bottom: 16px; }
-    .footer-brand img { height: 24px; width: auto; margin-bottom: 8px; }
-    .footer-brand p { font-size: 12px; color: var(--ink-3); }
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .m-footer {
+      padding: 20px var(--side) 16px;
+      border-top: 1px solid rgba(201,168,76,0.12);
+    }
+    .footer-logo { height: 26px; width: auto; margin-bottom: 10px; }
+    .footer-tagline { font-size: 12px; color: #666; margin-bottom: 18px; }
     .footer-cols { display: flex; gap: 32px; margin-bottom: 20px; }
-    .footer-col h4 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--ink-3); margin-bottom: 10px; }
+    .footer-col h4 { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--gold); margin-bottom: 10px; }
     .footer-col ul { display: flex; flex-direction: column; gap: 8px; }
-    .footer-col a { font-size: 13px; color: var(--ink-2); text-decoration: none; }
-    .footer-copy { font-size: 11px; color: var(--ink-3); }
+    .footer-col a { font-size: 13px; color: #888; }
+    .footer-socials { display: flex; gap: 10px; margin-bottom: 18px; }
+    .footer-social {
+      width: 36px; height: 36px; border-radius: 9px;
+      background: var(--surface-2); border: 1px solid rgba(201,168,76,0.15);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold);
+    }
+    .footer-social svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .footer-copy { font-size: 11px; color: #555; }
   </style>
 </head>
-
 <body>
 
   <!-- ── HIDDEN NAV LIST (app.js auth hooks) ── -->
   <ul class="nav-links" style="display:none!important" role="list">
-    <li><a href="home.html"     id="navHome"     aria-current="page">home</a></li>
-    <li><a href="booking.html"  id="navBooking"  data-requires-auth="true">booking</a></li>
-    <li><a href="track.html"    id="navTracking" data-requires-auth="true">tracking</a></li>
-    <li><a href="customer.html" id="navAccount"  data-requires-auth="true">my account</a></li>
-    <li><a href="admin.html"    id="navAdmin"    data-requires-auth="true" hidden>admin</a></li>
-    <li><a href="login.html"    id="navLogin">login</a></li>
+    <li><a href="home.html" id="navHome" aria-current="page">home</a></li>
+    <li><a href="booking.html" id="navBooking" data-requires-auth="true">booking</a></li>
+    <li><a href="track.html" id="navTracking" data-requires-auth="true">tracking</a></li>
+    <li><a href="customer.html" id="navAccount" data-requires-auth="true">my account</a></li>
+    <li><a href="admin.html" id="navAdmin" data-requires-auth="true" hidden>admin</a></li>
+    <li><a href="login.html" id="navLogin">login</a></li>
     <li><a href="register.html" id="navRegister">register</a></li>
-    <li><a href="#"             id="navLogout"   hidden>logout</a></li>
+    <li><a href="#" id="navLogout" hidden>logout</a></li>
     <li><span id="navPointsBadge" hidden aria-live="polite" aria-atomic="true">0 pts</span></li>
   </ul>
 
-  <!-- ── TOP NAVBAR ── -->
+  <!-- ━━━━━━━━━━━━━━━━━━ TOP NAVBAR ━━━━━━━━━━━━━━━━━━ -->
   <nav class="navbar" role="navigation" aria-label="primary navigation">
     <div class="nav-mobile-bar">
 
       <div class="nav-mobile-left">
-        <button class="nav-icon-btn" type="button" id="searchToggle" aria-label="search" aria-expanded="false">
-          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
+        <button class="nav-icon-btn" id="sidebarToggle" type="button" aria-label="open menu" aria-expanded="false">
+          <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
       </div>
 
       <div class="nav-mobile-center">
         <a href="home.html" aria-label="dkcleanedit home">
-          <img src="videos/logo.png" alt="dkcleanedit" />
+          <img src="videos/logo.png" alt="DKCleanEdit" />
         </a>
       </div>
 
       <div class="nav-mobile-right">
+        <button class="nav-icon-btn" id="searchToggle" type="button" aria-label="search" aria-expanded="false">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
+        </button>
         <a href="customer.html" class="nav-icon-btn cart-wrap" aria-label="cart" data-requires-auth="true" id="cartBtn">
           <svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
           <span class="cart-badge" id="cartCount" hidden>0</span>
-        </a>
-        <a href="settings.html" class="nav-icon-btn" aria-label="settings">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         </a>
       </div>
 
     </div>
   </nav>
 
-  <!-- ── SEARCH OVERLAY ── -->
+  <!-- ━━━━━━━━━━━━━━━━━━ SIDEBAR ━━━━━━━━━━━━━━━━━━ -->
+  <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+  <aside class="sidebar" id="sidebar" role="dialog" aria-label="navigation menu">
+    <div class="sidebar-header">
+      <img src="videos/logo.png" alt="DKCleanEdit" />
+      <button class="sidebar-close" id="sidebarClose" type="button" aria-label="close menu">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="site navigation">
+      <div class="sidebar-label">Main</div>
+      <a href="home.html" class="sidebar-link active" aria-current="page">
+        <svg viewBox="0 0 24 24"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg>
+        Home
+      </a>
+      <a href="booking.html" class="sidebar-link" data-requires-auth="true">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Booking
+      </a>
+      <a href="track.html" class="sidebar-link" data-requires-auth="true">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Track Order
+      </a>
+      <a href="customer.html" class="sidebar-link" data-requires-auth="true">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        My Account
+      </a>
+
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-label">Account</div>
+      <a href="login.html" class="sidebar-link" id="sidebarLogin">
+        <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Login
+      </a>
+      <a href="register.html" class="sidebar-link">
+        <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        Register
+      </a>
+      <a href="#" class="sidebar-link" id="sidebarLogout" hidden>
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Logout
+      </a>
+      <a href="settings.html" class="sidebar-link">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </a>
+      <a href="admin.html" class="sidebar-link" id="sidebarAdmin" data-requires-auth="true" hidden>
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Admin
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-socials">
+        <a href="https://www.instagram.com/dkcleanedit_/" target="_blank" rel="noopener" class="sidebar-social" aria-label="instagram">
+          <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <a href="https://www.tiktok.com/@dkcleanedit" target="_blank" rel="noopener" class="sidebar-social" aria-label="tiktok">
+          <svg viewBox="0 0 24 24"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ━━━━━━━━━━━━━━━━━━ SEARCH OVERLAY ━━━━━━━━━━━━━━━━━━ -->
   <div class="search-overlay" id="searchOverlay" role="dialog" aria-modal="true" aria-label="search">
     <div class="search-sheet">
-      <input class="search-input" type="search" id="searchInput" placeholder="search services, tips…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+      <input class="search-input" type="search" id="searchInput" placeholder="search services…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
       <button class="search-cancel" id="searchCancel" type="button">Cancel</button>
     </div>
     <div class="search-backdrop" id="searchBackdrop" aria-hidden="true"></div>
   </div>
 
-  <!-- ══════════════════════════════════════════════
-       MAIN
-  ══════════════════════════════════════════════ -->
+  <!-- ━━━━━━━━━━━━━━━━━━ MAIN ━━━━━━━━━━━━━━━━━━ -->
   <main class="container page-shell" id="main" tabindex="-1">
 
-    <!-- HERO -->
-    <section class="m-hero" aria-labelledby="heroHeading">
-      <div>
-        <h1 class="t-display" id="heroHeading">luxury sneaker cleaning &amp; restoration</h1>
-        <p class="t-body" style="margin-top:8px;">book in minutes. track in real time. earn loyalty rewards.</p>
-      </div>
-
-      <div class="pill-row" role="list" aria-label="highlights">
-        <div class="stat-pill" role="listitem"><strong>2 locations</strong><span>leicester &amp; london</span></div>
-        <div class="stat-pill" role="listitem"><strong>live tracking</strong><span>every stage</span></div>
-        <div class="stat-pill" role="listitem"><strong>loyalty points</strong><span>every clean</span></div>
-      </div>
-
-      <div class="cta-stack">
-        <a class="btn-primary" href="booking.html" data-requires-auth="true">book now</a>
-        <a class="btn-secondary" href="register.html">log in / register</a>
+    <!-- 1. HERO VIDEO -->
+    <section class="hero-video-wrap" aria-label="hero">
+      <video autoplay muted loop playsinline preload="metadata">
+        <source src="videos/v24044gl0000d6bh49fog65j901okegg 2.MP4" type="video/mp4" />
+      </video>
+      <div class="hero-video-content">
+        <h1 class="hero-headline">Clean.<br/><span>Restore.</span><br/>Protect.</h1>
+        <p class="hero-sub">Professional sneaker care, tracked in real time.</p>
+        <div class="cta-stack">
+          <a class="btn-gold" href="booking.html" data-requires-auth="true">Book a Clean</a>
+          <a class="btn-outline" href="register.html">Create Account</a>
+        </div>
       </div>
     </section>
 
-    <!-- ABOUT -->
-    <div class="dk-card dk-card-pad about-card" aria-labelledby="aboutHeading">
-      <div class="sec-head">
-        <h2 class="t-title" id="aboutHeading">premium care for every pair</h2>
-      </div>
-      <p>based in london and leicester, we specialise in deep cleaning, stain removal, sole unyellowing, and full refreshes — protecting the look and life of your footwear.</p>
-      <p>full order visibility from booking to collection. no chasing, no guessing.</p>
-      <a class="btn-secondary" href="booking.html" data-requires-auth="true" style="margin-top:4px;">see our services</a>
+    <!-- STAT PILLS -->
+    <div class="pill-row" role="list" aria-label="highlights">
+      <div class="stat-pill" role="listitem"><strong>Live Tracking</strong><span>Every stage</span></div>
+      <div class="stat-pill" role="listitem"><strong>Loyalty Points</strong><span>Every clean</span></div>
+      <div class="stat-pill" role="listitem"><strong>500+ Cleans</strong><span>Completed</span></div>
     </div>
 
-    <!-- RESTORATION EXAMPLES -->
-    <div class="dk-card m-carousel" aria-labelledby="carouselHeading">
-      <div class="dk-card-pad" style="padding-bottom:10px;">
-        <h2 class="t-title" id="carouselHeading">restoration examples</h2>
+    <hr class="gold-rule" />
+
+    <!-- 2. ABOUT US -->
+    <div class="about-wrap" aria-labelledby="aboutHeading">
+      <div class="about-video-wrap">
+        <video autoplay muted loop playsinline preload="metadata">
+          <source src="videos/1777265294133_v24044gl0000d5g0dnvog65ttturb87g_2.MP4" type="video/mp4" />
+        </video>
       </div>
-      <div class="carousel-viewport">
+      <div class="about-body">
+        <h2 class="about-title" id="aboutHeading">About Us</h2>
+        <div class="about-bar"></div>
+        <p class="about-text">DKCleanEdit is a professional sneaker cleaning and restoration service based in London and Leicester. We specialise in deep cleaning, stain removal, sole unyellowing, and full refreshes — protecting the look and life of every pair.</p>
+        <p class="about-text">From drop-off to collection, you have full visibility of your order at every stage. No chasing. No guessing. Just results.</p>
+        <div class="about-socials">
+          <a href="https://www.tiktok.com/@dk_asz" target="_blank" rel="noopener" class="about-social-btn" aria-label="instagram">
+            <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+            Instagram
+          </a>
+          <a href="https://www.tiktok.com/@dkcleanedit" target="_blank" rel="noopener" class="about-social-btn" aria-label="tiktok">
+            <svg viewBox="0 0 24 24"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
+            TikTok
+          </a>
+          <a href="booking.html" class="about-social-btn about-social-btn--cta" data-requires-auth="true">Book Now</a>
+        </div>
+      </div>
+    </div>
+
+    <hr class="gold-rule" />
+
+    <!-- 3. SERVICES SLIDER -->
+    <div class="sec">
+      <div class="sec-label">Our Services</div>
+      <div class="sec-title">What We Offer</div>
+    </div>
+
+    <div class="services-slider" id="servicesSlider" role="list">
+
+      <div class="service-slide" role="listitem">
+        <div class="service-slide-header">
+          <span class="service-badge badge-standard">Standard</span>
+          <div class="service-price-wrap">
+            <div class="service-price-from">from</div>
+            <div class="service-price">£25</div>
+          </div>
+        </div>
+        <div class="service-slide-body">
+          <div class="service-name">Standard Clean</div>
+          <div class="service-desc">Perfect for regular upkeep and everyday refreshes.</div>
+          <ul class="service-features">
+            <li>Upper &amp; midsole clean</li>
+            <li>Lace refresh</li>
+            <li>Deodorising &amp; finish</li>
+            <li>Condition assessment</li>
+          </ul>
+        </div>
+        <div class="service-slide-cta">
+          <a class="service-cta-btn" href="booking.html" data-requires-auth="true">Book Now</a>
+        </div>
+      </div>
+
+      <div class="service-slide" role="listitem">
+        <div class="service-slide-header">
+          <span class="service-badge badge-express">Express</span>
+          <div class="service-price-wrap">
+            <div class="service-price-from">from</div>
+            <div class="service-price">£30</div>
+          </div>
+        </div>
+        <div class="service-slide-body">
+          <div class="service-name">Express Service</div>
+          <div class="service-desc">Same-day turnaround for when you need them fast.</div>
+          <ul class="service-features">
+            <li>Priority cleaning</li>
+            <li>Detailed upper refresh</li>
+            <li>Sole &amp; lace attention</li>
+            <li>Same-day completion</li>
+          </ul>
+        </div>
+        <div class="service-slide-cta">
+          <a class="service-cta-btn" href="booking.html" data-requires-auth="true">Book Now</a>
+        </div>
+      </div>
+
+      <div class="service-slide" role="listitem">
+        <div class="service-slide-header">
+          <span class="service-badge badge-nextday">Next Day</span>
+          <div class="service-price-wrap">
+            <div class="service-price-from">from</div>
+            <div class="service-price">£40</div>
+          </div>
+        </div>
+        <div class="service-slide-body">
+          <div class="service-name">Next Day</div>
+          <div class="service-desc">Top-priority treatment, collected by next day.</div>
+          <ul class="service-features">
+            <li>Priority queue placement</li>
+            <li>Full deep clean</li>
+            <li>Full refresh finish</li>
+            <li>Next-day guaranteed</li>
+          </ul>
+        </div>
+        <div class="service-slide-cta">
+          <a class="service-cta-btn" href="booking.html" data-requires-auth="true">Book Now</a>
+        </div>
+      </div>
+
+      <div class="service-slide" role="listitem">
+        <div class="service-slide-header">
+          <span class="service-badge badge-addon">Add-On</span>
+          <div class="service-price-wrap">
+            <div class="service-price-from">from</div>
+            <div class="service-price">£10</div>
+          </div>
+        </div>
+        <div class="service-slide-body">
+          <div class="service-name">Sole Unyellowing</div>
+          <div class="service-desc">Restore yellowed soles back to factory-fresh clarity.</div>
+          <ul class="service-features">
+            <li>UV restoration process</li>
+            <li>Sole whitening treatment</li>
+            <li>Add to any clean</li>
+          </ul>
+        </div>
+        <div class="service-slide-cta">
+          <a class="service-cta-btn" href="booking.html" data-requires-auth="true">Add On</a>
+        </div>
+      </div>
+
+      <div class="service-slide" role="listitem">
+        <div class="service-slide-header">
+          <span class="service-badge badge-addon">Add-On</span>
+          <div class="service-price-wrap">
+            <div class="service-price-from">from</div>
+            <div class="service-price">£8</div>
+          </div>
+        </div>
+        <div class="service-slide-body">
+          <div class="service-name">Stain Protection</div>
+          <div class="service-desc">Premium repellent spray to protect after cleaning.</div>
+          <ul class="service-features">
+            <li>Water repellent coating</li>
+            <li>Stain resistant finish</li>
+            <li>Works on all materials</li>
+          </ul>
+        </div>
+        <div class="service-slide-cta">
+          <a class="service-cta-btn" href="booking.html" data-requires-auth="true">Add On</a>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="slider-dots sec" id="serviceDots"></div>
+
+    <hr class="gold-rule" />
+
+    <!-- 4. TRUSTED SUPPORT -->
+    <div class="dk-section" aria-labelledby="trustHeading">
+      <div class="dk-section-header">
+        <div class="sec-label">Trusted Support</div>
+        <div class="sec-title" id="trustHeading">Always Online</div>
+      </div>
+      <div class="trust-grid">
+        <div class="trust-card">
+          <div class="trust-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+          <div>
+            <div class="trust-title">Live Order Tracking</div>
+            <div class="trust-text">Follow your pair through every cleaning stage in real time — no need to call or chase.</div>
+          </div>
+        </div>
+        <div class="trust-card">
+          <div class="trust-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+          <div>
+            <div class="trust-title">Instant Confirmation</div>
+            <div class="trust-text">Every booking triggers an immediate email confirmation so you always have a record.</div>
+          </div>
+        </div>
+        <div class="trust-card">
+          <div class="trust-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <div>
+            <div class="trust-title">Secure Platform</div>
+            <div class="trust-text">Your data and bookings are protected. Account access is verified at every step.</div>
+          </div>
+        </div>
+        <div class="trust-card">
+          <div class="trust-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <div>
+            <div class="trust-title">On-Time Every Time</div>
+            <div class="trust-text">We respect your turnaround times. Express and next-day slots are honoured guaranteed.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="gold-rule" />
+
+    <!-- 5. WHY CHOOSE US -->
+    <div class="dk-section" aria-labelledby="whyHeading">
+      <div class="dk-section-header">
+        <div class="sec-label">Why DKCleanEdit</div>
+        <div class="sec-title" id="whyHeading">The Difference</div>
+      </div>
+      <div class="why-list">
+        <div class="why-row">
+          <div class="why-num">01</div>
+          <div class="why-content">
+            <div class="why-title">Specialists, Not Generalists</div>
+            <div class="why-text">We only do sneakers. Every process is designed specifically for footwear — not adapted from something else.</div>
+          </div>
+        </div>
+        <div class="why-row">
+          <div class="why-num">02</div>
+          <div class="why-content">
+            <div class="why-title">Full Transparency</div>
+            <div class="why-text">Live tracking, status updates, and email confirmations at every stage. You always know where your pair is.</div>
+          </div>
+        </div>
+        <div class="why-row">
+          <div class="why-num">03</div>
+          <div class="why-content">
+            <div class="why-title">Loyalty That Pays</div>
+            <div class="why-text">Every clean earns points. Reach Pearl tier and get a free clean plus a shoe tree included.</div>
+          </div>
+        </div>
+        <div class="why-row">
+          <div class="why-num">04</div>
+          <div class="why-content">
+            <div class="why-title">Two Convenient Locations</div>
+            <div class="why-text">Drop off in Leicester or London. Same standard of care at both sites.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="gold-rule" />
+
+    <!-- 6. RESTORATION CAROUSEL -->
+    <div class="dk-section" aria-labelledby="galleryHeading">
+      <div class="dk-section-header">
+        <div class="sec-label">Our Work</div>
+        <div class="sec-title" id="galleryHeading">Results</div>
+      </div>
+      <div class="carousel-viewport" style="border-radius:10px; overflow:hidden;">
         <div class="carousel-track" id="carouselTrack" aria-live="polite">
           <img src="videos/IMG_2317.JPG" alt="restoration example 1" loading="lazy" />
           <img src="videos/IMG_2399.JPG" alt="restoration example 2" loading="lazy" />
@@ -589,227 +1137,181 @@
         <button class="carousel-btn prev" id="prevBtn" type="button" aria-label="previous">&#8249;</button>
         <button class="carousel-btn next" id="nextBtn" type="button" aria-label="next">&#8250;</button>
       </div>
-      <div class="carousel-dots" id="carouselDots" role="tablist"></div>
+      <div class="carousel-dots" id="carouselDots" role="tablist" style="margin-top:10px;"></div>
     </div>
 
-    <!-- HOW IT WORKS -->
-    <div class="dk-card dk-card-pad" aria-labelledby="howHeading">
-      <div class="sec-head">
-        <h2 class="t-title" id="howHeading">how it works</h2>
-        <p class="t-small">four steps, start to finish.</p>
-      </div>
-      <div class="steps-list">
-        <div class="step-row">
-          <div class="step-num-badge">01</div>
-          <div class="step-text"><h3>choose your service</h3><p>pick the cleaning package that fits your pair and budget.</p></div>
-        </div>
-        <div class="step-row">
-          <div class="step-num-badge">02</div>
-          <div class="step-text"><h3>book your slot</h3><p>log in, pick a date and time, confirm in seconds.</p></div>
-        </div>
-        <div class="step-row">
-          <div class="step-num-badge">03</div>
-          <div class="step-text"><h3>track progress</h3><p>live updates through every cleaning stage.</p></div>
-        </div>
-        <div class="step-row">
-          <div class="step-num-badge">04</div>
-          <div class="step-text"><h3>collect &amp; earn</h3><p>get your pair back fresh and earn loyalty points.</p></div>
-        </div>
-      </div>
-      <div class="cta-stack" style="margin-top:14px;">
-        <a class="btn-primary" href="booking.html" data-requires-auth="true">book now</a>
-      </div>
-    </div>
+    <hr class="gold-rule" />
 
-    <!-- CLEANING PACKAGES -->
-    <div class="dk-card dk-card-pad" aria-labelledby="packagesHeading">
-      <div class="sec-head">
-        <h2 class="t-title" id="packagesHeading">cleaning packages</h2>
-        <p class="t-small">choose the level of care that suits your pair.</p>
-      </div>
-      <div class="service-list">
-
-        <a class="service-card" href="booking.html" data-requires-auth="true" aria-label="standard clean from £25">
-          <div class="service-info">
-            <div class="service-badge badge-standard">Standard</div>
-            <div class="service-name">Standard Clean</div>
-            <ul class="service-features">
-              <li>upper &amp; midsole clean</li>
-              <li>lace refresh</li>
-              <li>deodorising &amp; finish</li>
-            </ul>
-          </div>
-          <div class="service-price-col">
-            <div class="service-price-from">from</div>
-            <div class="service-price">£25</div>
-          </div>
-          <div class="service-arrow">›</div>
-        </a>
-
-        <a class="service-card" href="booking.html" data-requires-auth="true" aria-label="express service from £30">
-          <div class="service-info">
-            <div class="service-badge badge-express">Express</div>
-            <div class="service-name">Express Service</div>
-            <ul class="service-features">
-              <li>priority cleaning</li>
-              <li>detailed upper refresh</li>
-              <li>same-day completion</li>
-            </ul>
-          </div>
-          <div class="service-price-col">
-            <div class="service-price-from">from</div>
-            <div class="service-price">£30</div>
-          </div>
-          <div class="service-arrow">›</div>
-        </a>
-
-        <a class="service-card" href="booking.html" data-requires-auth="true" aria-label="next day from £40">
-          <div class="service-info">
-            <div class="service-badge badge-nextday">Next Day</div>
-            <div class="service-name">Next Day</div>
-            <ul class="service-features">
-              <li>next-day completion</li>
-              <li>priority queue</li>
-              <li>full refresh finish</li>
-            </ul>
-          </div>
-          <div class="service-price-col">
-            <div class="service-price-from">from</div>
-            <div class="service-price">£40</div>
-          </div>
-          <div class="service-arrow">›</div>
-        </a>
-
-      </div>
-    </div>
-
-    <!-- LOYALTY TIERS -->
-    <div class="dk-card dk-card-pad" aria-labelledby="tiersHeading">
-      <div class="sec-head">
-        <h2 class="t-title" id="tiersHeading">loyalty tiers</h2>
-        <p class="t-small">earn points on every clean and unlock rewards.</p>
+    <!-- 7. LOYALTY TIERS -->
+    <div class="dk-section" aria-labelledby="tiersHeading">
+      <div class="dk-section-header">
+        <div class="sec-label">Rewards</div>
+        <div class="sec-title" id="tiersHeading">Loyalty Tiers</div>
       </div>
       <div class="tier-list">
-
-        <a class="tier-row tier-carbon" href="customer.html" data-requires-auth="true" aria-label="carbon tier">
+        <a class="tier-row" href="customer.html" data-requires-auth="true" aria-label="carbon tier">
           <div class="tier-icon">◈</div>
           <div class="tier-info">
-            <div class="tier-name">carbon</div>
+            <div class="tier-name">Carbon</div>
             <div class="tier-range">0 – 99 pts</div>
             <div class="tier-perk">£5 off your next clean</div>
           </div>
           <div class="tier-chevron">›</div>
         </a>
-
-        <a class="tier-row tier-stone" href="customer.html" data-requires-auth="true" aria-label="stone tier">
+        <a class="tier-row" href="customer.html" data-requires-auth="true" aria-label="stone tier">
           <div class="tier-icon">◆</div>
           <div class="tier-info">
-            <div class="tier-name">stone <span class="tier-popular-tag">popular</span></div>
+            <div class="tier-name">Stone <span class="tier-tag">Popular</span></div>
             <div class="tier-range">100 – 499 pts</div>
             <div class="tier-perk">£10 off + priority booking</div>
           </div>
           <div class="tier-chevron">›</div>
         </a>
-
-        <a class="tier-row tier-pearl" href="customer.html" data-requires-auth="true" aria-label="pearl tier">
+        <a class="tier-row" href="customer.html" data-requires-auth="true" aria-label="pearl tier">
           <div class="tier-icon">◉</div>
           <div class="tier-info">
-            <div class="tier-name">pearl</div>
+            <div class="tier-name">Pearl</div>
             <div class="tier-range">500+ pts</div>
             <div class="tier-perk">1 free clean + shoe tree</div>
           </div>
           <div class="tier-chevron">›</div>
         </a>
-
       </div>
-      <a class="btn-secondary" href="customer.html" data-requires-auth="true" style="margin-top:12px;">view my points</a>
+      <a class="btn-outline" href="customer.html" data-requires-auth="true" style="margin-top:12px;">View My Points</a>
     </div>
 
-    <!-- TUTORIALS -->
-    <div class="dk-card dk-card-pad" aria-labelledby="tutHeading">
-      <div class="sec-head">
-        <h2 class="t-title" id="tutHeading">dk cleaning tutorials</h2>
-        <p class="t-small">watch our professionals at work.</p>
+    <hr class="gold-rule" />
+
+    <!-- 8. HOW IT WORKS -->
+    <div class="dk-section" aria-labelledby="howHeading">
+      <div class="dk-section-header">
+        <div class="sec-label">Process</div>
+        <div class="sec-title" id="howHeading">How It Works</div>
+      </div>
+      <div class="steps-list">
+        <div class="step-row"><div class="step-badge">01</div><div><div class="step-title">Choose Your Service</div><div class="step-text">Pick the package that matches your pair and needs.</div></div></div>
+        <div class="step-row"><div class="step-badge">02</div><div><div class="step-title">Book Your Slot</div><div class="step-text">Log in, select a date and time, confirm in seconds.</div></div></div>
+        <div class="step-row"><div class="step-badge">03</div><div><div class="step-title">Track Progress</div><div class="step-text">Live updates through every cleaning stage.</div></div></div>
+        <div class="step-row"><div class="step-badge">04</div><div><div class="step-title">Collect &amp; Earn</div><div class="step-text">Get your pair back fresh and collect loyalty points.</div></div></div>
+      </div>
+      <a class="btn-gold" href="booking.html" data-requires-auth="true" style="margin-top:14px;">Book Now</a>
+    </div>
+
+    <hr class="gold-rule" />
+
+    <!-- 9. TUTORIALS -->
+    <div class="dk-section" aria-labelledby="tutHeading">
+      <div class="dk-section-header">
+        <div class="sec-label">Education</div>
+        <div class="sec-title" id="tutHeading">DK Tutorials</div>
       </div>
       <div class="tutorial-list">
-
-        <a class="tutorial-row" href="booking.html" data-requires-auth="true" aria-label="how to clean jordan 4s">
-          <div class="tutorial-thumb-sm">
+        <a class="tutorial-row" href="booking.html" data-requires-auth="true">
+          <div class="tutorial-thumb">
             <img src="videos/jordan1.jpg" alt="jordan 4s tutorial" loading="lazy" />
             <div class="play-dot"></div>
           </div>
           <div class="tutorial-meta">
-            <div class="tutorial-tag">technique</div>
-            <h3>how to clean jordan 4s</h3>
-            <p>mesh and leather panel technique.</p>
+            <div class="tutorial-tag">Technique</div>
+            <h3>How to Clean Jordan 4s</h3>
+            <p>Mesh and leather panel technique.</p>
           </div>
         </a>
-
-        <a class="tutorial-row" href="booking.html" data-requires-auth="true" aria-label="sole unyellowing guide">
-          <div class="tutorial-thumb-sm">
+        <a class="tutorial-row" href="booking.html" data-requires-auth="true">
+          <div class="tutorial-thumb">
             <img src="videos/jordan2.jpg" alt="sole unyellowing" loading="lazy" />
             <div class="play-dot"></div>
           </div>
           <div class="tutorial-meta">
-            <div class="tutorial-tag">restoration</div>
-            <h3>sole unyellowing guide</h3>
-            <p>restore clear soles to factory clarity.</p>
+            <div class="tutorial-tag">Restoration</div>
+            <h3>Sole Unyellowing Guide</h3>
+            <p>Restore clear soles to factory clarity.</p>
           </div>
         </a>
-
       </div>
-
-      <!-- full videos below -->
       <div style="margin-top:12px; display:flex; flex-direction:column; gap:10px;">
-        <div class="tutorial-video-full">
+        <div class="video-full">
           <video controls preload="metadata" aria-label="white sneaker deep clean">
             <source src="videos/v24044gl0000d6bh49fog65j901okegg 2.MP4" type="video/mp4" />
-            <a href="videos/v24044gl0000d6bh49fog65j901okegg 2.MP4">download video</a>
           </video>
-          <div style="padding:10px 12px 12px;">
-            <div class="tutorial-tag">deep clean</div>
-            <div style="font-size:13px;font-weight:600;color:var(--ink);margin-top:3px;">white sneaker deep clean</div>
-          </div>
-        </div>
-        <div class="tutorial-video-full">
-          <video controls preload="metadata" aria-label="sneaker restoration process">
-            <source src="videos/1777265294133_v24044gl0000d5g0dnvog65ttturb87g_2.MP4" type="video/mp4" />
-            <a href="videos/1777265294133_v24044gl0000d5g0dnvog65ttturb87g_2.MP4">download video</a>
-          </video>
-          <div style="padding:10px 12px 12px;">
-            <div class="tutorial-tag">restoration</div>
-            <div style="font-size:13px;font-weight:600;color:var(--ink);margin-top:3px;">sneaker restoration process</div>
+          <div class="video-caption">
+            <span class="tutorial-tag">Deep Clean</span>
+            <p>White Sneaker Deep Clean</p>
           </div>
         </div>
       </div>
     </div>
 
-    <hr class="m-divider" aria-hidden="true" />
+    <hr class="gold-rule" />
 
-    <!-- TESTIMONIALS -->
-    <div class="dk-card-pad" aria-labelledby="reviewsHeading" style="padding-left:0;padding-right:0;">
-      <div class="sec-head">
-        <h2 class="t-title" id="reviewsHeading">what our clients say</h2>
-        <p class="t-small">real reviews from real customers.</p>
+    <!-- 10. PAYMENT -->
+    <div class="dk-section" aria-labelledby="payHeading">
+      <div class="dk-section-header">
+        <div class="sec-label">Payments</div>
+        <div class="sec-title" id="payHeading">How to Pay</div>
+      </div>
+      <div class="payment-grid">
+        <div class="payment-card">
+          <div class="payment-icon"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+          <div>
+            <div class="payment-name">Card Payment</div>
+            <div class="payment-desc">Visa, Mastercard, and Amex accepted at drop-off.</div>
+          </div>
+        </div>
+        <div class="payment-card">
+          <div class="payment-icon"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18" stroke-width="2"/></svg></div>
+          <div>
+            <div class="payment-name">Apple Pay &amp; Google Pay</div>
+            <div class="payment-desc">Tap to pay instantly — no card needed.</div>
+          </div>
+        </div>
+        <div class="payment-card">
+          <div class="payment-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+          <div>
+            <div class="payment-name">Bank Transfer</div>
+            <div class="payment-desc">Pay by bank transfer before collection. Details sent on booking.</div>
+          </div>
+        </div>
+      </div>
+      <div class="payment-logos">
+        <div class="payment-logo-chip">VISA</div>
+        <div class="payment-logo-chip">MC</div>
+        <div class="payment-logo-chip">AMEX</div>
+        <div class="payment-logo-chip">Apple Pay</div>
+        <div class="payment-logo-chip">G Pay</div>
+      </div>
+      <div class="secure-note">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>All transactions are secure and encrypted.</span>
+      </div>
+    </div>
+
+    <hr class="gold-rule" />
+
+    <!-- 11. TESTIMONIALS -->
+    <div class="dk-section" aria-labelledby="reviewsHeading">
+      <div class="dk-section-header">
+        <div class="sec-label">Reviews</div>
+        <div class="sec-title" id="reviewsHeading">Client Feedback</div>
       </div>
       <div class="review-list">
         <div class="review-card">
           <div class="review-stars">★★★★★</div>
-          <p class="review-quote">"gave my dior b30s in looking wrecked. dk got them back looking fresh out the box. live tracking gave me full clarity the whole way through."</p>
-          <div class="review-author">ezechiel n.</div>
-          <div class="review-meta">stone member · leicester</div>
+          <p class="review-quote">"Gave my Dior B30s in looking wrecked. DK got them back looking fresh out the box. Live tracking gave me full clarity throughout."</p>
+          <div class="review-author">Ezechiel N.</div>
+          <div class="review-meta">Stone Member · Leicester</div>
         </div>
         <div class="review-card">
           <div class="review-stars">★★★★★</div>
-          <p class="review-quote">"dk handled my jordan 1 highs perfectly — every update in real time. worth every penny, genuinely impressed."</p>
-          <div class="review-author">jordan a.</div>
-          <div class="review-meta">carbon member · london</div>
+          <p class="review-quote">"DK handled my Jordan 1 Highs perfectly — every update in real time. Worth every penny, genuinely impressed."</p>
+          <div class="review-author">Jordan A.</div>
+          <div class="review-meta">Carbon Member · London</div>
         </div>
         <div class="review-card">
           <div class="review-stars">★★★★★</div>
-          <p class="review-quote">"easiest booking i've done. collected them and they came back absolutely immaculate."</p>
-          <div class="review-author">rali n.</div>
-          <div class="review-meta">carbon member · leicester</div>
+          <p class="review-quote">"Easiest booking I've done. Collected them and they came back absolutely immaculate."</p>
+          <div class="review-author">Rali N.</div>
+          <div class="review-meta">Carbon Member · Leicester</div>
         </div>
       </div>
     </div>
@@ -818,57 +1320,61 @@
 
   <!-- FOOTER -->
   <footer class="m-footer" aria-label="site footer">
-    <div class="footer-brand">
-      <a href="home.html" aria-label="dkcleanedit home">
-        <img src="videos/logo.png" alt="dkcleanedit" />
+    <img src="videos/logo.png" class="footer-logo" alt="DKCleanEdit" />
+    <p class="footer-tagline">Professional sneaker cleaning in Leicester and London.</p>
+    <div class="footer-socials">
+      <a href="https://www.instagram.com/dkcleanedit_/" target="_blank" rel="noopener" class="footer-social" aria-label="instagram">
+        <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
       </a>
-      <p>professional sneaker cleaning in leicester and london.</p>
+      <a href="https://www.tiktok.com/@dkcleanedit" target="_blank" rel="noopener" class="footer-social" aria-label="tiktok">
+        <svg viewBox="0 0 24 24"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
+      </a>
     </div>
     <div class="footer-cols">
       <nav aria-label="services">
-        <h4>services</h4>
+        <h4>Services</h4>
         <ul>
-          <li><a href="booking.html">standard clean</a></li>
-          <li><a href="booking.html">express</a></li>
-          <li><a href="booking.html">next day</a></li>
+          <li><a href="booking.html">Standard Clean</a></li>
+          <li><a href="booking.html">Express</a></li>
+          <li><a href="booking.html">Next Day</a></li>
         </ul>
       </nav>
       <nav aria-label="company">
-        <h4>company</h4>
+        <h4>Company</h4>
         <ul>
-          <li><a href="#">about dk</a></li>
-          <li><a href="https://www.instagram.com/dkcleanedit_/" target="_blank" rel="noopener">instagram ↗</a></li>
-          <li><a href="https://www.tiktok.com/@dk_asz" target="_blank" rel="noopener">tiktok ↗</a></li>
-          <li><a href="#">contact</a></li>
+          <li><a href="#">About</a></li>
+          <li><a href="booking.html">Book</a></li>
+          <li><a href="track.html">Track</a></li>
+          <li><a href="#">Contact</a></li>
         </ul>
       </nav>
     </div>
-    <p class="footer-copy">© 2025 dkcleanedit. all rights reserved.</p>
+    <p class="footer-copy">© 2025 DKCleanEdit. All rights reserved.</p>
   </footer>
 
   <!-- BOTTOM TAB BAR -->
   <nav class="bottom-nav" aria-label="main navigation">
     <a href="home.html" class="bottom-tab active" aria-current="page" aria-label="home">
       <svg viewBox="0 0 24 24"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg>
-      <span>home</span>
+      <span>Home</span>
     </a>
     <a href="track.html" class="bottom-tab" aria-label="track" data-requires-auth="true">
       <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      <span>track</span>
+      <span>Track</span>
     </a>
     <a href="booking.html" class="bottom-tab-book" aria-label="book" data-requires-auth="true">
       <div class="book-pill">
         <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       </div>
-      <span>book</span>
+      <span>Book</span>
     </a>
     <a href="customer.html" class="bottom-tab" aria-label="account" data-requires-auth="true">
       <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      <span>account</span>
+      <span>Account</span>
     </a>
     <a href="login.html" class="bottom-tab" id="bottomNavLogin" aria-label="login">
       <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-      <span>login</span>
+      <span>Login</span>
     </a>
   </nav>
 
@@ -876,25 +1382,77 @@
   <script type="module" src="./theme.js"></script>
 
   <script>
-    /* search */
+    /* ── SIDEBAR ── */
+    const sidebarToggle  = document.getElementById('sidebarToggle');
+    const sidebar        = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const sidebarClose   = document.getElementById('sidebarClose');
+
+    const openSidebar  = () => { sidebar.classList.add('open'); sidebarOverlay.classList.add('open'); document.body.classList.add('sidebar-open'); sidebarToggle.setAttribute('aria-expanded','true'); };
+    const closeSidebar = () => { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('open'); document.body.classList.remove('sidebar-open'); sidebarToggle.setAttribute('aria-expanded','false'); };
+
+    sidebarToggle.addEventListener('click', openSidebar);
+    sidebarClose.addEventListener('click', closeSidebar);
+    sidebarOverlay.addEventListener('click', closeSidebar);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeSidebar(); closeSearch(); } });
+
+    /* ── SEARCH ── */
     const searchToggle   = document.getElementById('searchToggle');
     const searchOverlay  = document.getElementById('searchOverlay');
     const searchCancel   = document.getElementById('searchCancel');
     const searchBackdrop = document.getElementById('searchBackdrop');
     const searchInput    = document.getElementById('searchInput');
-    const open  = () => { searchOverlay.classList.add('open'); searchToggle.setAttribute('aria-expanded','true'); setTimeout(()=>searchInput.focus(),60); };
-    const close = () => { searchOverlay.classList.remove('open'); searchToggle.setAttribute('aria-expanded','false'); searchInput.value=''; };
-    searchToggle.addEventListener('click', open);
-    searchCancel.addEventListener('click', close);
-    searchBackdrop.addEventListener('click', close);
-    document.addEventListener('keydown', e => { if(e.key==='Escape') close(); });
+    const openSearch  = () => { searchOverlay.classList.add('open'); searchToggle.setAttribute('aria-expanded','true'); setTimeout(()=>searchInput.focus(),60); };
+    const closeSearch = () => { searchOverlay.classList.remove('open'); searchToggle.setAttribute('aria-expanded','false'); searchInput.value=''; };
+    searchToggle.addEventListener('click', openSearch);
+    searchCancel.addEventListener('click', closeSearch);
+    searchBackdrop.addEventListener('click', closeSearch);
 
-    /* cart badge */
+    /* ── CAROUSEL ── */
+    const track  = document.getElementById('carouselTrack');
+    const dotsEl = document.getElementById('carouselDots');
+    if (track) {
+      const imgs = track.querySelectorAll('img');
+      let cur = 0;
+      const dots = [];
+      imgs.forEach((_,i) => {
+        const b = document.createElement('button');
+        b.setAttribute('role','tab');
+        b.setAttribute('aria-label', `slide ${i+1}`);
+        if (i===0) b.classList.add('active');
+        b.addEventListener('click', ()=>goTo(i));
+        dotsEl.appendChild(b); dots.push(b);
+      });
+      const goTo = n => { cur=n; track.style.transform=`translateX(-${cur*100}%)`; dots.forEach((d,i)=>d.classList.toggle('active',i===cur)); };
+      document.getElementById('prevBtn')?.addEventListener('click', ()=>goTo((cur-1+imgs.length)%imgs.length));
+      document.getElementById('nextBtn')?.addEventListener('click', ()=>goTo((cur+1)%imgs.length));
+    }
+
+    /* ── SERVICES SLIDER DOTS ── */
+    const slider   = document.getElementById('servicesSlider');
+    const dotsWrap = document.getElementById('serviceDots');
+    if (slider && dotsWrap) {
+      const slides = slider.querySelectorAll('.service-slide');
+      const sDots  = [];
+      slides.forEach((_,i) => {
+        const b = document.createElement('button');
+        b.className = 'slider-dot' + (i===0?' active':'');
+        b.setAttribute('aria-label', `service ${i+1}`);
+        b.addEventListener('click', ()=>{ slider.scrollTo({left: i * 270, behavior:'smooth'}); });
+        dotsWrap.appendChild(b); sDots.push(b);
+      });
+      slider.addEventListener('scroll', () => {
+        const idx = Math.round(slider.scrollLeft / 270);
+        sDots.forEach((d,i)=>d.classList.toggle('active',i===idx));
+      }, { passive: true });
+    }
+
+    /* ── CART BADGE ── */
     window.updateCartCount = n => {
       const b = document.getElementById('cartCount');
       if (!b) return;
       b.hidden = n < 1;
-      if (n > 0) { b.textContent = n > 9 ? '9+' : n; }
+      if (n > 0) b.textContent = n > 9 ? '9+' : n;
     };
   </script>
 
