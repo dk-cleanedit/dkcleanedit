@@ -1,19 +1,33 @@
 <!doctype html>
 <html lang="en">
 <!--
-  customer.html — DKcleanedit My Account
+  customer.html — DKcleanedit My Account (phone-first)
+
   References:
   [1] Bootdey "account setting or edit profile" —
       https://www.bootdey.com/snippets/view/account-setting-or-edit-profile
       (Accessed: 27 Apr. 2026). Adapted for the profile strip layout.
   [2] Firebase Storage — https://firebase.google.com/docs/storage (Accessed: 27 Apr. 2026).
       Used for: avatar upload stored at avatars/{uid}.
--->
 
+  Phone shell (navbar, sidebar, bottom tab bar) is inlined below,
+  so this file is self-contained. Page-specific styles follow it.
+
+  IDs consumed by customer.js are unchanged:
+    custAvatar, custTierBadge, custName, custEmail, custPoints,
+    loyaltyTierChip, tierCurrentLabel, tierNextLabel, tierBarFill,
+    tierHint, tier-carbon, tier-stone, tier-pearl, custTotalOrders,
+    custCompleted, custPointsEarned, custSince, btnCustRefresh, custOrders
+-->
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0a0a" />
   <title>My Account | DKcleanedit</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
 
   <script>
     if (localStorage.getItem("theme") === "dark") {
@@ -21,140 +35,999 @@
     }
   </script>
 
-  <link rel="stylesheet" href="token.css">
-<link rel="stylesheet" href="global.css">
-<link rel="stylesheet" href="order-tracking.css">
-<link rel="stylesheet" href="account.css">
+
+
+  <link rel="stylesheet" href="token.css" />
+  <link rel="stylesheet" href="global.css" />
+  <link rel="stylesheet" href="order-tracking.css" />
+  <link rel="stylesheet" href="account.css" />
+  <!-- ════════════════════════════════════════════════════════════
+       PHONE SHELL — self-contained, nothing to paste elsewhere.
+       Tokens, reset, top navbar, sidebar drawer, bottom tab bar,
+       buttons and form fields. Loads after the stylesheets above
+       so it overrides the older desktop rules.
+       ════════════════════════════════════════════════════════════ -->
+  <style>
+    /* ═══════════════════════════════════════════════════════════════
+       PHONE SHELL — tokens, reset, top navbar, sidebar drawer, search
+       overlay, bottom tab bar, buttons, form fields, section helpers
+       and footer.
+
+       This sits after the linked stylesheets on purpose: it has to
+       override the older desktop rules in them. The page's own styles
+       come after this block, so they win where they overlap.
+       ═══════════════════════════════════════════════════════════════ */
+
+    /* ── TOKENS ──────────────────────────────────────────────────── */
+    :root {
+      --surface:    #0a0a0a;
+      --surface-2:  #141414;
+      --surface-3:  #1e1e1e;
+      --surface-4:  #252525;
+      --gold:       #c9a84c;
+      --gold-light: #e8c97a;
+      --gold-dark:  #9a7a2e;
+      --white:      #f5f5f5;
+      --muted:      #888;
+      --muted-2:    #666;
+      --hairline:   rgba(201, 168, 76, 0.12);
+      --hairline-2: rgba(201, 168, 76, 0.25);
+      --radius-sm:  10px;
+      --radius-md:  14px;
+      --side:       16px;
+      --tap:        48px;   /* minimum touch target */
+    }
+
+    /* ── RESET ───────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+    body {
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--white);
+      background: var(--surface);
+      overflow-x: hidden;
+      padding-top: 60px;
+      padding-bottom: calc(68px + env(safe-area-inset-bottom));
+      -webkit-font-smoothing: antialiased;
+    }
+    body.sidebar-open { overflow: hidden; }
+
+    img { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+    ul { list-style: none; }
+    button { cursor: pointer; border: none; background: none; font-family: inherit; }
+
+    /* Stop iOS zooming on focus — inputs must be >= 16px */
+    input, select, textarea {
+      font-family: inherit;
+      font-size: 16px;
+    }
+
+    .container, .page-shell {
+      padding-left: var(--side) !important;
+      padding-right: var(--side) !important;
+      max-width: 100% !important;
+      width: 100% !important;
+    }
+
+    .page-shell {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 14px !important;
+      padding-top: 16px !important;
+      padding-bottom: 20px !important;
+    }
+
+    /* ── TOP NAVBAR ──────────────────────────────────────────────── */
+    .navbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 900;
+      height: 60px; padding: 0 14px;
+      display: flex; align-items: center;
+      background: rgba(10, 10, 10, 0.96);
+      -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(201, 168, 76, 0.18);
+    }
+
+    /* Legacy desktop link list — kept in the DOM for app.js auth hooks */
+    .nav-links { display: none !important; }
+
+    .nav-mobile-bar   { display: flex; align-items: center; width: 100%; }
+    .nav-mobile-left  { flex: 0 0 72px; display: flex; align-items: center; gap: 4px; }
+    .nav-mobile-center{ flex: 1; display: flex; justify-content: center; align-items: center; }
+    .nav-mobile-center img { height: 34px; width: auto; }
+    .nav-mobile-right { flex: 0 0 72px; display: flex; align-items: center; justify-content: flex-end; gap: 2px; }
+
+    .nav-icon-btn {
+      width: 38px; height: 38px; border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold); background: transparent;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.12s;
+    }
+    .nav-icon-btn:active { background: rgba(201, 168, 76, 0.12); }
+    .nav-icon-btn svg {
+      width: 20px; height: 20px;
+      stroke: currentColor; fill: none;
+      stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    .nav-points {
+      font-size: 11px; font-weight: 700; color: var(--gold);
+      background: rgba(201, 168, 76, 0.12);
+      border: 1px solid var(--hairline-2);
+      border-radius: 20px; padding: 4px 9px;
+      white-space: nowrap;
+    }
+
+    /* ── SIDEBAR ─────────────────────────────────────────────────── */
+    .sidebar-overlay {
+      position: fixed; inset: 0; z-index: 950;
+      background: rgba(0, 0, 0, 0.6);
+      -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .sidebar-overlay.open { opacity: 1; pointer-events: all; }
+
+    .sidebar {
+      position: fixed; top: 0; left: -280px; bottom: 0; z-index: 960;
+      width: 272px;
+      background: var(--surface-2);
+      border-right: 1px solid var(--hairline-2);
+      display: flex; flex-direction: column;
+      transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .sidebar.open { left: 0; }
+
+    .sidebar-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 16px 16px;
+      border-bottom: 1px solid var(--hairline);
+    }
+    .sidebar-header img { height: 30px; width: auto; }
+
+    .sidebar-close {
+      width: 34px; height: 34px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold); -webkit-tap-highlight-color: transparent;
+    }
+    .sidebar-close:active { background: var(--surface-3); }
+    .sidebar-close svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+
+    .sidebar-nav { flex: 1; overflow-y: auto; padding: 12px 0; }
+
+    .sidebar-link {
+      display: flex; align-items: center; gap: 14px;
+      min-height: var(--tap);
+      padding: 13px 20px;
+      color: #ccc; font-size: 15px; font-weight: 500;
+      -webkit-tap-highlight-color: transparent;
+      transition: color 0.12s, background 0.12s;
+      border-left: 3px solid transparent;
+    }
+    .sidebar-link:active, .sidebar-link.active {
+      color: var(--gold);
+      background: rgba(201, 168, 76, 0.07);
+      border-left-color: var(--gold);
+    }
+    .sidebar-link svg {
+      width: 18px; height: 18px; stroke: currentColor; fill: none;
+      stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;
+    }
+
+    .sidebar-divider { height: 1px; background: rgba(201, 168, 76, 0.1); margin: 8px 20px; }
+    .sidebar-label {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--gold); padding: 12px 20px 6px;
+    }
+
+    .sidebar-footer { padding: 16px 20px; border-top: 1px solid var(--hairline); }
+    .sidebar-socials { display: flex; gap: 12px; }
+    .sidebar-social {
+      width: 36px; height: 36px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--surface-3); color: var(--gold);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .sidebar-social svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* ── SEARCH OVERLAY ──────────────────────────────────────────── */
+    .search-overlay {
+      position: fixed; inset: 0; z-index: 970;
+      background: rgba(0, 0, 0, 0.6);
+      display: none; flex-direction: column;
+    }
+    .search-overlay.open { display: flex; }
+    .search-sheet {
+      background: var(--surface-2); padding: 12px 14px;
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid var(--hairline-2);
+    }
+    .search-input {
+      flex: 1; height: 42px; border: 1.5px solid var(--surface-4);
+      border-radius: 10px; padding: 0 14px;
+      background: var(--surface-3); color: var(--white);
+      outline: none; -webkit-appearance: none;
+    }
+    .search-input:focus { border-color: var(--gold); }
+    .search-cancel {
+      font-size: 14px; font-weight: 500; color: var(--gold);
+      white-space: nowrap; padding: 4px;
+    }
+    .search-backdrop { flex: 1; }
+
+    /* ── BOTTOM TAB BAR ──────────────────────────────────────────── */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 900;
+      height: calc(64px + env(safe-area-inset-bottom));
+      padding-bottom: env(safe-area-inset-bottom);
+      background: rgba(10, 10, 10, 0.97);
+      -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+      border-top: 1px solid rgba(201, 168, 76, 0.18);
+      display: flex; align-items: stretch;
+    }
+    .bottom-tab {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 3px;
+      color: #555; font-size: 10px; font-weight: 500;
+      -webkit-tap-highlight-color: transparent;
+      padding-top: 6px;
+      transition: color 0.14s;
+    }
+    .bottom-tab.active { color: var(--gold); }
+    .bottom-tab svg {
+      width: 22px; height: 22px; stroke: currentColor; fill: none;
+      stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    .bottom-tab-book {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 4px;
+      color: #000; font-size: 10px; font-weight: 700;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .book-pill {
+      width: 46px; height: 46px;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      margin-top: -14px;
+      box-shadow: 0 4px 20px rgba(201, 168, 76, 0.4);
+    }
+    .book-pill svg { width: 20px; height: 20px; stroke: #000; fill: none; stroke-width: 2.2; stroke-linecap: round; }
+
+    /* ── SECTION HELPERS ─────────────────────────────────────────── */
+    .sec { padding: 0 var(--side); }
+    .sec-label {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.2px; color: var(--gold); margin-bottom: 6px;
+    }
+    .sec-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 20px; font-weight: 800;
+      color: var(--white); line-height: 1.2; margin-bottom: 8px;
+    }
+    .sec-body { font-size: 13px; line-height: 1.65; color: #999; }
+
+    .gold-rule {
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--gold), transparent);
+      border: none; margin: 0;
+    }
+
+    /* Padded card-style section */
+    .dk-section {
+      background: var(--surface-2);
+      border: 1px solid rgba(201, 168, 76, 0.1);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+    .dk-section-header { margin-bottom: 14px; }
+    .dk-section-header .sec-label { margin-bottom: 4px; }
+    .dk-section-header .sec-title { margin-bottom: 0; }
+
+    /* ── BUTTONS ─────────────────────────────────────────────────── */
+    .btn-gold {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; min-height: var(--tap); padding: 14px;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      color: #000; font-size: 14px; font-weight: 700;
+      border-radius: var(--radius-sm);
+      -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 4px 18px rgba(201, 168, 76, 0.25);
+    }
+    .btn-gold:active { opacity: 0.88; }
+    .btn-gold:disabled { opacity: 0.45; box-shadow: none; }
+
+    .btn-outline {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; min-height: var(--tap); padding: 13px;
+      background: transparent; color: var(--white);
+      font-size: 14px; font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-outline:active { background: var(--surface-3); }
+
+    .btn-ghost {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 40px; padding: 9px 16px;
+      background: rgba(201, 168, 76, 0.1);
+      border: 1px solid var(--hairline-2);
+      color: var(--gold); font-size: 13px; font-weight: 600;
+      border-radius: var(--radius-sm);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-ghost:active { background: rgba(201, 168, 76, 0.2); }
+
+    .cta-stack { display: flex; flex-direction: column; gap: 9px; }
+
+    /* ── FORM FIELDS ─────────────────────────────────────────────── */
+    .m-field { margin-bottom: 12px; }
+    .m-field label {
+      display: block; margin-bottom: 6px;
+      font-size: 12px; font-weight: 600; color: var(--muted);
+    }
+    .m-field input,
+    .m-field select,
+    .m-field textarea {
+      width: 100%; min-height: var(--tap);
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--surface-4);
+      background: var(--surface-3);
+      color: var(--white);
+      outline: none; -webkit-appearance: none;
+    }
+    .m-field input:focus,
+    .m-field select:focus,
+    .m-field textarea:focus { border-color: var(--gold); }
+
+    /* ── STATUS MESSAGES ─────────────────────────────────────────── */
+    .helper-msg { font-size: 12px; color: var(--muted); margin-top: 8px; min-height: 1em; }
+    .helper-msg.small { font-size: 11px; }
+    .helper-msg.error { color: #ff7a7a; }
+    .helper-msg.ok { color: #6fcf7f; }
+
+    /* ── OVERLAY / DIALOG ────────────────────────────────────────── */
+    .overlay {
+      position: fixed; inset: 0; z-index: 980;
+      background: rgba(0, 0, 0, 0.72);
+      -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center;
+      padding: var(--side);
+    }
+    .overlay[hidden] { display: none; }
+    .overlay .popup {
+      width: 100%; max-width: 360px;
+      background: var(--surface-2);
+      border: 1px solid var(--hairline-2);
+      border-radius: var(--radius-md);
+      padding: 22px 20px;
+      text-align: center;
+    }
+    .overlay .popup h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 20px; font-weight: 800; margin-bottom: 8px;
+    }
+    .overlay .popup p { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
+    .popup-actions { display: flex; flex-direction: column; gap: 9px; }
+
+    /* ── FOOTER ──────────────────────────────────────────────────── */
+    .m-footer { padding: 20px var(--side) 16px; border-top: 1px solid var(--hairline); }
+    .footer-logo { height: 26px; width: auto; margin-bottom: 10px; }
+    .footer-tagline { font-size: 12px; color: var(--muted-2); margin-bottom: 18px; }
+    .footer-cols { display: flex; gap: 32px; margin-bottom: 20px; }
+    .footer-col h4 {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--gold); margin-bottom: 10px;
+    }
+    .footer-col ul { display: flex; flex-direction: column; gap: 8px; }
+    .footer-col a { font-size: 13px; color: var(--muted); }
+    .footer-socials { display: flex; gap: 10px; margin-bottom: 18px; }
+    .footer-social {
+      width: 36px; height: 36px; border-radius: 9px;
+      background: var(--surface-2); border: 1px solid var(--hairline-2);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold);
+    }
+    .footer-social svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .footer-copy { font-size: 11px; color: #555; }
+
+    /* ── ACCESSIBILITY ───────────────────────────────────────────── */
+    :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    /* ── TABLET AND UP ───────────────────────────────────────────── */
+    @media (min-width: 720px) {
+      .page-shell { max-width: 620px !important; margin: 0 auto; }
+      .m-footer   { max-width: 620px; margin: 0 auto; }
+    }
+  </style>
+
+  <style>
+    /* ── PROFILE STRIP ──────────────────────────────────────── */
+    .acct-strip {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--surface-2);
+      border: 1px solid rgba(201,168,76,0.12);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+    .acct-av-wrap { position: relative; flex-shrink: 0; }
+    .acct-av {
+      width: 62px; height: 62px; border-radius: 50%;
+      object-fit: cover; background: var(--surface-3);
+      border: 2px solid var(--gold);
+    }
+    .acct-av-badge {
+      position: absolute; bottom: -4px; left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      color: #000; font-size: 9px; font-weight: 800;
+      padding: 2px 8px; border-radius: 10px;
+      white-space: nowrap;
+      border: 2px solid var(--surface-2);
+    }
+    .acct-info { min-width: 0; flex: 1; }
+    .acct-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 19px; font-weight: 800; line-height: 1.2;
+      margin-bottom: 2px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .acct-email {
+      font-size: 12px; color: var(--muted);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    /* ── LOYALTY ────────────────────────────────────────────── */
+    .loyalty-card {
+      background: linear-gradient(160deg, rgba(201,168,76,0.10), var(--surface-2));
+      border: 1px solid var(--hairline-2);
+      border-radius: var(--radius-md);
+      padding: 18px 16px;
+    }
+    .loyalty-hd {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 12px; margin-bottom: 16px;
+    }
+    .loyalty-lbl {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.2px; color: var(--gold);
+    }
+    .loyalty-pts {
+      font-family: 'Syne', sans-serif;
+      font-size: 38px; font-weight: 800; line-height: 1.05;
+      color: var(--white);
+    }
+    .tier-chip {
+      background: rgba(201,168,76,0.14);
+      border: 1px solid var(--hairline-2);
+      color: var(--gold);
+      font-size: 11px; font-weight: 700;
+      padding: 6px 12px; border-radius: 20px;
+      white-space: nowrap; flex-shrink: 0;
+    }
+
+    .tier-prog-lbl {
+      display: flex; justify-content: space-between; align-items: baseline;
+      gap: 10px; font-size: 11px; color: var(--muted); margin-bottom: 6px;
+    }
+    .tier-bar-track {
+      height: 7px; border-radius: 4px;
+      background: var(--surface-4); overflow: hidden;
+    }
+    .tier-bar-fill {
+      height: 100%; border-radius: 4px;
+      background: linear-gradient(90deg, var(--gold-dark), var(--gold-light));
+      transition: width 0.4s ease;
+    }
+    .tier-hint { font-size: 11px; color: var(--muted-2); margin-top: 8px; line-height: 1.5; }
+
+    /* Tier rows — stacked on phones, not a cramped 3-column grid */
+    .tier-items { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+    .tier-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 12px; border-radius: var(--radius-sm);
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(201,168,76,0.10);
+    }
+    .tier-item.current {
+      border-color: var(--gold);
+      background: rgba(201,168,76,0.10);
+    }
+    .ti-icon {
+      width: 34px; height: 34px; border-radius: 9px;
+      background: rgba(201,168,76,0.12); color: var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .ti-text { flex: 1; min-width: 0; }
+    .ti-name { font-size: 13px; font-weight: 700; color: var(--white); }
+    .ti-req  { font-size: 11px; color: var(--muted-2); }
+    .ti-perk { font-size: 12px; color: var(--gold); margin-top: 1px; }
+
+    /* ── STATS — 2×2 grid ───────────────────────────────────── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .stat-box {
+      background: var(--surface-2);
+      border: 1px solid rgba(201,168,76,0.10);
+      border-radius: var(--radius-md);
+      padding: 14px;
+    }
+    .stat-lbl {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.8px; color: var(--muted-2); margin-bottom: 5px;
+    }
+    .stat-val {
+      font-family: 'Syne', sans-serif;
+      font-size: 24px; font-weight: 800; color: var(--gold); line-height: 1;
+    }
+    .stat-val.sm { font-size: 14px; color: var(--white); }
+
+    /* ── ORDER HISTORY ──────────────────────────────────────── */
+    .acct-orders {
+      background: var(--surface-2);
+      border: 1px solid rgba(201,168,76,0.10);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+    .acct-orders-hd {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 12px; margin-bottom: 14px;
+    }
+    .acct-orders-hd h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 17px; font-weight: 800; margin-bottom: 2px;
+    }
+    .acct-orders-hd .sub { font-size: 11px; color: var(--muted-2); }
+    .acct-order-rows { display: flex; flex-direction: column; gap: 10px; }
+    .acct-empty {
+      font-size: 13px; color: var(--muted-2);
+      text-align: center; padding: 22px 10px;
+    }
+  </style>
 </head>
 
 <body>
 
-  <!-- NAVBAR -->
-  <nav class="navbar">
-    <ul class="nav-links">
-      <li class="nav-logo">
-        <a href="home.html">
-          <img src="videos/logo.png" class="logo" alt="DKcleanedit" />
+  <!-- ── LEGACY NAV LIST — app.js auth hooks read these IDs ── -->
+  <ul class="nav-links" style="display:none!important" role="list">
+    <li><a href="home.html"     id="navHome">Home</a></li>
+    <li><a href="booking.html"  id="navBooking"  data-requires-auth="true">Booking</a></li>
+    <li><a href="track.html"    id="navTracking" data-requires-auth="true">Tracking</a></li>
+    <li><a href="customer.html" id="navAccount"  data-requires-auth="true" aria-current="page">My Account</a></li>
+    <li><a href="admin.html"    id="navAdmin"    data-requires-auth="true" hidden>Admin</a></li>
+    <li><a href="login.html"    id="navLogin">Login</a></li>
+    <li><a href="register.html" id="navRegister">Register</a></li>
+    <li><a href="#"             id="navLogout"   hidden>Logout</a></li>
+    <li><span id="navPointsBadge" class="badge info points-badge" hidden aria-live="polite">Points: 0</span></li>
+  </ul>
+
+  <!-- ── TOP NAVBAR ── -->
+  <nav class="navbar" role="navigation" aria-label="Primary navigation">
+    <div class="nav-mobile-bar">
+      <div class="nav-mobile-left">
+        <button class="nav-icon-btn" id="sidebarToggle" type="button" aria-label="Open menu" aria-expanded="false">
+          <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="nav-mobile-center">
+        <a href="home.html" aria-label="DKcleanedit home">
+          <img src="videos/logo.png" alt="DKCleanEdit" />
         </a>
-      </li>
-      <li><a href="home.html"     id="navHome">Home</a></li>
-      <li><a href="booking.html"  id="navBooking"  data-requires-auth="true">Booking</a></li>
-      <li><a href="track.html"    id="navTracking" data-requires-auth="true">Tracking</a></li>
-      <li><a href="customer.html" id="navAccount"  data-requires-auth="true" aria-current="page">My Account</a></li>
-      <li><a href="admin.html"    id="navAdmin"    data-requires-auth="true">Admin</a></li>
-      <li><a href="login.html"    id="navLogin">Login</a></li>
-      <li><a href="register.html" id="navRegister">Register</a></li>
-      <li><a href="#"             id="navLogout"   hidden>Logout</a></li>
-      <li><span id="navPointsBadge" class="badge info points-badge" hidden>Points: 0</span></li>
-      <li>
-        <a href="settings.html" aria-label="Settings">
-          <img class="PicSettings"
-               src="https://img.icons8.com/ios-filled/100/666666/settings.png"
-               alt="Settings" />
+      </div>
+      <div class="nav-mobile-right">
+        <span id="navPointsMirror" class="nav-points" hidden aria-live="polite"></span>
+        <a href="settings.html" class="nav-icon-btn" aria-label="Settings">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         </a>
-      </li>
-    </ul>
+      </div>
+    </div>
   </nav>
 
-  <main class="container acct-shell">
+  <!-- ── SIDEBAR ── -->
+  <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
 
-    <!-- PROFILE STRIP -->
-    <div class="card acct-strip">
+  <aside class="sidebar" id="sidebar" role="dialog" aria-label="Navigation menu">
+    <div class="sidebar-header">
+      <img src="videos/logo.png" alt="DKCleanEdit" />
+      <button class="sidebar-close" id="sidebarClose" type="button" aria-label="Close menu">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Site navigation">
+      <div class="sidebar-label">Main</div>
+      <a href="home.html" class="sidebar-link">
+        <svg viewBox="0 0 24 24"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg>
+        Home
+      </a>
+      <a href="booking.html" class="sidebar-link" data-requires-auth="true">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Booking
+      </a>
+      <a href="track.html" class="sidebar-link" data-requires-auth="true">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Track Order
+      </a>
+      <a href="customer.html" class="sidebar-link active" aria-current="page">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        My Account
+      </a>
+
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-label">Account</div>
+      <a href="login.html" class="sidebar-link" id="sidebarLogin">
+        <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Login
+      </a>
+      <a href="register.html" class="sidebar-link" id="sidebarRegister">
+        <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        Register
+      </a>
+      <a href="#" class="sidebar-link" id="sidebarLogout" hidden>
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Logout
+      </a>
+      <a href="settings.html" class="sidebar-link">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </a>
+      <a href="admin.html" class="sidebar-link" id="sidebarAdmin" hidden>
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Admin
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-socials">
+        <a href="https://www.instagram.com/dkcleanedit_/" target="_blank" rel="noopener" class="sidebar-social" aria-label="Instagram">
+          <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <a href="https://www.tiktok.com/@dkcleanedit" target="_blank" rel="noopener" class="sidebar-social" aria-label="TikTok">
+          <svg viewBox="0 0 24 24"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── SIGN-IN OVERLAY — shown by app.js when signed out ── -->
+  <div id="signupOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="overlayHeading" hidden>
+    <div class="popup">
+      <h2 id="overlayHeading">Sign in to view your account</h2>
+      <p>Create an account to book services, track orders and earn loyalty points.</p>
+      <div class="popup-actions">
+        <a class="btn-gold" href="login.html">Log in</a>
+        <a class="btn-outline" href="register.html">Create account</a>
+        <button id="closePopupBtn" class="btn-outline" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MAIN ── -->
+  <main class="container page-shell acct-shell" id="main" tabindex="-1">
+
+    <!-- PROFILE -->
+    <section class="card acct-strip" aria-label="Your profile">
       <div class="acct-av-wrap">
         <img id="custAvatar"
              src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
              class="acct-av"
-             alt="Avatar" />
-        <div class="acct-av-badge" id="custTierBadge">Carbon</div>
+             alt="Your profile picture" />
+        <span class="acct-av-badge" id="custTierBadge">Carbon</span>
       </div>
       <div class="acct-info">
-        <h1 id="custName"  class="acct-name">—</h1>
-        <p  id="custEmail" class="acct-email">—</p>
+        <h1 id="custName" class="acct-name">—</h1>
+        <p id="custEmail" class="acct-email">—</p>
+      </div>
+    </section>
+
+    <!-- LOYALTY -->
+    <section class="card loyalty-card" aria-label="Loyalty points">
+      <div class="loyalty-hd">
+        <div>
+          <span class="loyalty-lbl">Loyalty points</span>
+          <div class="loyalty-pts" id="custPoints">0</div>
+        </div>
+        <span class="tier-chip" id="loyaltyTierChip">Carbon</span>
       </div>
 
-    </div>
+      <div class="tier-prog-lbl">
+        <span id="tierCurrentLabel">Carbon</span>
+        <span id="tierNextLabel">100 pts to Stone</span>
+      </div>
+      <div class="tier-bar-track" role="progressbar" aria-labelledby="tierCurrentLabel" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="tier-bar-fill" id="tierBarFill" style="width:0%"></div>
+      </div>
+      <p class="tier-hint" id="tierHint">Keep booking to level up and unlock bigger rewards.</p>
 
-    <!-- LOYALTY AND STATS -->
-    <div class="acct-mid">
-
-      <div class="card loyalty-card">
-        <div class="loyalty-hd">
-          <div>
-            <span class="loyalty-lbl">Loyalty points</span>
-            <div class="loyalty-pts" id="custPoints">0</div>
-          </div>
-          <div class="tier-chip" id="loyaltyTierChip">Carbon</div>
-        </div>
-
-        <div class="tier-prog-lbl">
-          <span id="tierCurrentLabel">Carbon</span>
-          <span id="tierNextLabel">100 pts to Stone</span>
-        </div>
-        <div class="tier-bar-track">
-          <div class="tier-bar-fill" id="tierBarFill" style="width:0%"></div>
-        </div>
-        <p class="tier-hint" id="tierHint">Keep booking to level up and unlock bigger rewards.</p>
-
-        <div class="tier-items">
-          <div class="tier-item" id="tier-carbon">
-            <div class="ti-icon">⚫</div>
+      <div class="tier-items">
+        <div class="tier-item" id="tier-carbon">
+          <div class="ti-icon" aria-hidden="true">◈</div>
+          <div class="ti-text">
             <div class="ti-name">Carbon</div>
-            <div class="ti-req">50–99 pts</div>
-            <div class="ti-perk">£5 off next clean</div>
+            <div class="ti-req">0 – 99 pts</div>
+            <div class="ti-perk">£5 off your next clean</div>
           </div>
-          <div class="tier-item" id="tier-stone">
-            <div class="ti-icon">🪨</div>
+        </div>
+        <div class="tier-item" id="tier-stone">
+          <div class="ti-icon" aria-hidden="true">◆</div>
+          <div class="ti-text">
             <div class="ti-name">Stone</div>
-            <div class="ti-req">100–499 pts</div>
-            <div class="ti-perk">£10 off + priority</div>
+            <div class="ti-req">100 – 499 pts</div>
+            <div class="ti-perk">£10 off + priority booking</div>
           </div>
-          <div class="tier-item" id="tier-pearl">
-            <div class="ti-icon">🤍</div>
+        </div>
+        <div class="tier-item" id="tier-pearl">
+          <div class="ti-icon" aria-hidden="true">◉</div>
+          <div class="ti-text">
             <div class="ti-name">Pearl</div>
             <div class="ti-req">500+ pts</div>
-            <div class="ti-perk">Free clean + shoe tree</div>
+            <div class="ti-perk">1 free clean + shoe tree</div>
           </div>
         </div>
       </div>
+    </section>
 
-      <div class="stat-col">
-        <div class="card stat-box">
-          <div class="stat-lbl">Total cleans</div>
-          <div class="stat-val" id="custTotalOrders">0</div>
-        </div>
-        <div class="card stat-box">
-          <div class="stat-lbl">Completed</div>
-          <div class="stat-val" id="custCompleted">0</div>
-        </div>
-        <div class="card stat-box">
-          <div class="stat-lbl">Points earned</div>
-          <div class="stat-val" id="custPointsEarned">0</div>
-        </div>
-        <div class="card stat-box">
-          <div class="stat-lbl">Member since</div>
-          <div class="stat-val sm" id="custSince">—</div>
-        </div>
+    <!-- STATS -->
+    <section class="stat-grid" aria-label="Your stats">
+      <div class="card stat-box">
+        <div class="stat-lbl">Total cleans</div>
+        <div class="stat-val" id="custTotalOrders">0</div>
       </div>
-    </div>
+      <div class="card stat-box">
+        <div class="stat-lbl">Completed</div>
+        <div class="stat-val" id="custCompleted">0</div>
+      </div>
+      <div class="card stat-box">
+        <div class="stat-lbl">Points earned</div>
+        <div class="stat-val" id="custPointsEarned">0</div>
+      </div>
+      <div class="card stat-box">
+        <div class="stat-lbl">Member since</div>
+        <div class="stat-val sm" id="custSince">—</div>
+      </div>
+    </section>
 
     <!-- ORDER HISTORY -->
-    <div class="card acct-orders">
+    <section class="card acct-orders" aria-label="Order history">
       <div class="acct-orders-hd">
         <div>
           <h2>Order history</h2>
           <p class="sub">All your cleans, most recent first.</p>
         </div>
-        <button class="btn secondary" id="btnCustRefresh" type="button">Refresh</button>
+        <button class="btn-ghost" id="btnCustRefresh" type="button">Refresh</button>
       </div>
       <div id="custOrders" class="acct-order-rows" aria-live="polite">
         <p class="acct-empty">Loading orders…</p>
       </div>
-    </div>
+    </section>
+
+    <a class="btn-gold" href="booking.html" data-requires-auth="true">Book another clean</a>
 
   </main>
 
+  <!-- ── BOTTOM TAB BAR ── -->
+  <nav class="bottom-nav" aria-label="Main navigation">
+    <a href="home.html" class="bottom-tab" aria-label="Home">
+      <svg viewBox="0 0 24 24"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg>
+      <span>Home</span>
+    </a>
+    <a href="track.html" class="bottom-tab" aria-label="Track" data-requires-auth="true">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span>Track</span>
+    </a>
+    <a href="booking.html" class="bottom-tab-book" aria-label="Book" data-requires-auth="true">
+      <div class="book-pill">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </div>
+      <span>Book</span>
+    </a>
+    <a href="customer.html" class="bottom-tab active" aria-current="page" aria-label="Account" data-requires-auth="true">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Account</span>
+    </a>
+    <a href="login.html" class="bottom-tab" id="bottomNavLogin" aria-label="Login">
+      <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      <span>Login</span>
+    </a>
+  </nav>
+
   <script type="module" src="./app.js"></script>
   <script type="module" src="./theme.js"></script>
+
+  <!-- Phone shell behaviour — sidebar drawer, search overlay,
+       cart badge, and mirroring app.js auth onto the sidebar/bottom bar -->
+  <script>
+    /* ═══════════════════════════════════════════════════════════════
+       PHONE SHELL BEHAVIOUR — sidebar drawer, search overlay, cart
+       badge, and mirroring app.js's auth state onto the sidebar and
+       bottom bar.
+
+       Everything is null-guarded, so a page without a search overlay
+       or cart button is fine.
+       ═══════════════════════════════════════════════════════════════ */
+    (function () {
+      'use strict';
+
+      var $ = function (id) { return document.getElementById(id); };
+
+      /* ── SIDEBAR ─────────────────────────────────────────────── */
+      var sidebar = $('sidebar');
+      var overlay = $('sidebarOverlay');
+      var toggle  = $('sidebarToggle');
+      var closeEl = $('sidebarClose');
+
+      function openSidebar() {
+        if (!sidebar) return;
+        sidebar.classList.add('open');
+        if (overlay) overlay.classList.add('open');
+        document.body.classList.add('sidebar-open');
+        if (toggle) toggle.setAttribute('aria-expanded', 'true');
+      }
+
+      function closeSidebar() {
+        if (!sidebar) return;
+        sidebar.classList.remove('open');
+        if (overlay) overlay.classList.remove('open');
+        document.body.classList.remove('sidebar-open');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      }
+
+      if (toggle)  toggle.addEventListener('click', openSidebar);
+      if (closeEl) closeEl.addEventListener('click', closeSidebar);
+      if (overlay) overlay.addEventListener('click', closeSidebar);
+
+      /* ── SEARCH OVERLAY ──────────────────────────────────────── */
+      var searchToggle   = $('searchToggle');
+      var searchOverlay  = $('searchOverlay');
+      var searchCancel   = $('searchCancel');
+      var searchBackdrop = $('searchBackdrop');
+      var searchInput    = $('searchInput');
+
+      function openSearch() {
+        if (!searchOverlay) return;
+        searchOverlay.classList.add('open');
+        if (searchToggle) searchToggle.setAttribute('aria-expanded', 'true');
+        if (searchInput) setTimeout(function () { searchInput.focus(); }, 60);
+      }
+
+      function closeSearch() {
+        if (!searchOverlay) return;
+        searchOverlay.classList.remove('open');
+        if (searchToggle) searchToggle.setAttribute('aria-expanded', 'false');
+        if (searchInput) searchInput.value = '';
+      }
+
+      if (searchToggle)   searchToggle.addEventListener('click', openSearch);
+      if (searchCancel)   searchCancel.addEventListener('click', closeSearch);
+      if (searchBackdrop) searchBackdrop.addEventListener('click', closeSearch);
+
+      /* Escape closes whatever is open */
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { closeSidebar(); closeSearch(); }
+      });
+
+      /* Tapping any sidebar link closes the drawer before navigating */
+      var links = document.querySelectorAll('.sidebar-link');
+      for (var i = 0; i < links.length; i++) {
+        links[i].addEventListener('click', closeSidebar);
+      }
+
+      /* ── CART BADGE ──────────────────────────────────────────── */
+      window.updateCartCount = function (n) {
+        var b = $('cartCount');
+        if (!b) return;
+        b.hidden = !(n > 0);
+        if (n > 0) b.textContent = n > 9 ? '9+' : String(n);
+      };
+
+      /* ── AUTH MIRROR ─────────────────────────────────────────────
+         app.js owns auth and drives the legacy #nav* links in the
+         hidden .nav-links list. We copy that state onto the sidebar
+         and bottom bar so all three stay in step without app.js
+         needing to know this shell exists.
+         ────────────────────────────────────────────────────────── */
+      function mirrorAuth() {
+        var navLogout = $('navLogout');
+        var navAdmin  = $('navAdmin');
+        var navPoints = $('navPointsBadge');
+
+        /* Signed in when app.js has revealed the logout link */
+        var signedIn = !!(navLogout && !navLogout.hidden);
+
+        var sbLogin  = $('sidebarLogin');
+        var sbReg    = $('sidebarRegister');
+        var sbLogout = $('sidebarLogout');
+        var sbAdmin  = $('sidebarAdmin');
+        var tabLogin = $('bottomNavLogin');
+        var navPts   = $('navPointsMirror');
+
+        if (sbLogin)  sbLogin.hidden  = signedIn;
+        if (sbReg)    sbReg.hidden    = signedIn;
+        if (sbLogout) sbLogout.hidden = !signedIn;
+        if (tabLogin) tabLogin.hidden = signedIn;
+
+        /* Admin tab follows whatever app.js decided for the legacy link */
+        if (sbAdmin) sbAdmin.hidden = !(navAdmin && !navAdmin.hidden);
+
+        /* Points badge in the top bar */
+        if (navPts) {
+          if (navPoints && !navPoints.hidden) {
+            navPts.hidden = false;
+            navPts.textContent = navPoints.textContent.trim();
+          } else {
+            navPts.hidden = true;
+          }
+        }
+      }
+
+      /* Sidebar logout delegates to the link app.js already wired */
+      var sidebarLogout = $('sidebarLogout');
+      if (sidebarLogout) {
+        sidebarLogout.addEventListener('click', function (e) {
+          e.preventDefault();
+          var navLogout = $('navLogout');
+          if (navLogout) navLogout.click();
+        });
+      }
+
+      /* app.js resolves auth asynchronously, so watch for the change
+         rather than reading once on load. */
+      var hookTargets = ['navLogout', 'navAdmin', 'navPointsBadge'];
+      if (window.MutationObserver) {
+        var mo = new MutationObserver(mirrorAuth);
+        for (var j = 0; j < hookTargets.length; j++) {
+          var el = $(hookTargets[j]);
+          if (el) mo.observe(el, { attributes: true, childList: true, characterData: true, subtree: true });
+        }
+      }
+      mirrorAuth();
+      setTimeout(mirrorAuth, 600);
+      setTimeout(mirrorAuth, 2000);
+    })();
+  </script>
+
   <script type="module" src="./customer.js"></script>
+
+  <!-- Highlight whichever tier the customer is currently on -->
+  <script>
+    (function () {
+      var chip = document.getElementById('loyaltyTierChip');
+      if (!chip) return;
+      function mark() {
+        var name = (chip.textContent || '').trim().toLowerCase();
+        ['carbon', 'stone', 'pearl'].forEach(function (t) {
+          var el = document.getElementById('tier-' + t);
+          if (el) el.classList.toggle('current', t === name);
+        });
+      }
+      if (window.MutationObserver) {
+        new MutationObserver(mark).observe(chip, { childList: true, characterData: true, subtree: true });
+      }
+      mark();
+      setTimeout(mark, 800);
+    })();
+  </script>
+
 </body>
 </html>

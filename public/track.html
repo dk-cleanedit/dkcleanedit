@@ -1,11 +1,22 @@
-<!DOCTYPE html>
+<<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0a0a" />
   <title>Tracking | DKcleanedit</title>
 
   <!--
+    track.html — phone-first order tracking.
+
+    Shared shell: mobile-shell.css + mobile-shell.js (navbar, sidebar,
+    bottom tab bar). Page-specific styles are inline below.
+
+    IDs consumed by app.js initTracking() are unchanged:
+      signupOverlay, closePopupBtn, trackOrderSearch, btnFindOrder,
+      btnShowLatest, btnRefresh, trackLookupMsg, trackingSelectedOrder,
+      orders, msg, notifyEmail, btnNotify, notifyMsg
+
     REFERENCES (IEEE format)
 
     [1] Bootdey (n.d.) "Shop Order Tracking." Available at:
@@ -56,6 +67,10 @@
         by this reference.
   -->
 
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+
   <!-- Flash-prevention: apply saved theme before first paint — no FOUC -->
   <script>
     if (localStorage.getItem("theme") === "dark") {
@@ -63,7 +78,7 @@
     }
   </script>
 
-  <!-- EmailJS — used by app.js for notification emails (not Twilio) -->
+  <!-- EmailJS — used by app.js for notification emails -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script>
     (function () { emailjs.init({ publicKey: "v1GO4hYhLibhbnt_N" }); })();
@@ -72,146 +87,237 @@
   <link rel="stylesheet" href="token.css" />
   <link rel="stylesheet" href="global.css" />
   <link rel="stylesheet" href="order-tracking.css" />
+  <!-- Shared phone shell — must load last so it wins -->
+  <link rel="stylesheet" href="mobile-shell.css" />
+
+  <style>
+    /* ── HERO ───────────────────────────────────────────────── */
+    .tracking-hero { padding: 4px 0 2px; }
+    .tracking-hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 26px; font-weight: 800;
+      line-height: 1.15; margin-bottom: 6px;
+    }
+    .tracking-hero .sub { font-size: 13px; color: var(--muted); line-height: 1.55; }
+
+    /* ── CARDS ──────────────────────────────────────────────── */
+    .t-card {
+      background: var(--surface-2);
+      border: 1px solid rgba(201,168,76,0.10);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+    .card-mini-title {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.2px; color: var(--gold); margin-bottom: 12px;
+    }
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 17px; font-weight: 800; margin-bottom: 12px;
+    }
+
+    /* ── LOOKUP ACTIONS — full-width primary, pair beneath ──── */
+    .action-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .action-row .span-2 { grid-column: 1 / -1; }
+
+    /* ── ORDERS ─────────────────────────────────────────────── */
+    .orders-grid { display: flex; flex-direction: column; gap: 10px; }
+    .selected-order:empty { display: none; }
+
+    /* ── FAQ ────────────────────────────────────────────────── */
+    .faq-list { display: flex; flex-direction: column; gap: 8px; }
+    .faq-item {
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(201,168,76,0.10);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+    .faq-item summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 13px 14px;
+      min-height: var(--tap);
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 10px;
+      font-size: 13px; font-weight: 600; color: var(--white);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .faq-item summary::-webkit-details-marker { display: none; }
+    .faq-item summary::after {
+      content: '+';
+      color: var(--gold); font-size: 17px; font-weight: 700;
+      flex-shrink: 0; line-height: 1;
+    }
+    .faq-item[open] summary::after { content: '−'; }
+    .faq-item p {
+      padding: 0 14px 13px;
+      font-size: 12px; color: var(--muted); line-height: 1.6;
+    }
+
+    /* ── SIDE STACK — single column on phones ───────────────── */
+    .side-stack { display: flex; flex-direction: column; gap: 14px; }
+  </style>
 </head>
 
 <body>
 
-  <!-- ══════════════════════════════════════════════════════════
-       NAVIGATION BAR
-       Links shown/hidden by setupNav() in app.js.
-       Ref [4] MDN HTMLElement.hidden.
-  ══════════════════════════════════════════════════════════════ -->
-  <nav class="navbar" role="navigation" aria-label="Main navigation">
-    <ul class="nav-inner">
+  <!-- ── LEGACY NAV LIST — app.js auth hooks read these IDs ── -->
+  <ul class="nav-links" style="display:none!important" role="list">
+    <li><a href="home.html"     id="navHome">Home</a></li>
+    <li><a href="booking.html"  id="navBooking"  data-requires-auth="true">Booking</a></li>
+    <li><a href="track.html"    id="navTracking" data-requires-auth="true" aria-current="page">Tracking</a></li>
+    <li><a href="customer.html" id="navAccount"  data-requires-auth="true">My Account</a></li>
+    <li><a href="admin.html"    id="navAdmin"    data-requires-auth="true" hidden>Admin</a></li>
+    <li><a href="login.html"    id="navLogin">Login</a></li>
+    <li><a href="register.html" id="navRegister">Register</a></li>
+    <li><a href="#"             id="navLogout"   hidden>Logout</a></li>
+    <li><span id="navPointsBadge" class="badge info points-badge" hidden aria-live="polite" aria-label="Loyalty points">Points: 0</span></li>
+  </ul>
 
-      <li class="nav-logo">
-        <a href="home.html" aria-label="DKcleanedit — go to homepage">
-          <img src="videos/logo.png" class="logo" alt="DKcleanedit" />
+  <!-- ── TOP NAVBAR ── -->
+  <nav class="navbar" role="navigation" aria-label="Primary navigation">
+    <div class="nav-mobile-bar">
+      <div class="nav-mobile-left">
+        <button class="nav-icon-btn" id="sidebarToggle" type="button" aria-label="Open menu" aria-expanded="false">
+          <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="nav-mobile-center">
+        <a href="home.html" aria-label="DKcleanedit home">
+          <img src="videos/logo.png" alt="DKCleanEdit" />
         </a>
-      </li>
-
-      <li><a href="home.html"     id="navHome">Home</a></li>
-      <li><a href="booking.html"  id="navBooking"  data-requires-auth="true">Booking</a></li>
-      <li>
-        <a href="track.html" id="navTracking" data-requires-auth="true"
-           aria-current="page">Tracking</a>
-      </li>
-      <li><a href="customer.html" id="navAccount"  data-requires-auth="true">My Account</a></li>
-      <li><a href="admin.html"    id="navAdmin"    data-requires-auth="true">Admin</a></li>
-      <li><a href="login.html"    id="navLogin">Login</a></li>
-      <li><a href="register.html" id="navRegister">Register</a></li>
-      <li><a href="#"             id="navLogout"   hidden>Logout</a></li>
-
-      <li>
-        <!-- Points badge — shown for customers, filled by setupNav() -->
-        <span
-          id="navPointsBadge"
-          class="badge info points-badge"
-          hidden
-          aria-live="polite"
-          aria-label="Loyalty points"
-        >Points: 0</span>
-      </li>
-
-      <li>
-        <a href="settings.html" aria-label="Settings">
-          <img
-            class="PicSettings"
-            src="https://img.icons8.com/ios-filled/100/666666/settings.png"
-            alt="Settings"
-          />
+      </div>
+      <div class="nav-mobile-right">
+        <span id="navPointsMirror" class="nav-points" hidden aria-live="polite"></span>
+        <a href="settings.html" class="nav-icon-btn" aria-label="Settings">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         </a>
-      </li>
-
-    </ul>
+      </div>
+    </div>
   </nav>
 
+  <!-- ── SIDEBAR ── -->
+  <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
 
-  <!-- ══════════════════════════════════════════════════════════
-       SIGN-IN OVERLAY
-       Shown by initTracking() when no user is authenticated.
-       Closed by wireOverlay() in app.js.
-       Ref [5] MDN ARIA — role="dialog", aria-modal.
-       Ref [4] MDN HTMLElement.hidden — hidden attribute toggled by JS.
-  ══════════════════════════════════════════════════════════════ -->
-  <div
-    id="signupOverlay"
-    class="overlay"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="overlayHeading"
-    hidden
-  >
+  <aside class="sidebar" id="sidebar" role="dialog" aria-label="Navigation menu">
+    <div class="sidebar-header">
+      <img src="videos/logo.png" alt="DKCleanEdit" />
+      <button class="sidebar-close" id="sidebarClose" type="button" aria-label="Close menu">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Site navigation">
+      <div class="sidebar-label">Main</div>
+      <a href="home.html" class="sidebar-link">
+        <svg viewBox="0 0 24 24"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg>
+        Home
+      </a>
+      <a href="booking.html" class="sidebar-link" data-requires-auth="true">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Booking
+      </a>
+      <a href="track.html" class="sidebar-link active" aria-current="page">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Track Order
+      </a>
+      <a href="customer.html" class="sidebar-link" data-requires-auth="true">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        My Account
+      </a>
+
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-label">Account</div>
+      <a href="login.html" class="sidebar-link" id="sidebarLogin">
+        <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Login
+      </a>
+      <a href="register.html" class="sidebar-link" id="sidebarRegister">
+        <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        Register
+      </a>
+      <a href="#" class="sidebar-link" id="sidebarLogout" hidden>
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Logout
+      </a>
+      <a href="settings.html" class="sidebar-link">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </a>
+      <a href="admin.html" class="sidebar-link" id="sidebarAdmin" hidden>
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Admin
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-socials">
+        <a href="https://www.instagram.com/dkcleanedit_/" target="_blank" rel="noopener" class="sidebar-social" aria-label="Instagram">
+          <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <a href="https://www.tiktok.com/@dkcleanedit" target="_blank" rel="noopener" class="sidebar-social" aria-label="TikTok">
+          <svg viewBox="0 0 24 24"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── SIGN-IN OVERLAY — shown by initTracking() when signed out ── -->
+  <div id="signupOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="overlayHeading" hidden>
     <div class="popup">
       <h2 id="overlayHeading">Sign in to track</h2>
       <p>Create an account to book services and track your orders.</p>
       <div class="popup-actions">
-        <a class="btn primary"   href="login.html">Log in</a>
-        <a class="btn secondary" href="register.html">Register</a>
-        <button id="closePopupBtn" class="btn" type="button"
-                aria-label="Close sign-in prompt">Close</button>
+        <a class="btn-gold" href="login.html">Log in</a>
+        <a class="btn-outline" href="register.html">Register</a>
+        <button id="closePopupBtn" class="btn-outline" type="button" aria-label="Close sign-in prompt">Close</button>
       </div>
     </div>
   </div>
 
+  <!-- ── MAIN ── -->
+  <main class="container page-shell tracking-page" id="main" tabindex="-1">
 
-  <!-- ══════════════════════════════════════════════════════════
-       MAIN CONTENT
-  ══════════════════════════════════════════════════════════════ -->
-  <main class="container tracking-page" id="main">
-
-    <!-- Hero section -->
+    <!-- HERO -->
     <section class="tracking-hero" aria-labelledby="trackHeading">
       <h1 id="trackHeading">Track your order</h1>
-      <p class="sub">
-        Follow every stage of your restoration in real time,
-        from collection to delivery.
-      </p>
-      <div class="hero-glow hero-glow--blue"  aria-hidden="true"></div>
-      <div class="hero-glow hero-glow--gold"  aria-hidden="true"></div>
+      <p class="sub">Follow every stage of your clean in real time, from drop-off to collection.</p>
     </section>
 
+    <!-- ORDER LOOKUP -->
+    <section class="t-card" aria-label="Find a specific order">
+      <div class="card-mini-title">Find an order</div>
 
-    <!-- ── Order lookup card ─────────────────────────────────────
-         Layout informed by Ref [2] Bootdey "Order details".
-         IDs required by app.js: trackOrderSearch, btnFindOrder,
-           btnShowLatest, btnRefresh, trackLookupMsg.
-    ──────────────────────────────────────────────────────────── -->
-    <section class="g2 tracking-top" aria-label="Find a specific order">
-      <div class="card lookup-card">
-
-        <div class="card-mini-title">Find an order</div>
-
-        <div class="field">
-          <label for="trackOrderSearch">Order ID</label>
-          <input
-            id="trackOrderSearch"
-            type="text"
-            placeholder="e.g. Firestore order ID"
-            autocomplete="off"
-            aria-describedby="trackLookupMsg"
-          />
-        </div>
-
-        <div class="action-row">
-          <button class="btn primary"   id="btnFindOrder"   type="button">Find order</button>
-          <button class="btn secondary" id="btnShowLatest"  type="button">Latest order</button>
-          <button class="btn"           id="btnRefresh"     type="button">Refresh</button>
-        </div>
-
-        <p id="trackLookupMsg" class="helper-msg" aria-live="polite"></p>
-
+      <div class="m-field">
+        <label for="trackOrderSearch">Order ID</label>
+        <input
+          id="trackOrderSearch"
+          type="text"
+          placeholder="Paste your order ID"
+          autocomplete="off"
+          autocapitalize="off"
+          autocorrect="off"
+          spellcheck="false"
+          enterkeyhint="search"
+          aria-describedby="trackLookupMsg"
+        />
       </div>
+
+      <div class="action-row">
+        <button class="btn-gold span-2" id="btnFindOrder" type="button">Find order</button>
+        <button class="btn-outline" id="btnShowLatest" type="button">Latest order</button>
+        <button class="btn-outline" id="btnRefresh" type="button">Refresh</button>
+      </div>
+
+      <p id="trackLookupMsg" class="helper-msg" aria-live="polite"></p>
     </section>
 
-
-    <!-- ── Selected order detail panel ──────────────────────────
-         Populated by initTracking() in app.js when a specific order
-         is looked up. Progress bar rendered by renderProgress().
-         Ref [1] Bootdey "Shop Order Tracking" — progress tracker layout.
-         Ref [7] ProjectWorlds — progress bar flow informed by this.
-         Ref [5] MDN ARIA — aria-live so updates are announced.
-    ──────────────────────────────────────────────────────────── -->
+    <!-- SELECTED ORDER DETAIL — filled by initTracking() -->
     <section
       id="trackingSelectedOrder"
       class="selected-order"
@@ -219,101 +325,115 @@
       aria-label="Selected order detail"
     ></section>
 
-
-    <!-- ── My orders + sidebar ──────────────────────────────────
-         #orders list injected by initTracking() → renderOrderCard().
-         Ref [1] Bootdey "Shop Order Tracking" — order card layout.
-         Ref [5] MDN ARIA — aria-live on #orders.
-    ──────────────────────────────────────────────────────────── -->
-    <section class="g2 tracking-main">
-
-      <div class="card">
-        <div class="section-top">
-          <h2 class="section-title">My orders</h2>
-        </div>
-
-        <div
-          id="orders"
-          class="orders-grid"
-          aria-live="polite"
-          aria-label="Your orders"
-        ></div>
-
-        <p id="msg" class="helper-msg" role="alert" aria-live="assertive"></p>
-      </div>
-
-
-      <!-- Sidebar: notify + FAQ -->
-      <div class="side-stack">
-
-        <!-- Notify me card -->
-        <div class="card">
-          <div class="card-mini-title">Notify me</div>
-
-          <div class="field">
-            <label for="notifyEmail">Email for updates</label>
-            <input
-              id="notifyEmail"
-              type="email"
-              placeholder="you@email.com"
-              autocomplete="email"
-            />
-          </div>
-
-          <button class="btn primary full" id="btnNotify" type="button">
-            Subscribe
-          </button>
-          <p id="notifyMsg" class="helper-msg small" aria-live="polite"></p>
-        </div>
-
-
-        <!-- FAQ accordion
-             Ref [3] Bootdey "Services section page" — accordion layout informed
-             by this reference. HTML uses native details/summary elements.
-        -->
-        <div class="card" aria-label="Frequently asked questions">
-          <div class="card-mini-title">FAQ</div>
-
-          <div class="faq-list">
-
-            <details class="faq-item">
-              <summary>How long does a clean take?</summary>
-              <p class="sub">
-                Standard cleans take 24–48 hours. Express is same-day.
-              </p>
-            </details>
-
-            <details class="faq-item">
-              <summary>Can I cancel my order?</summary>
-              <p class="sub">
-                You can cancel up to 24 hours before your scheduled slot.
-              </p>
-            </details>
-
-            <details class="faq-item">
-              <summary>How are points awarded?</summary>
-              <p class="sub">
-                Points are credited when your order reaches Completed status.
-                Tiers: Carbon (0–99 pts), Stone (100–499 pts), Pearl (500+ pts).
-              </p>
-            </details>
-
-          </div>
-        </div>
-
-      </div>
+    <!-- MY ORDERS -->
+    <section class="t-card" aria-label="Your orders">
+      <h2 class="section-title">My orders</h2>
+      <div id="orders" class="orders-grid" aria-live="polite" aria-label="Your orders"></div>
+      <p id="msg" class="helper-msg" role="alert" aria-live="assertive"></p>
     </section>
+
+    <div class="side-stack">
+
+      <!-- NOTIFY ME -->
+      <section class="t-card" aria-label="Email updates">
+        <div class="card-mini-title">Notify me</div>
+        <div class="m-field">
+          <label for="notifyEmail">Email for updates</label>
+          <input
+            id="notifyEmail"
+            type="email"
+            placeholder="you@email.com"
+            autocomplete="email"
+            inputmode="email"
+            enterkeyhint="send"
+          />
+        </div>
+        <button class="btn-gold" id="btnNotify" type="button">Subscribe</button>
+        <p id="notifyMsg" class="helper-msg small" aria-live="polite"></p>
+      </section>
+
+      <!-- FAQ -->
+      <section class="t-card" aria-label="Frequently asked questions">
+        <div class="card-mini-title">FAQ</div>
+        <div class="faq-list">
+
+          <details class="faq-item">
+            <summary>How long does a clean take?</summary>
+            <p>
+              Standard is 3–5 days, Express is 2–3 days, and Next Day is back
+              with you the following day.
+            </p>
+          </details>
+
+          <details class="faq-item">
+            <summary>Can I cancel my order?</summary>
+            <p>You can cancel or reschedule up to 24 hours before your slot.</p>
+          </details>
+
+          <details class="faq-item">
+            <summary>How are points awarded?</summary>
+            <p>
+              Points are credited when your order reaches Completed status.
+              Tiers: Carbon (0–99 pts), Stone (100–499 pts), Pearl (500+ pts).
+            </p>
+          </details>
+
+          <details class="faq-item">
+            <summary>What if I'm not happy with the clean?</summary>
+            <p>
+              Message us within 24 hours of getting your pair back. Before and
+              after photos are taken for every order as a record.
+            </p>
+          </details>
+
+        </div>
+      </section>
+
+    </div>
 
   </main>
 
+  <!-- ── BOTTOM TAB BAR ── -->
+  <nav class="bottom-nav" aria-label="Main navigation">
+    <a href="home.html" class="bottom-tab" aria-label="Home">
+      <svg viewBox="0 0 24 24"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg>
+      <span>Home</span>
+    </a>
+    <a href="track.html" class="bottom-tab active" aria-current="page" aria-label="Track" data-requires-auth="true">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span>Track</span>
+    </a>
+    <a href="booking.html" class="bottom-tab-book" aria-label="Book" data-requires-auth="true">
+      <div class="book-pill">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </div>
+      <span>Book</span>
+    </a>
+    <a href="customer.html" class="bottom-tab" aria-label="Account" data-requires-auth="true">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Account</span>
+    </a>
+    <a href="login.html" class="bottom-tab" id="bottomNavLogin" aria-label="Login">
+      <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      <span>Login</span>
+    </a>
+  </nav>
 
-  <!-- ══════════════════════════════════════════════════════════
-       SCRIPTS
-       app.js calls initTracking() which wires all tracking logic.
-       theme.js applies the user's saved colour scheme preference.
-  ══════════════════════════════════════════════════════════════ -->
   <script type="module" src="./app.js"></script>
   <script type="module" src="./theme.js"></script>
+  <script src="./mobile-shell.js"></script>
+
+  <!-- Enter in the order field triggers Find order -->
+  <script>
+    (function () {
+      var input = document.getElementById('trackOrderSearch');
+      var btn   = document.getElementById('btnFindOrder');
+      if (!input || !btn) return;
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); btn.click(); }
+      });
+    })();
+  </script>
 
 </body>
 </html>

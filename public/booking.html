@@ -2,141 +2,502 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0a0a" />
   <title>Book a Service | DKcleanedit</title>
   <meta name="description" content="Book a professional shoe cleaning service at DKcleanedit. Choose your service, location and time slot." />
 
+  <!--
+    booking.html — phone-first booking.
+
+    Shared shell (navbar, sidebar, bottom tab bar) lives in global.css
+    and app.js. Page-specific styles are inline below.
+
+    Pricing follows the DK price list exactly:
+      ONE PAIR    Standard (3–5 days) £25 · Express (2–3 days) £30 · Next Day £35
+      THREE PAIRS Standard £60 · Express £70 · Next Day £85
+      TEN PAIRS   Standard £130 · Express & Next Day quoted separately
+    Add-ons are charged once per order, not per pair.
+
+    Hidden fields for the booking payload:
+      #pairCount      1 | 3 | 10
+      #quoteRequired  "true" when the combination has no set price
+      #collectionMode "dropoff" | "courier"
+      #timeSlot       the chosen time, whichever control set it
+  -->
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+
   <script>
     if (localStorage.getItem("theme") === "dark") {
       document.documentElement.classList.add("dark-mode");
     }
   </script>
-<link rel="stylesheet" href="token.css">
-<link rel="stylesheet" href="global.css">
-<link rel="stylesheet" href="booking.css">
+
+  <!-- EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>(function () { emailjs.init({ publicKey: "v1GO4hYhLibhbnt_N" }); })();</script>
+
+  <link rel="stylesheet" href="token.css" />
+  <link rel="stylesheet" href="booking.css" />
   <link rel="stylesheet" href="timeslot.css" />
+  <!-- global.css MUST load last: it holds the shared phone shell
+       (tokens, reset, navbar, sidebar, bottom tab bar, buttons),
+       which has to override the older desktop rules above. -->
+  <link rel="stylesheet" href="global.css" />
 
+  <style>
+    /* Room for the bottom tab bar AND the sticky book bar */
+    body { padding-bottom: calc(140px + env(safe-area-inset-bottom)); }
 
-  <!-- EmailJS -->
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <script>(function(){ emailjs.init({ publicKey: "v1GO4hYhLibhbnt_N" }); })();</script>
-</head>
-
-
-
-  <script>
-    if (localStorage.getItem("theme") === "dark") {
-      document.documentElement.classList.add("dark-mode");
+    /* ── HERO ───────────────────────────────────────────────── */
+    .booking-hero { padding: 4px 0 2px; }
+    .eyebrow {
+      display: block;
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.2px; color: var(--gold); margin-bottom: 6px;
     }
-  </script>
-<style>
-  /* ── Add-on options ───────────────────────────────────────────────── */
-  .addon-opts {
-    display: grid;
-    gap: 10px;
-  }
-  .addon-opt {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 14px 16px;
-    border-radius: 12px;
-    border: 1.5px solid var(--line);
-    background: var(--surface-2);
-    cursor: pointer;
-    transition: border-color var(--ease), background var(--ease), transform var(--ease);
-  }
-  .addon-opt:hover { border-color: var(--line-2); transform: translateY(-1px); }
-  .addon-opt.active { border-color: var(--primary); background: var(--primary-050, rgba(100,160,255,0.07)); }
-  .addon-opt input[type="checkbox"] {
-    margin-top: 3px;
-    accent-color: var(--primary);
-    width: 16px; height: 16px;
-    flex-shrink: 0;
-    cursor: pointer;
-  }
-  .addon-opt-inner { flex: 1; }
-  .addon-opt-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .addon-opt-sub { margin: 4px 0 0; font-size: 0.84rem; }
-  .addon-summary-row { color: var(--text-3); }
-</style>
+    .booking-hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 26px; font-weight: 800; line-height: 1.15; margin-bottom: 6px;
+    }
+    .booking-hero .sub { font-size: 13px; color: var(--muted); line-height: 1.55; }
 
+    /* ── LAYOUT — single column on phones ───────────────────── */
+    .booking-layout { display: flex; flex-direction: column; gap: 14px; }
+    .booking-form, .booking-summary {
+      background: var(--surface-2);
+      border: 1px solid rgba(201,168,76,0.10);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+    .section-sep { border: none; border-top: 1px solid var(--surface-3); margin: 18px 0; }
 
-  <!-- EmailJS -->
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <script>(function(){ emailjs.init({ publicKey: "v1GO4hYhLibhbnt_N" }); })();</script>
+    /* ── STEP INDICATOR ─────────────────────────────────────── */
+    .booking-steps { display: flex; gap: 6px; margin-bottom: 18px; }
+    .booking-step {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; gap: 4px;
+      padding-top: 8px; border-top: 2px solid var(--surface-4);
+    }
+    .booking-step.active { border-top-color: var(--gold); }
+    .step-num {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--surface-4); color: var(--muted-2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 800;
+    }
+    .booking-step.active .step-num { background: var(--gold); color: #000; }
+    .step-label { font-size: 10px; color: var(--muted-2); }
+    .booking-step.active .step-label { color: var(--gold); font-weight: 600; }
+
+    /* ── SECTION HEADS ──────────────────────────────────────── */
+    .form-section-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .section-num {
+      width: 24px; height: 24px; border-radius: 7px;
+      background: rgba(201,168,76,0.12); color: var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 800; flex-shrink: 0;
+    }
+    .section-label { font-size: 15px; font-weight: 700; color: var(--white); }
+
+    /* ── BADGES ─────────────────────────────────────────────── */
+    .badge {
+      font-size: 11px; font-weight: 700;
+      padding: 3px 9px; border-radius: 20px;
+      background: var(--surface-4); color: var(--white);
+      white-space: nowrap;
+    }
+    .badge.info    { background: rgba(201,168,76,0.14); color: var(--gold); }
+    .badge.warning { background: rgba(255,165,0,0.14);  color: #ffa500; }
+
+    /* ── PAIR QUANTITY ──────────────────────────────────────── */
+    .qty-label { display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600; color: var(--muted); }
+    .qty-opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+    .qty-opt {
+      position: relative;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 2px;
+      min-height: 62px; padding: 10px 6px;
+      border-radius: 12px; border: 1.5px solid var(--surface-4);
+      background: rgba(0,0,0,0.25);
+      text-align: center; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .qty-opt.active { border-color: var(--gold); background: rgba(201,168,76,0.10); }
+    .qty-opt input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
+    .qty-opt strong { font-size: 14px; color: var(--white); }
+    .qty-opt .qty-sub { font-size: 11px; color: var(--muted-2); }
+    .qty-opt.active strong { color: var(--gold); }
+
+    /* ── SERVICE CARDS ──────────────────────────────────────── */
+    .svc-opts { display: flex; flex-direction: column; gap: 10px; }
+    .svc-opt {
+      position: relative;
+      display: block; padding: 14px 16px;
+      border-radius: 12px; border: 1.5px solid var(--surface-4);
+      background: rgba(0,0,0,0.25);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .svc-opt.active { border-color: var(--gold); background: rgba(201,168,76,0.08); }
+    .svc-opt input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
+    .svc-opt-top {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 10px; margin-bottom: 4px;
+    }
+    .svc-opt-top strong { font-size: 15px; color: var(--white); }
+    .svc-opt-sub { font-size: 12px; color: var(--muted); line-height: 1.5; margin: 0; }
+
+    /* ── ADD-ONS ────────────────────────────────────────────── */
+    .addon-opts { display: flex; flex-direction: column; gap: 10px; }
+    .addon-opt {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 14px 16px; border-radius: 12px;
+      border: 1.5px solid var(--surface-4);
+      background: rgba(0,0,0,0.25);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .addon-opt.active { border-color: var(--gold); background: rgba(201,168,76,0.08); }
+    .addon-opt input[type="checkbox"] {
+      margin-top: 3px; accent-color: var(--gold);
+      width: 18px; height: 18px; flex-shrink: 0;
+    }
+    .addon-opt-inner { flex: 1; min-width: 0; }
+    .addon-opt-top {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 8px; flex-wrap: wrap;
+    }
+    .addon-opt-top strong { font-size: 14px; color: var(--white); }
+    .addon-opt-sub { margin: 4px 0 0; font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+    /* ── ENQUIRY NOTICE ─────────────────────────────────────── */
+    .enquire-note {
+      margin-top: 12px; padding: 12px 14px;
+      border-radius: 12px;
+      border: 1.5px solid rgba(255,165,0,0.45);
+      background: rgba(255,165,0,0.08);
+      font-size: 12px; line-height: 1.55; color: #e8c97a;
+    }
+    .enquire-note strong { color: #ffa500; }
+
+    /* ── FIELDS ─────────────────────────────────────────────── */
+    .frow { display: flex; flex-direction: column; gap: 0; }
+    .field { margin-bottom: 16px; }
+    .field > label, .field .exact-time-label {
+      display: block; margin-bottom: 6px;
+      font-size: 12px; font-weight: 600; color: var(--muted);
+    }
+    .field input[type="text"],
+    .field input[type="email"],
+    .field select,
+    .field textarea,
+    .exact-time-wrap select {
+      width: 100%; min-height: var(--tap);
+      padding: 12px 14px; border-radius: var(--radius-sm);
+      border: 1.5px solid var(--surface-4);
+      background: var(--surface-3); color: var(--white);
+      outline: none; -webkit-appearance: none;
+    }
+    .field textarea { min-height: 88px; resize: vertical; line-height: 1.5; }
+    .field input:focus, .field select:focus, .field textarea:focus,
+    .exact-time-wrap select:focus { border-color: var(--gold); }
+    .exact-time-wrap { margin-top: 12px; }
+    .exact-time-wrap select:disabled { opacity: 0.55; }
+    .opening-hours-note { font-size: 11px; color: var(--muted-2); margin: 0 0 10px; }
+
+    /* ── CALENDAR ───────────────────────────────────────────── */
+    .cal-wrap {
+      background: rgba(0,0,0,0.25);
+      border: 1px solid var(--surface-4);
+      border-radius: 12px; padding: 12px;
+    }
+    .cal-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .cal-head span { font-size: 14px; font-weight: 700; color: var(--white); }
+    .cal-head .btn {
+      width: 38px; height: 38px; border-radius: 9px;
+      background: var(--surface-3); color: var(--gold);
+      font-size: 18px; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .cal-days-header, .cal-body {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+    }
+    .cal-days-header span {
+      text-align: center; font-size: 10px; font-weight: 700;
+      color: var(--muted-2); padding-bottom: 4px;
+    }
+    .cal-body > * {
+      aspect-ratio: 1 / 1;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 9px; font-size: 13px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .selected-date-label { font-size: 12px; color: var(--gold); margin: 10px 0 0; }
+
+    /* ── TIME SLOTS ─────────────────────────────────────────── */
+    .time-slots {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(82px, 1fr));
+      gap: 8px;
+    }
+    .time-slots:empty { display: none; }
+    .time-slot {
+      min-height: var(--tap);
+      border-radius: 10px; border: 1.5px solid var(--surface-4);
+      background: rgba(0,0,0,0.25); color: var(--white);
+      font-size: 14px; font-weight: 600;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .time-slot.active { border-color: var(--gold); background: rgba(201,168,76,0.12); color: var(--gold); }
+
+    /* ── MAP ────────────────────────────────────────────────── */
+    .map-card {
+      background: rgba(0,0,0,0.25);
+      border: 1px solid var(--surface-4);
+      border-radius: 12px; overflow: hidden;
+    }
+    .map-info { padding: 14px; }
+    .map-info strong { display: block; font-size: 14px; color: var(--white); margin-bottom: 2px; }
+    .map-info .sub { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+    .map-frame { width: 100%; height: 170px; border: 0; display: block; }
+
+    /* ── UPLOAD ─────────────────────────────────────────────── */
+    .upload-zone {
+      position: relative;
+      border: 1.5px dashed var(--surface-4);
+      border-radius: 12px; padding: 22px 14px;
+      text-align: center; background: rgba(0,0,0,0.25);
+    }
+    .upload-zone input[type="file"] {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      opacity: 0; cursor: pointer;
+    }
+    .upload-zone-text { font-size: 12px; color: var(--muted); line-height: 1.6; }
+    #shoePreviewWrap {
+      display: flex; align-items: center; gap: 12px; margin-top: 12px;
+    }
+    #shoePreviewWrap[hidden] { display: none; }
+    #shoePreview {
+      width: 64px; height: 64px; border-radius: 10px;
+      object-fit: cover; background: var(--surface-3);
+    }
+    .preview-remove {
+      align-self: flex-start;
+      font-size: 12px; font-weight: 600; color: #ff7a7a;
+      padding: 6px 0;
+    }
+
+    /* ── TERMS ──────────────────────────────────────────────── */
+    .terms-block {
+      margin-top: 16px; padding: 14px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--surface-4);
+      background: rgba(0,0,0,0.25);
+    }
+    .terms-block h3 { font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--white); }
+    .terms-block p { font-size: 11px; line-height: 1.6; color: var(--muted-2); margin-bottom: 6px; }
+    .terms-block p:last-child { margin-bottom: 0; }
+
+    /* ── ORDER SUMMARY ──────────────────────────────────────── */
+    .summary-title {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.2px; color: var(--gold); margin-bottom: 12px;
+    }
+    .summary-rows { display: flex; flex-direction: column; gap: 9px; }
+    .sum-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; font-size: 13px;
+    }
+    .sum-row span { color: var(--muted); }
+    .sum-row strong { color: var(--white); text-align: right; }
+    .sum-row[hidden] { display: none; }
+    .sum-row.total {
+      border-top: 1px solid var(--surface-4);
+      margin-top: 4px; padding-top: 11px;
+    }
+    .sum-row.total span { color: var(--white); font-weight: 600; }
+    .sum-row.total strong {
+      font-family: 'Syne', sans-serif;
+      font-size: 20px; font-weight: 800; color: var(--gold);
+    }
+    .addon-summary-row strong { color: var(--gold); }
+
+    .summary-trust {
+      margin-top: 16px; padding-top: 14px;
+      border-top: 1px solid var(--surface-4);
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .trust-row {
+      display: flex; align-items: center; gap: 9px;
+      font-size: 12px; color: var(--muted);
+    }
+    .trust-row .trust-icon {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--gold); flex-shrink: 0;
+    }
+
+    /* ── STICKY BOOK BAR ────────────────────────────────────── */
+    .book-bar {
+      position: fixed; left: 0; right: 0;
+      bottom: calc(64px + env(safe-area-inset-bottom));
+      z-index: 890;
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px var(--side);
+      background: rgba(10,10,10,0.97);
+      -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+      border-top: 1px solid rgba(201,168,76,0.18);
+    }
+    .book-bar-price { flex: 0 0 auto; line-height: 1.2; }
+    .book-bar-price span { display: block; font-size: 10px; color: var(--muted-2); }
+    .book-bar-price strong {
+      font-family: 'Syne', sans-serif;
+      font-size: 19px; font-weight: 800; color: var(--gold);
+    }
+    .book-bar .btn-gold { flex: 1; }
+    .auth-msg { font-size: 12px; margin-top: 10px; min-height: 1em; color: var(--muted); }
+    .auth-msg:not(:empty) { color: #ff7a7a; }
+  </style>
 </head>
 
 <body>
 
-  <!-- Navbar -->
-  <nav class="navbar" role="navigation" aria-label="Main navigation">
-    <ul class="nav-inner">
-      <li class="nav-logo">
-        <a href="home.html" aria-label="DKcleanedit — go to homepage">
-          <img src="videos/logo.png" class="logo" alt="DKcleanedit" />
+  <!-- ── LEGACY NAV LIST — app.js auth hooks read these IDs ── -->
+  <ul class="nav-links" style="display:none!important" role="list">
+    <li><a href="home.html"     id="navHome">Home</a></li>
+    <li><a href="booking.html"  id="navBooking"  data-requires-auth="true" aria-current="page">Booking</a></li>
+    <li><a href="track.html"    id="navTracking" data-requires-auth="true">Tracking</a></li>
+    <li><a href="customer.html" id="navAccount"  data-requires-auth="true">My Account</a></li>
+    <li><a href="admin.html"    id="navAdmin"    data-requires-auth="true" hidden>Admin</a></li>
+    <li><a href="login.html"    id="navLogin">Login</a></li>
+    <li><a href="register.html" id="navRegister">Register</a></li>
+    <li><a href="#"             id="navLogout" hidden>Logout</a></li>
+    <li><span id="navPointsBadge" class="badge info points-badge" hidden aria-live="polite">0 pts</span></li>
+  </ul>
+
+  <!-- ── TOP NAVBAR ── -->
+  <nav class="navbar" role="navigation" aria-label="Primary navigation">
+    <div class="nav-mobile-bar">
+      <div class="nav-mobile-left">
+        <button class="nav-icon-btn" id="sidebarToggle" type="button" aria-label="Open menu" aria-expanded="false">
+          <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="nav-mobile-center">
+        <a href="home.html" aria-label="DKcleanedit home">
+          <img src="videos/logo.png" alt="DKCleanEdit" />
         </a>
-      </li>
-      <li><a href="home.html"     id="navHome">Home</a></li>
-      <li><a href="booking.html"  id="navBooking"  data-requires-auth="true" aria-current="page">Booking</a></li>
-      <li><a href="track.html"    id="navTracking" data-requires-auth="true">Tracking</a></li>
-      <li><a href="customer.html" id="navAccount"  data-requires-auth="true">My Account</a></li>
-      <li><a href="admin.html"    id="navAdmin"    data-requires-auth="true" hidden>Admin</a></li>
-      <li><a href="login.html"    id="navLogin">Login</a></li>
-      <li><a href="register.html" id="navRegister">Register</a></li>
-      <li><a href="#"             id="navLogout" hidden>Logout</a></li>
-      <li>
-        <span id="navPointsBadge" class="badge info points-badge" hidden aria-live="polite">
-          0 pts
-        </span>
-      </li>
-      <li>
-        <a href="settings.html" aria-label="Settings">
-          <img class="PicSettings"
-               src="https://img.icons8.com/ios-filled/100/666666/settings.png"
-               alt="" aria-hidden="true" />
+      </div>
+      <div class="nav-mobile-right">
+        <span id="navPointsMirror" class="nav-points" hidden aria-live="polite"></span>
+        <a href="settings.html" class="nav-icon-btn" aria-label="Settings">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         </a>
-      </li>
-    </ul>
+      </div>
+    </div>
   </nav>
 
-  <!--  Login Required Overlay -->
+  <!-- ── SIDEBAR ── -->
+  <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+  <aside class="sidebar" id="sidebar" role="dialog" aria-label="Navigation menu">
+    <div class="sidebar-header">
+      <img src="videos/logo.png" alt="DKCleanEdit" />
+      <button class="sidebar-close" id="sidebarClose" type="button" aria-label="Close menu">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Site navigation">
+      <div class="sidebar-label">Main</div>
+      <a href="home.html" class="sidebar-link">
+        <svg viewBox="0 0 24 24"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg>
+        Home
+      </a>
+      <a href="booking.html" class="sidebar-link active" aria-current="page">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Booking
+      </a>
+      <a href="track.html" class="sidebar-link" data-requires-auth="true">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Track Order
+      </a>
+      <a href="customer.html" class="sidebar-link" data-requires-auth="true">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        My Account
+      </a>
+
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-label">Account</div>
+      <a href="login.html" class="sidebar-link" id="sidebarLogin">
+        <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Login
+      </a>
+      <a href="register.html" class="sidebar-link" id="sidebarRegister">
+        <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        Register
+      </a>
+      <a href="#" class="sidebar-link" id="sidebarLogout" hidden>
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Logout
+      </a>
+      <a href="settings.html" class="sidebar-link">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </a>
+      <a href="admin.html" class="sidebar-link" id="sidebarAdmin" hidden>
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Admin
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-socials">
+        <a href="https://www.instagram.com/dkcleanedit_/" target="_blank" rel="noopener" class="sidebar-social" aria-label="Instagram">
+          <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <a href="https://www.tiktok.com/@dkcleanedit" target="_blank" rel="noopener" class="sidebar-social" aria-label="TikTok">
+          <svg viewBox="0 0 24 24"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── SIGN-IN OVERLAY ── -->
   <div id="signupOverlay" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="overlayHeading">
     <div class="popup">
       <h2 id="overlayHeading">Sign in to book</h2>
       <p>Create an account to book services, track your orders and earn loyalty points.</p>
       <div class="popup-actions">
-        <a class="btn primary"   href="login.html">Log in</a>
-        <a class="btn secondary" href="register.html">Create account</a>
-        <button id="closePopupBtn" class="btn" type="button" aria-label="Close sign-in prompt">Close</button>
+        <a class="btn-gold" href="login.html">Log in</a>
+        <a class="btn-outline" href="register.html">Create account</a>
+        <button id="closePopupBtn" class="btn-outline" type="button" aria-label="Close sign-in prompt">Close</button>
       </div>
     </div>
   </div>
 
-  <!-- ─── Main ────────────────────────────────────────────────────────────── -->
-  <main class="container booking-page" id="main" aria-label="Booking page">
+  <!-- ── MAIN ── -->
+  <main class="container page-shell booking-page" id="main" aria-label="Booking page" tabindex="-1">
 
     <!-- HERO -->
     <section class="booking-hero" aria-labelledby="bookingHeading">
       <span class="eyebrow" aria-hidden="true">Booking</span>
-      <h1 id="bookingHeading">Book your cleaning service</h1>
-      <p class="sub">
-        Fill in the form below to reserve your slot.
-        You will receive a confirmation by email.
-      </p>
-      <div class="hero-glow hero-glow--blue" aria-hidden="true"></div>
-      <div class="hero-glow hero-glow--gold"  aria-hidden="true"></div>
+      <h1 id="bookingHeading">Book your clean</h1>
+      <p class="sub">Pick your service and slot. You'll get a confirmation by email.</p>
     </section>
 
     <div class="booking-layout">
 
-      <!-- FORM CARD-->
+      <!-- FORM CARD -->
       <div class="card booking-form" id="bookingFormCard">
 
         <!-- Step progress indicator -->
@@ -155,15 +516,35 @@
           </div>
         </nav>
 
-        <!-- ────────────────────────────────────────────────────────────── -->
-        <!-- STEP 1 — SELECT SERVICE                                        -->
-        <!-- ────────────────────────────────────────────────────────────── -->
+        <!-- STEP 1 — SERVICE -->
         <section class="form-section" aria-labelledby="sectionServiceLabel">
 
           <div class="form-section-head">
             <span class="section-num" aria-hidden="true">1</span>
             <span class="section-label" id="sectionServiceLabel">Select service</span>
           </div>
+
+          <!-- How many pairs -->
+          <span class="qty-label" id="qtyLabel">How many pairs?</span>
+          <div class="qty-opts" role="radiogroup" aria-labelledby="qtyLabel">
+            <label class="qty-opt active">
+              <input type="radio" name="pairCount" value="1" checked aria-label="One pair" />
+              <strong>1 pair</strong>
+              <span class="qty-sub">from £25</span>
+            </label>
+            <label class="qty-opt">
+              <input type="radio" name="pairCount" value="3" aria-label="Three pairs" />
+              <strong>3 pairs</strong>
+              <span class="qty-sub">from £60</span>
+            </label>
+            <label class="qty-opt">
+              <input type="radio" name="pairCount" value="10" aria-label="Ten pairs" />
+              <strong>10 pairs</strong>
+              <span class="qty-sub">from £130</span>
+            </label>
+          </div>
+          <input type="hidden" id="pairCount" value="1" />
+          <input type="hidden" id="quoteRequired" value="false" />
 
           <!-- Hidden select kept in sync for JS logic -->
           <select id="service" hidden aria-hidden="true" tabindex="-1">
@@ -176,62 +557,65 @@
 
             <label class="svc-opt active" data-service-card="standard_clean">
               <input type="radio" name="serviceCard" value="standard_clean" checked
-                     aria-label="Standard Cleaning — from £25" />
+                     aria-label="Standard Cleaning, 3 to 5 days" />
               <div class="svc-opt-top">
-                <strong>Standard Cleaning</strong>
-                <span class="badge info" aria-label="Price from £25">From £25</span>
+                <strong>Standard</strong>
+                <span class="badge info" data-price-badge="standard_clean">£25</span>
               </div>
               <p class="sub svc-opt-sub">
-                Deep clean, midsole, lace clean, deodorising, drying and finishing.
+                3–5 days. Deep clean, midsole, lace clean, deodorising, drying and finishing.
               </p>
             </label>
 
             <label class="svc-opt" data-service-card="express">
               <input type="radio" name="serviceCard" value="express"
-                     aria-label="Express Service — from £30" />
+                     aria-label="Express Service, 2 to 3 days" />
               <div class="svc-opt-top">
-                <strong>Express Service</strong>
-                <span class="badge warning" aria-label="Price from £30">From £30</span>
+                <strong>Express</strong>
+                <span class="badge warning" data-price-badge="express">£30</span>
               </div>
               <p class="sub svc-opt-sub">
-                Same-day priority clean. Limited slots per day.
+                2–3 days. Priority clean, ahead of the standard queue.
               </p>
             </label>
 
             <label class="svc-opt" data-service-card="next_day">
               <input type="radio" name="serviceCard" value="next_day"
-                     aria-label="Next Day service — from £40" />
+                     aria-label="Next Day service" />
               <div class="svc-opt-top">
                 <strong>Next Day</strong>
-                <span class="badge" aria-label="Price from £40">From £40</span>
+                <span class="badge" data-price-badge="next_day">£35</span>
               </div>
               <p class="sub svc-opt-sub">
-                Book today, collect tomorrow. Quick turnaround guaranteed.
+                Book today, collect tomorrow. Quickest turnaround available.
               </p>
             </label>
 
           </div>
 
+          <div class="enquire-note" id="enquireNote" hidden>
+            <strong>Enquire separately.</strong>
+            Express and Next Day on ten pairs are quoted individually — send this
+            booking through as a quote request and we'll come back to you with a price.
+          </div>
 
         </section>
 
         <hr class="section-sep" />
 
-        <!-- ────────────────────────────────────────────────────────────── -->
-        <!-- ADD-ONS TAB                                                    -->
-        <!-- ────────────────────────────────────────────────────────────── -->
+        <!-- ADD-ONS -->
         <section class="form-section" aria-labelledby="sectionAddonsLabel">
 
           <div class="form-section-head">
             <span class="section-num" aria-hidden="true">✦</span>
-            <span class="section-label" id="sectionAddonsLabel">Add-ons <span class="sub" style="font-size:0.8rem;font-weight:400;">(optional extras)</span></span>
+            <span class="section-label" id="sectionAddonsLabel">Add-ons</span>
           </div>
 
           <div class="addon-opts" role="group" aria-labelledby="sectionAddonsLabel">
 
             <label class="addon-opt" id="addonCoinPainting">
               <input type="checkbox" name="addon" value="coin_painting" data-price="15"
-                     aria-label="Coin Painting — £15 extra" />
+                     aria-label="Painting — £15 extra" />
               <div class="addon-opt-inner">
                 <div class="addon-opt-top">
                   <strong>Painting</strong>
@@ -277,9 +661,7 @@
 
         <hr class="section-sep" />
 
-        <!-- ────────────────────────────────────────────────────────────── -->
-        <!-- STEP 2 — YOUR DETAILS                                          -->
-        <!-- ────────────────────────────────────────────────────────────── -->
+        <!-- STEP 2 — DETAILS -->
         <section class="form-section" aria-labelledby="sectionDetailsLabel">
 
           <div class="form-section-head">
@@ -287,7 +669,6 @@
             <span class="section-label" id="sectionDetailsLabel">Your details</span>
           </div>
 
-          <!-- Name + Location -->
           <div class="frow">
             <div class="field">
               <label for="customerName">Full name</label>
@@ -296,6 +677,7 @@
                 type="text"
                 autocomplete="name"
                 placeholder="Your name"
+                enterkeyhint="next"
                 required
                 aria-required="true"
               />
@@ -304,8 +686,7 @@
             <div class="field">
               <label for="location">Branch location</label>
               <select id="location" required aria-required="true">
-                <option value="charles_street_leicester">Charles Street, Leicester</option>
-                <option value="canada_water">Canada Water, London</option>
+                <option value="canada_water" selected>Canada Water, London</option>
               </select>
             </div>
           </div>
@@ -346,27 +727,56 @@
               Time slot
               <span class="sub" id="slotHint">— select a date first</span>
             </label>
+
+            <p class="sub opening-hours-note">
+              Opening hours — Mon to Fri 5pm–9pm · Saturday 9am–5pm · Sunday closed
+            </p>
+
+            <!-- Same-day courier pickup option -->
+            <label class="addon-opt" id="withinDayOpt" style="margin-bottom:10px;" hidden>
+              <input type="checkbox" id="withinDayToggle" aria-label="Book within the day — courier collects at a chosen time" />
+              <div class="addon-opt-inner">
+                <div class="addon-opt-top">
+                  <strong>Collect within the day</strong>
+                  <span class="badge warning">Courier pickup</span>
+                </div>
+                <p class="sub addon-opt-sub">
+                  Don't come to us — pick a time today and our driver collects your shoes from you.
+                </p>
+              </div>
+            </label>
+
+            <!-- Quick-tap hourly slots -->
             <div
+              id="fixedTimeSlots"
               class="time-slots"
               role="group"
               aria-labelledby="timeSlotsLabel"
               aria-describedby="slotHint"
-            >
-              <button type="button" class="time-slot" data-time="10:00" aria-pressed="false">10:00</button>
-              <button type="button" class="time-slot" data-time="12:00" aria-pressed="false">12:00</button>
-              <button type="button" class="time-slot" data-time="14:00" aria-pressed="false">14:00</button>
-              <button type="button" class="time-slot" data-time="16:00" aria-pressed="false">16:00</button>
-              <button type="button" class="time-slot" data-time="18:00" aria-pressed="false">18:00</button>
+            ></div>
+
+            <!-- Exact time dropdown, 30-minute steps -->
+            <div id="exactTimeWrap" class="exact-time-wrap">
+              <label for="timeExact" class="exact-time-label">Or pick an exact time</label>
+              <select id="timeExact" aria-label="Pick an exact drop-off time">
+                <option value="">Select a time…</option>
+              </select>
             </div>
-            <!-- Hidden select kept in sync for JS -->
-            <select id="timeSlot" hidden aria-hidden="true" tabindex="-1">
-              <option value=""></option>
-              <option value="10:00">10:00</option>
-              <option value="12:00">12:00</option>
-              <option value="14:00">14:00</option>
-              <option value="16:00">16:00</option>
-              <option value="18:00">18:00</option>
-            </select>
+
+            <!-- Within-the-day courier pickup time -->
+            <div id="withinDayPicker" class="exact-time-wrap" hidden>
+              <label for="withinDayTime" class="exact-time-label">Pickup time today</label>
+              <select id="withinDayTime" aria-label="Choose a courier pickup time today">
+                <option value="">Select a time…</option>
+              </select>
+              <p class="sub" style="font-size:11px;color:var(--muted-2);margin:6px 0 0;">
+                Our driver will collect at this time.
+              </p>
+            </div>
+
+            <!-- Hidden fields kept in sync for JS / booking payload -->
+            <select id="timeSlot" hidden aria-hidden="true" tabindex="-1"></select>
+            <input id="collectionMode" type="hidden" value="dropoff" />
           </div>
 
           <!-- Branch Map -->
@@ -374,11 +784,11 @@
             <label id="mapLabel">Your selected branch</label>
             <div class="map-card" aria-labelledby="mapLabel">
               <div class="map-info">
-                <strong id="selectedBranchName">Charles Street, Leicester</strong>
-                <div class="sub" id="selectedBranchAddress">Charles Street, Leicester, UK</div>
+                <strong id="selectedBranchName">Canada Water, London</strong>
+                <div class="sub" id="selectedBranchAddress">Canada Water, London, UK</div>
                 <a
                   id="openMapsBtn"
-                  class="btn secondary"
+                  class="btn-ghost"
                   href="#"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -402,9 +812,7 @@
 
         <hr class="section-sep" />
 
-        <!-- ────────────────────────────────────────────────────────────── -->
-        <!-- STEP 3 — CONFIRM BOOKING                                       -->
-        <!-- ────────────────────────────────────────────────────────────── -->
+        <!-- STEP 3 — NOTES & CONFIRM -->
         <section class="form-section" aria-labelledby="sectionConfirmLabel">
 
           <div class="form-section-head">
@@ -412,7 +820,6 @@
             <span class="section-label" id="sectionConfirmLabel">Notes &amp; confirm</span>
           </div>
 
-          <!-- Shoe notes -->
           <div class="field">
             <label for="shoeNotes">
               Shoe notes
@@ -425,19 +832,18 @@
               aria-describedby="shoeNotesHint"
               maxlength="500"
             ></textarea>
-            <p id="shoeNotesHint" class="sub" style="font-size:0.78rem;color:var(--text-4);margin:0;">
+            <p id="shoeNotesHint" class="sub" style="font-size:11px;color:var(--muted-2);margin:6px 0 0;">
               Optional — helps our team prepare for your shoes.
             </p>
           </div>
 
-          <!-- Photo upload -->
           <div class="field">
             <label for="shoeImages">
               Upload shoe photo
               <span class="sub">(optional, max 10 MB)</span>
             </label>
 
-            <div class="upload-zone" role="button" aria-label="Upload shoe photos — click or drag files here">
+            <div class="upload-zone">
               <input
                 type="file"
                 id="shoeImages"
@@ -447,16 +853,15 @@
                 aria-label="Choose shoe photos to upload"
               />
               <div class="upload-zone-text" aria-hidden="true">
-                <span class="upload-zone-icon"></span>
-                Click or drag photos here<br />
-                <span style="font-size:0.76rem;">JPEG, PNG, WebP · Max 10 MB</span>
+                Tap to take a photo or choose one<br />
+                <span style="font-size:11px;">JPEG, PNG, WebP · Max 10 MB</span>
               </div>
             </div>
 
             <div id="shoePreviewWrap" hidden aria-live="polite">
               <img id="shoePreview" alt="Preview of uploaded shoe photo" />
-              <div style="display:flex;flex-direction:column;gap:6px;">
-                <span class="sub" style="font-size:0.8rem;font-weight:600;">Photo ready</span>
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <span class="sub" style="font-size:12px;font-weight:600;">Photo ready</span>
                 <button type="button" class="preview-remove" id="btnRemovePhoto" aria-label="Remove uploaded photo">
                   Remove ✕
                 </button>
@@ -464,29 +869,26 @@
             </div>
           </div>
 
-          <!-- Book button -->
-          <div class="btn-book-wrap">
-            <button
-              id="btnBook"
-              class="btn primary full"
-              type="button"
-              aria-live="polite"
-            >
-              Confirm booking
-            </button>
-            <p id="msg" class="auth-msg" role="alert" aria-live="assertive"></p>
+          <!-- Terms -->
+          <div class="terms-block">
+            <h3>Payment &amp; terms</h3>
+            <p>Online payment &amp; cash accepted (Bank Transfer, Monzo or PayPal).</p>
+            <p>
+              If you're unsatisfied, message us within 24 hours of receiving your
+              cleaned pair(s). Late responses or delayed payments may delay your
+              service. Your payment confirms your agreement to these terms.
+            </p>
+            <p>Before and after photos are taken for quality control and evidence.</p>
           </div>
+
+          <p id="msg" class="auth-msg" role="alert" aria-live="assertive"></p>
 
         </section>
       </div>
       <!-- end booking-form -->
 
-      <!-- ── ORDER SUMMARY SIDEBAR ────────────────────────────────────── -->
-      <aside
-        class="card booking-summary"
-        aria-label="Order summary"
-        aria-live="polite"
-      >
+      <!-- ── ORDER SUMMARY ── -->
+      <aside class="card booking-summary" aria-label="Order summary" aria-live="polite">
         <div class="summary-inner">
 
           <div class="summary-title" aria-hidden="true">Order summary</div>
@@ -494,23 +896,26 @@
           <div class="summary-rows">
             <div class="sum-row">
               <span>Service</span>
-              <strong id="summaryService" aria-label="Selected service">Standard Cleaning</strong>
+              <strong id="summaryService">Standard</strong>
+            </div>
+            <div class="sum-row">
+              <span>Pairs</span>
+              <strong id="summaryPairs">1 pair</strong>
             </div>
             <div class="sum-row">
               <span>Location</span>
-              <strong id="summaryLocation" aria-label="Selected location">—</strong>
+              <strong id="summaryLocation">—</strong>
             </div>
             <div class="sum-row">
               <span>Date</span>
-              <strong id="summaryDate" aria-label="Selected date">—</strong>
+              <strong id="summaryDate">—</strong>
             </div>
             <div class="sum-row">
               <span>Time</span>
-              <strong id="summaryTime" aria-label="Selected time">—</strong>
+              <strong id="summaryTime">—</strong>
             </div>
-            <!-- Add-on rows (hidden until selected) -->
             <div class="sum-row addon-summary-row" id="summaryAddonCoin" hidden>
-              <span>Coin Painting</span>
+              <span>Painting</span>
               <strong>+£15</strong>
             </div>
             <div class="sum-row addon-summary-row" id="summaryAddonUX" hidden>
@@ -523,112 +928,397 @@
             </div>
             <div class="sum-row total">
               <span>Total</span>
-              <strong id="selectedPriceText" aria-label="Total price">£25</strong>
+              <strong id="selectedPriceText">£25</strong>
             </div>
           </div>
 
-
-
-          <!-- Trust signals -->
           <div class="summary-trust" aria-label="Booking guarantees">
-            <div class="trust-row">
-              <span class="trust-icon" aria-hidden="true"></span>
-              Secure, encrypted booking
-            </div>
-            <div class="trust-row">
-              <span class="trust-icon" aria-hidden="true"></span>
-              Confirmation email sent instantly
-            </div>
-            <div class="trust-row">
-              <span class="trust-icon" aria-hidden="true"></span>
-              Free reschedule up to 24 h before
-            </div>
+            <div class="trust-row"><span class="trust-icon" aria-hidden="true"></span>Secure, encrypted booking</div>
+            <div class="trust-row"><span class="trust-icon" aria-hidden="true"></span>Confirmation email sent instantly</div>
+            <div class="trust-row"><span class="trust-icon" aria-hidden="true"></span>Free reschedule up to 24 h before</div>
           </div>
 
         </div>
       </aside>
-      <!-- end booking-summary -->
 
     </div>
   </main>
 
+  <!-- ── STICKY BOOK BAR ── -->
+  <div class="book-bar" role="region" aria-label="Confirm booking">
+    <div class="book-bar-price">
+      <span>Total</span>
+      <strong id="barPriceText">£25</strong>
+    </div>
+    <button id="btnBook" class="btn-gold" type="button" aria-live="polite">
+      Confirm booking
+    </button>
+  </div>
+
+  <!-- ── BOTTOM TAB BAR ── -->
+  <nav class="bottom-nav" aria-label="Main navigation">
+    <a href="home.html" class="bottom-tab" aria-label="Home">
+      <svg viewBox="0 0 24 24"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg>
+      <span>Home</span>
+    </a>
+    <a href="track.html" class="bottom-tab" aria-label="Track" data-requires-auth="true">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span>Track</span>
+    </a>
+    <a href="booking.html" class="bottom-tab-book" aria-label="Book" aria-current="page">
+      <div class="book-pill">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </div>
+      <span>Book</span>
+    </a>
+    <a href="customer.html" class="bottom-tab" aria-label="Account" data-requires-auth="true">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Account</span>
+    </a>
+    <a href="login.html" class="bottom-tab" id="bottomNavLogin" aria-label="Login">
+      <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      <span>Login</span>
+    </a>
+  </nav>
+
+  <!-- app.js also carries the shared shell behaviour
+       (sidebar drawer, search overlay, auth mirroring) -->
   <script type="module" src="./app.js"></script>
   <script type="module" src="./theme.js"></script>
 
-  <!-- ── Add-ons + Price Logic ──────────────────────────────────────────── -->
+  <!-- ── PRICING ───────────────────────────────────────────────────────── -->
   <script>
     (function () {
-      const BASE_PRICES = { standard_clean: 25, express: 30, next_day: 40 };
-
-      const addonMap = {
-        coin_painting:  { summaryId: 'summaryAddonCoin',  price: 15 },
-        ux:             { summaryId: 'summaryAddonUX',    price: 15 },
-        odour_removal:  { summaryId: 'summaryAddonOdour', price: 5  },
+      // null = "enquire separately", no fixed price
+      var PRICES = {
+        1:  { standard_clean: 25,  express: 30,   next_day: 35   },
+        3:  { standard_clean: 60,  express: 70,   next_day: 85   },
+        10: { standard_clean: 130, express: null, next_day: null }
       };
 
-      function recalc() {
-        const serviceEl = document.getElementById('service');
-        const base = BASE_PRICES[serviceEl?.value] ?? 25;
-        let addonsTotal = 0;
+      var SERVICE_NAMES = {
+        standard_clean: 'Standard',
+        express:        'Express',
+        next_day:       'Next Day'
+      };
 
-        document.querySelectorAll('.addon-opt input[type="checkbox"]').forEach(cb => {
-          const cfg = addonMap[cb.value];
-          if (!cfg) return;
-          const row = document.getElementById(cfg.summaryId);
-          if (cb.checked) {
-            addonsTotal += cfg.price;
-            if (row) row.hidden = false;
-          } else {
-            if (row) row.hidden = true;
-          }
-        });
+      // Flat per order, regardless of pair count
+      var ADDONS = {
+        coin_painting: { summaryId: 'summaryAddonCoin',  price: 15 },
+        ux:            { summaryId: 'summaryAddonUX',    price: 15 },
+        odour_removal: { summaryId: 'summaryAddonOdour', price: 5  }
+      };
 
-        const priceEl = document.getElementById('selectedPriceText');
-        if (priceEl) priceEl.textContent = '£' + (base + addonsTotal);
+      function $(id) { return document.getElementById(id); }
+
+      function currentPairs() {
+        var c = document.querySelector('input[name="pairCount"]:checked');
+        return c ? Number(c.value) : 1;
       }
 
-      // Listen on addon checkboxes
-      document.querySelectorAll('.addon-opt input[type="checkbox"]').forEach(cb => {
+      function currentService() {
+        var c = document.querySelector('input[name="serviceCard"]:checked');
+        return c ? c.value : 'standard_clean';
+      }
+
+      function recalc() {
+        var pairs   = currentPairs();
+        var service = currentService();
+        var table   = PRICES[pairs] || PRICES[1];
+        var base    = table[service];
+
+        // Keep hidden fields in sync for the booking payload
+        var serviceEl = $('service');
+        var pairsEl   = $('pairCount');
+        if (serviceEl) serviceEl.value = service;
+        if (pairsEl)   pairsEl.value   = String(pairs);
+
+        // Highlight the chosen cards
+        Array.prototype.forEach.call(document.querySelectorAll('.svc-opt'), function (el) {
+          el.classList.toggle('active', el.dataset.serviceCard === service);
+        });
+        Array.prototype.forEach.call(document.querySelectorAll('.qty-opt'), function (el) {
+          var input = el.querySelector('input[name="pairCount"]');
+          el.classList.toggle('active', !!input && input.checked);
+        });
+
+        // Price badges follow the pair count
+        Object.keys(SERVICE_NAMES).forEach(function (key) {
+          var badge = document.querySelector('[data-price-badge="' + key + '"]');
+          if (!badge) return;
+          var p = table[key];
+          badge.textContent = (p === null || p === undefined) ? 'Enquire' : '£' + p;
+        });
+
+        // Add-ons — flat per order
+        var addonsTotal = 0;
+        Array.prototype.forEach.call(document.querySelectorAll('.addon-opt input[type="checkbox"]'), function (cb) {
+          var cfg = ADDONS[cb.value];
+          if (!cfg) return;
+          var row = $(cfg.summaryId);
+          if (cb.checked) addonsTotal += cfg.price;
+          if (row) row.hidden = !cb.checked;
+        });
+
+        // Total, or a quote request when the combination has no set price
+        var needsQuote = (base === null || base === undefined);
+        var total      = needsQuote ? 'Enquire' : '£' + (base + addonsTotal);
+        var label      = needsQuote ? 'Request a quote' : 'Confirm booking';
+
+        var quoteEl = $('quoteRequired');
+        var noteEl  = $('enquireNote');
+        var priceEl = $('selectedPriceText');
+        var barEl   = $('barPriceText');
+        var btnBook = $('btnBook');
+        var sumSvc  = $('summaryService');
+        var sumPair = $('summaryPairs');
+
+        if (quoteEl) quoteEl.value  = needsQuote ? 'true' : 'false';
+        if (noteEl)  noteEl.hidden  = !needsQuote;
+        if (priceEl) priceEl.textContent = total;
+        if (barEl)   barEl.textContent   = total;
+        if (btnBook) btnBook.textContent = label;
+        if (sumSvc)  sumSvc.textContent  = SERVICE_NAMES[service] || '—';
+        if (sumPair) sumPair.textContent = pairs === 1 ? '1 pair' : pairs + ' pairs';
+      }
+
+      Array.prototype.forEach.call(document.querySelectorAll('.addon-opt input[type="checkbox"]'), function (cb) {
         cb.addEventListener('change', function () {
-          // Toggle active style on label
-          const label = this.closest('.addon-opt');
+          var label = this.closest('.addon-opt');
           if (label) label.classList.toggle('active', this.checked);
           recalc();
         });
       });
 
-      // Listen on service card radios to update base price
-      document.querySelectorAll('input[name="serviceCard"]').forEach(radio => {
-        radio.addEventListener('change', recalc);
+      Array.prototype.forEach.call(document.querySelectorAll('input[name="serviceCard"]'), function (r) {
+        r.addEventListener('change', recalc);
+      });
+      Array.prototype.forEach.call(document.querySelectorAll('input[name="pairCount"]'), function (r) {
+        r.addEventListener('change', recalc);
       });
 
-      recalc(); // init
+      recalc();
     })();
   </script>
 
+  <!-- ── OPENING HOURS + TIME SLOTS ────────────────────────────────────────
+       Canada Water, London is the only branch.
+         Mon–Fri: 17:00–21:00 (5pm–9pm)
+         Sat:     09:00–17:00 (9am–5pm)
+         Sun:     closed  ← change OPENING_HOURS[0] if that's wrong
+       Customers can tap an hourly slot or choose an exact time (30-min
+       steps). The chosen value always lands in the hidden #timeSlot;
+       #collectionMode records "dropoff" or "courier".
 
+       NOTE: the calendar (#calBody, #calPrev/#calNext) is driven by app.js.
+       This script watches the hidden #date input, which app.js is presumed
+       to set when a day is picked. If app.js also builds .time-slot buttons
+       or has its own hours logic, the two will conflict.
+  -->
+  <script>
+    (function () {
+      var OPENING_HOURS = {
+        0: null,        // Sunday — closed
+        1: [17, 21],    // Mon  5pm – 9pm
+        2: [17, 21],
+        3: [17, 21],
+        4: [17, 21],
+        5: [17, 21],
+        6: [9, 17]      // Sat  9am – 5pm
+      };
+      var STEP_MINUTES       = 30;  // dropdown granularity (30 → 16:30 etc.)
+      var QUICK_STEP_MINUTES = 60;  // quick-tap buttons stay hourly
+      var LEAD_TIME_MINUTES  = 60;  // today: hide slots less than 1h away (0 to disable)
 
-  <script type="module">
-    document.getElementById("btnRemovePhoto")?.addEventListener("click", () => {
-      const input = document.getElementById("shoeImages");
-      const wrap  = document.getElementById("shoePreviewWrap");
-      const img   = document.getElementById("shoePreview");
-      if (input) input.value = "";
-      if (img)   img.src     = "";
-      if (wrap)  wrap.hidden = true;
-    });
+      function $(id) { return document.getElementById(id); }
 
-    // Update slot hint text once a date is picked
-    document.getElementById("date")?.addEventListener("change", () => {
-      const hint = document.getElementById("slotHint");
-      if (hint) hint.textContent = "";
-    });
+      var fixedWrap    = $('fixedTimeSlots');
+      var exactSelect  = $('timeExact');
+      var exactWrap    = $('exactTimeWrap');
+      var timeSelect   = $('timeSlot');
+      var dateInput    = $('date');
+      var slotHint     = $('slotHint');
+      var modeInput    = $('collectionMode');
+      var withinOpt    = $('withinDayOpt');
+      var withinToggle = $('withinDayToggle');
+      var withinPicker = $('withinDayPicker');
+      var withinTime   = $('withinDayTime');
+
+      function pad(n) { return String(n).padStart(2, '0'); }
+      function toLabel(mins) { return pad(Math.floor(mins / 60)) + ':' + pad(mins % 60); }
+
+      function isToday(dateStr) {
+        if (!dateStr) return false;
+        var t = new Date();
+        return dateStr === t.getFullYear() + '-' + pad(t.getMonth() + 1) + '-' + pad(t.getDate());
+      }
+
+      // All bookable times for a date. The closing hour itself is not
+      // bookable — the last slot is one step before close.
+      function timesFor(dateStr, step) {
+        if (!dateStr) return [];
+        var hours = OPENING_HOURS[new Date(dateStr + 'T00:00:00').getDay()];
+        if (!hours) return [];
+        var open = hours[0] * 60, close = hours[1] * 60, out = [];
+        for (var m = open; m <= close - step; m += step) out.push(m);
+
+        if (isToday(dateStr)) {
+          var now = new Date();
+          var cutoff = now.getHours() * 60 + now.getMinutes() + LEAD_TIME_MINUTES;
+          return out.filter(function (m) { return m >= cutoff; });
+        }
+        return out;
+      }
+
+      // Single source of truth: everything writes the chosen time here.
+      function setTime(value, mode) {
+        if (modeInput && mode) modeInput.value = mode;
+
+        if (timeSelect) {
+          timeSelect.innerHTML = value
+            ? '<option value="' + value + '" selected>' + value + '</option>'
+            : '<option value=""></option>';
+          timeSelect.value = value || '';
+          timeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        if (fixedWrap) {
+          Array.prototype.forEach.call(fixedWrap.querySelectorAll('.time-slot'), function (b) {
+            var on = b.dataset.time === value;
+            b.classList.toggle('active', on);
+            b.setAttribute('aria-pressed', on ? 'true' : 'false');
+          });
+        }
+
+        if (exactSelect && exactSelect.value !== (value || '')) {
+          var has = Array.prototype.some.call(exactSelect.options, function (o) { return o.value === value; });
+          exactSelect.value = has ? value : '';
+        }
+      }
+
+      function fillSelect(sel, times, placeholder) {
+        if (!sel) return;
+        sel.innerHTML = '';
+        var ph = document.createElement('option');
+        ph.value = '';
+        ph.textContent = times.length ? placeholder : 'No times available';
+        sel.appendChild(ph);
+        times.forEach(function (m) {
+          var o = document.createElement('option');
+          o.value = toLabel(m);
+          o.textContent = toLabel(m);
+          sel.appendChild(o);
+        });
+        sel.disabled = !times.length;
+      }
+
+      function render() {
+        if (!dateInput) return;
+        var dateStr = dateInput.value;
+
+        // Quick-tap hourly buttons
+        if (fixedWrap) fixedWrap.innerHTML = '';
+        timesFor(dateStr, QUICK_STEP_MINUTES).forEach(function (m) {
+          var t = toLabel(m);
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'time-slot';
+          btn.dataset.time = t;
+          btn.textContent = t;
+          btn.setAttribute('aria-pressed', 'false');
+          btn.addEventListener('click', function () { setTime(t, 'dropoff'); });
+          fixedWrap.appendChild(btn);
+        });
+
+        // Exact-time dropdowns (30-min steps)
+        var exact = timesFor(dateStr, STEP_MINUTES);
+        fillSelect(exactSelect, exact, 'Select a time…');
+        fillSelect(withinTime, exact, 'Select a time…');
+
+        setTime('', 'dropoff'); // reset whenever the date changes
+
+        if (slotHint) {
+          if (!dateStr) {
+            slotHint.textContent = '— select a date first';
+          } else if (!exact.length) {
+            slotHint.textContent = OPENING_HOURS[new Date(dateStr + 'T00:00:00').getDay()]
+              ? '— no slots left today'
+              : '— closed on the selected day';
+          } else {
+            slotHint.textContent = '';
+          }
+        }
+
+        // Courier pickup is a same-day thing only
+        var today = isToday(dateStr) && exact.length > 0;
+        if (withinOpt) withinOpt.hidden = !today;
+        if (!today && withinToggle && withinToggle.checked) {
+          withinToggle.checked = false;
+          showCourier(false);
+        }
+      }
+
+      function showCourier(on) {
+        if (fixedWrap)    fixedWrap.style.display = on ? 'none' : '';
+        if (exactWrap)    exactWrap.hidden = on;
+        if (withinPicker) withinPicker.hidden = !on;
+        if (withinOpt)    withinOpt.classList.toggle('active', on);
+        setTime('', on ? 'courier' : 'dropoff');
+      }
+
+      if (exactSelect)  exactSelect.addEventListener('change', function () { setTime(exactSelect.value, 'dropoff'); });
+      if (withinTime)   withinTime.addEventListener('change', function () { setTime(withinTime.value, 'courier'); });
+      if (withinToggle) withinToggle.addEventListener('change', function () { showCourier(withinToggle.checked); });
+
+      // app.js owns the calendar and may set #date without firing an
+      // event, so watch the value three ways.
+      if (dateInput) {
+        dateInput.addEventListener('change', render);
+        if (window.MutationObserver) {
+          new MutationObserver(render).observe(dateInput, { attributes: true, attributeFilter: ['value'] });
+        }
+        var last = dateInput.value;
+        setInterval(function () {
+          if (dateInput.value !== last) { last = dateInput.value; render(); }
+        }, 400);
+      }
+
+      render();
+    })();
   </script>
 
-  <!-- ─── References ──────────────────────────────────────────────────────── -->
-  <!--
-    REFERENCES (IEEE format)
+  <!-- ── PHOTO PREVIEW ─────────────────────────────────────────────────── -->
+  <script>
+    (function () {
+      var input = document.getElementById('shoeImages');
+      var wrap  = document.getElementById('shoePreviewWrap');
+      var img   = document.getElementById('shoePreview');
+      var btn   = document.getElementById('btnRemovePhoto');
 
+      if (input && wrap && img) {
+        input.addEventListener('change', function () {
+          var file = input.files && input.files[0];
+          if (!file) { wrap.hidden = true; return; }
+          if (img.src && img.src.indexOf('blob:') === 0) URL.revokeObjectURL(img.src);
+          img.src = URL.createObjectURL(file);
+          wrap.hidden = false;
+        });
+      }
+
+      if (btn) {
+        btn.addEventListener('click', function () {
+          if (input) input.value = '';
+          if (img) {
+            if (img.src && img.src.indexOf('blob:') === 0) URL.revokeObjectURL(img.src);
+            img.removeAttribute('src');
+          }
+          if (wrap) wrap.hidden = true;
+        });
+      }
+    })();
+  </script>
+
+  <!-- ─── References ──────────────────────────────────────────────────────
     [1] GeeksforGeeks, "Web Development Projects," GeeksforGeeks. [Online].
         Available: https://www.geeksforgeeks.org/html/web-development-projects/
         [Accessed: 27 Apr. 2026].

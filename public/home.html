@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>DKCleanedit | Sneaker Cleaning &amp; Restoration</title>
-  <meta name="description" content="Professional sneaker cleaning and restoration in Leicester and London. Book online, track in real time, earn loyalty rewards." />
+  <meta name="description" content="Professional sneaker cleaning and restoration in London. Book online, track in real time, earn loyalty rewards." />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -14,41 +14,56 @@
     if (localStorage.getItem("theme") === "dark") document.documentElement.classList.add("dark-mode");
   </script>
 
+
+
   <link rel="stylesheet" href="token.css" />
   <link rel="stylesheet" href="global.css" />
   <link rel="stylesheet" href="order-tracking.css" />
   <link rel="stylesheet" href="home.css" />
-
+  <!-- ════════════════════════════════════════════════════════════
+       PHONE SHELL — self-contained, nothing to paste elsewhere.
+       Tokens, reset, top navbar, sidebar drawer, bottom tab bar,
+       buttons and form fields. Loads after the stylesheets above
+       so it overrides the older desktop rules.
+       ════════════════════════════════════════════════════════════ -->
   <style>
-    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-       DESIGN TOKENS
-    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    /* ═══════════════════════════════════════════════════════════════
+       PHONE SHELL — tokens, reset, top navbar, sidebar drawer, search
+       overlay, bottom tab bar, buttons, form fields, section helpers
+       and footer.
+
+       This sits after the linked stylesheets on purpose: it has to
+       override the older desktop rules in them. The page's own styles
+       come after this block, so they win where they overlap.
+       ═══════════════════════════════════════════════════════════════ */
+
+    /* ── TOKENS ──────────────────────────────────────────────────── */
     :root {
-      --ink:       #0a0a0a;
-      --ink-2:     #4a4a4a;
-      --ink-3:     #8a8a8a;
-      --surface:   #0a0a0a;
-      --surface-2: #141414;
-      --surface-3: #1e1e1e;
-      --surface-4: #252525;
-      --gold:      #c9a84c;
-      --gold-light:#e8c97a;
-      --gold-dark: #9a7a2e;
-      --white:     #f5f5f5;
-      --radius-sm: 10px;
-      --radius-md: 14px;
-      --side:      16px;
+      --surface:    #0a0a0a;
+      --surface-2:  #141414;
+      --surface-3:  #1e1e1e;
+      --surface-4:  #252525;
+      --gold:       #c9a84c;
+      --gold-light: #e8c97a;
+      --gold-dark:  #9a7a2e;
+      --white:      #f5f5f5;
+      --muted:      #888;
+      --muted-2:    #666;
+      --hairline:   rgba(201, 168, 76, 0.12);
+      --hairline-2: rgba(201, 168, 76, 0.25);
+      --radius-sm:  10px;
+      --radius-md:  14px;
+      --side:       16px;
+      --tap:        48px;   /* minimum touch target */
     }
 
-    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-       RESET
-    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    /* ── RESET ───────────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 
     body {
-      font-family: 'DM Sans', sans-serif;
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       font-size: 14px;
       line-height: 1.55;
       color: var(--white);
@@ -58,9 +73,18 @@
       padding-bottom: calc(68px + env(safe-area-inset-bottom));
       -webkit-font-smoothing: antialiased;
     }
-
-    /* sidebar open — lock scroll */
     body.sidebar-open { overflow: hidden; }
+
+    img { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+    ul { list-style: none; }
+    button { cursor: pointer; border: none; background: none; font-family: inherit; }
+
+    /* Stop iOS zooming on focus — inputs must be >= 16px */
+    input, select, textarea {
+      font-family: inherit;
+      font-size: 16px;
+    }
 
     .container, .page-shell {
       padding-left: var(--side) !important;
@@ -69,31 +93,31 @@
       width: 100% !important;
     }
 
-    img { display: block; max-width: 100%; }
-    a { color: inherit; text-decoration: none; }
-    ul { list-style: none; }
-    button { cursor: pointer; border: none; background: none; }
+    .page-shell {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 14px !important;
+      padding-top: 16px !important;
+      padding-bottom: 20px !important;
+    }
 
-    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-       TOP NAVBAR
-    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    /* ── TOP NAVBAR ──────────────────────────────────────────────── */
     .navbar {
       position: fixed; top: 0; left: 0; right: 0; z-index: 900;
       height: 60px; padding: 0 14px;
       display: flex; align-items: center;
-      background: rgba(10,10,10,0.96);
+      background: rgba(10, 10, 10, 0.96);
       -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
-      border-bottom: 1px solid rgba(201,168,76,0.18);
+      border-bottom: 1px solid rgba(201, 168, 76, 0.18);
     }
-    .nav-links { display: none !important; }
-    .nav-mobile-bar { display: flex; align-items: center; width: 100%; }
 
-    /* left: hamburger */
-    .nav-mobile-left { flex: 0 0 72px; display: flex; align-items: center; gap: 4px; }
-    /* centre: logo */
-    .nav-mobile-center { flex: 1; display: flex; justify-content: center; align-items: center; }
+    /* Legacy desktop link list — kept in the DOM for app.js auth hooks */
+    .nav-links { display: none !important; }
+
+    .nav-mobile-bar   { display: flex; align-items: center; width: 100%; }
+    .nav-mobile-left  { flex: 0 0 72px; display: flex; align-items: center; gap: 4px; }
+    .nav-mobile-center{ flex: 1; display: flex; justify-content: center; align-items: center; }
     .nav-mobile-center img { height: 34px; width: auto; }
-    /* right: search + cart */
     .nav-mobile-right { flex: 0 0 72px; display: flex; align-items: center; justify-content: flex-end; gap: 2px; }
 
     .nav-icon-btn {
@@ -103,29 +127,25 @@
       -webkit-tap-highlight-color: transparent;
       transition: background 0.12s;
     }
-    .nav-icon-btn:active { background: rgba(201,168,76,0.12); }
+    .nav-icon-btn:active { background: rgba(201, 168, 76, 0.12); }
     .nav-icon-btn svg {
       width: 20px; height: 20px;
       stroke: currentColor; fill: none;
       stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
     }
 
-    .cart-wrap { position: relative; }
-    .cart-badge {
-      position: absolute; top: 4px; right: 4px;
-      min-width: 14px; height: 14px; padding: 0 3px;
-      background: var(--gold); color: #000;
-      border-radius: 8px; font-size: 8px; font-weight: 700;
-      display: flex; align-items: center; justify-content: center;
-      border: 2px solid var(--surface); pointer-events: none;
+    .nav-points {
+      font-size: 11px; font-weight: 700; color: var(--gold);
+      background: rgba(201, 168, 76, 0.12);
+      border: 1px solid var(--hairline-2);
+      border-radius: 20px; padding: 4px 9px;
+      white-space: nowrap;
     }
 
-    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-       SIDEBAR
-    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    /* ── SIDEBAR ─────────────────────────────────────────────────── */
     .sidebar-overlay {
       position: fixed; inset: 0; z-index: 950;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0, 0, 0, 0.6);
       -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
       opacity: 0; pointer-events: none;
       transition: opacity 0.25s;
@@ -136,9 +156,9 @@
       position: fixed; top: 0; left: -280px; bottom: 0; z-index: 960;
       width: 272px;
       background: var(--surface-2);
-      border-right: 1px solid rgba(201,168,76,0.15);
+      border-right: 1px solid var(--hairline-2);
       display: flex; flex-direction: column;
-      transition: left 0.28s cubic-bezier(0.4,0,0.2,1);
+      transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
       padding-bottom: env(safe-area-inset-bottom);
     }
     .sidebar.open { left: 0; }
@@ -146,9 +166,10 @@
     .sidebar-header {
       display: flex; align-items: center; justify-content: space-between;
       padding: 18px 16px 16px;
-      border-bottom: 1px solid rgba(201,168,76,0.12);
+      border-bottom: 1px solid var(--hairline);
     }
     .sidebar-header img { height: 30px; width: auto; }
+
     .sidebar-close {
       width: 34px; height: 34px; border-radius: 8px;
       display: flex; align-items: center; justify-content: center;
@@ -161,31 +182,30 @@
 
     .sidebar-link {
       display: flex; align-items: center; gap: 14px;
+      min-height: var(--tap);
       padding: 13px 20px;
       color: #ccc; font-size: 15px; font-weight: 500;
-      text-decoration: none;
       -webkit-tap-highlight-color: transparent;
       transition: color 0.12s, background 0.12s;
       border-left: 3px solid transparent;
     }
     .sidebar-link:active, .sidebar-link.active {
       color: var(--gold);
-      background: rgba(201,168,76,0.07);
+      background: rgba(201, 168, 76, 0.07);
       border-left-color: var(--gold);
     }
-    .sidebar-link svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+    .sidebar-link svg {
+      width: 18px; height: 18px; stroke: currentColor; fill: none;
+      stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;
+    }
 
-    .sidebar-divider { height: 1px; background: rgba(201,168,76,0.1); margin: 8px 20px; }
-
+    .sidebar-divider { height: 1px; background: rgba(201, 168, 76, 0.1); margin: 8px 20px; }
     .sidebar-label {
       font-size: 10px; font-weight: 700; text-transform: uppercase;
       letter-spacing: 1px; color: var(--gold); padding: 12px 20px 6px;
     }
 
-    .sidebar-footer {
-      padding: 16px 20px;
-      border-top: 1px solid rgba(201,168,76,0.12);
-    }
+    .sidebar-footer { padding: 16px 20px; border-top: 1px solid var(--hairline); }
     .sidebar-socials { display: flex; gap: 12px; }
     .sidebar-social {
       width: 36px; height: 36px; border-radius: 8px;
@@ -195,63 +215,59 @@
     }
     .sidebar-social svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
-    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-       SEARCH OVERLAY
-    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    /* ── SEARCH OVERLAY ──────────────────────────────────────────── */
     .search-overlay {
       position: fixed; inset: 0; z-index: 970;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0, 0, 0, 0.6);
       display: none; flex-direction: column;
     }
     .search-overlay.open { display: flex; }
     .search-sheet {
       background: var(--surface-2); padding: 12px 14px;
       display: flex; align-items: center; gap: 10px;
-      border-bottom: 1px solid rgba(201,168,76,0.15);
+      border-bottom: 1px solid var(--hairline-2);
     }
     .search-input {
       flex: 1; height: 42px; border: 1.5px solid var(--surface-4);
-      border-radius: 10px; padding: 0 14px; font-size: 16px;
-      font-family: 'DM Sans', sans-serif; background: var(--surface-3);
-      color: var(--white); outline: none; -webkit-appearance: none;
+      border-radius: 10px; padding: 0 14px;
+      background: var(--surface-3); color: var(--white);
+      outline: none; -webkit-appearance: none;
     }
     .search-input:focus { border-color: var(--gold); }
     .search-cancel {
-      font-size: 14px; font-family: 'DM Sans', sans-serif; font-weight: 500;
-      color: var(--gold); border: none; background: transparent; cursor: pointer;
+      font-size: 14px; font-weight: 500; color: var(--gold);
       white-space: nowrap; padding: 4px;
     }
     .search-backdrop { flex: 1; }
 
-    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-       BOTTOM TAB BAR
-    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    /* ── BOTTOM TAB BAR ──────────────────────────────────────────── */
     .bottom-nav {
       position: fixed; bottom: 0; left: 0; right: 0; z-index: 900;
       height: calc(64px + env(safe-area-inset-bottom));
       padding-bottom: env(safe-area-inset-bottom);
-      background: rgba(10,10,10,0.97);
+      background: rgba(10, 10, 10, 0.97);
       -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
-      border-top: 1px solid rgba(201,168,76,0.18);
+      border-top: 1px solid rgba(201, 168, 76, 0.18);
       display: flex; align-items: stretch;
     }
     .bottom-tab {
       flex: 1; display: flex; flex-direction: column;
       align-items: center; justify-content: center; gap: 3px;
-      text-decoration: none; color: #555;
-      font-size: 10px; font-weight: 500;
+      color: #555; font-size: 10px; font-weight: 500;
       -webkit-tap-highlight-color: transparent;
       padding-top: 6px;
       transition: color 0.14s;
     }
     .bottom-tab.active { color: var(--gold); }
-    .bottom-tab svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+    .bottom-tab svg {
+      width: 22px; height: 22px; stroke: currentColor; fill: none;
+      stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
+    }
 
     .bottom-tab-book {
       flex: 1; display: flex; flex-direction: column;
       align-items: center; justify-content: center; gap: 4px;
-      text-decoration: none; color: #000;
-      font-size: 10px; font-weight: 700;
+      color: #000; font-size: 10px; font-weight: 700;
       -webkit-tap-highlight-color: transparent;
     }
     .book-pill {
@@ -260,28 +276,12 @@
       border-radius: 14px;
       display: flex; align-items: center; justify-content: center;
       margin-top: -14px;
-      box-shadow: 0 4px 20px rgba(201,168,76,0.4);
+      box-shadow: 0 4px 20px rgba(201, 168, 76, 0.4);
     }
     .book-pill svg { width: 20px; height: 20px; stroke: #000; fill: none; stroke-width: 2.2; stroke-linecap: round; }
 
-    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-       PAGE SHELL
-    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-    .page-shell {
-      display: flex !important;
-      flex-direction: column !important;
-      gap: 14px !important;
-      padding-top: 0 !important;
-      padding-bottom: 20px !important;
-      padding-left: 0 !important;
-      padding-right: 0 !important;
-    }
-
-    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-       SECTION WRAPPER
-    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    /* ── SECTION HELPERS ─────────────────────────────────────────── */
     .sec { padding: 0 var(--side); }
-
     .sec-label {
       font-size: 10px; font-weight: 700; text-transform: uppercase;
       letter-spacing: 1.2px; color: var(--gold); margin-bottom: 6px;
@@ -289,89 +289,185 @@
     .sec-title {
       font-family: 'Syne', sans-serif;
       font-size: 20px; font-weight: 800;
-      color: var(--white); line-height: 1.2;
-      margin-bottom: 8px;
+      color: var(--white); line-height: 1.2; margin-bottom: 8px;
     }
-    .sec-body {
-      font-size: 13px; line-height: 1.65; color: #999;
-    }
+    .sec-body { font-size: 13px; line-height: 1.65; color: #999; }
 
-    /* gold line divider */
     .gold-rule {
       height: 1px;
       background: linear-gradient(to right, transparent, var(--gold), transparent);
       border: none; margin: 0;
     }
 
-    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-       BUTTONS
-    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    /* Padded card-style section */
+    .dk-section {
+      background: var(--surface-2);
+      border: 1px solid rgba(201, 168, 76, 0.1);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+    .dk-section-header { margin-bottom: 14px; }
+    .dk-section-header .sec-label { margin-bottom: 4px; }
+    .dk-section-header .sec-title { margin-bottom: 0; }
+
+    /* ── BUTTONS ─────────────────────────────────────────────────── */
     .btn-gold {
       display: flex; align-items: center; justify-content: center;
-      width: 100%; padding: 14px;
+      width: 100%; min-height: var(--tap); padding: 14px;
       background: linear-gradient(135deg, var(--gold-light), var(--gold));
-      color: #000; font-family: 'DM Sans', sans-serif;
-      font-size: 14px; font-weight: 700;
-      border-radius: var(--radius-sm); text-decoration: none;
+      color: #000; font-size: 14px; font-weight: 700;
+      border-radius: var(--radius-sm);
       -webkit-tap-highlight-color: transparent;
-      box-shadow: 0 4px 18px rgba(201,168,76,0.25);
+      box-shadow: 0 4px 18px rgba(201, 168, 76, 0.25);
     }
     .btn-gold:active { opacity: 0.88; }
+    .btn-gold:disabled { opacity: 0.45; box-shadow: none; }
 
     .btn-outline {
       display: flex; align-items: center; justify-content: center;
-      width: 100%; padding: 13px;
+      width: 100%; min-height: var(--tap); padding: 13px;
       background: transparent; color: var(--white);
-      font-family: 'DM Sans', sans-serif;
       font-size: 14px; font-weight: 600;
-      border-radius: var(--radius-sm); text-decoration: none;
-      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       -webkit-tap-highlight-color: transparent;
     }
     .btn-outline:active { background: var(--surface-3); }
 
+    .btn-ghost {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 40px; padding: 9px 16px;
+      background: rgba(201, 168, 76, 0.1);
+      border: 1px solid var(--hairline-2);
+      color: var(--gold); font-size: 13px; font-weight: 600;
+      border-radius: var(--radius-sm);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-ghost:active { background: rgba(201, 168, 76, 0.2); }
+
     .cta-stack { display: flex; flex-direction: column; gap: 9px; }
 
-    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-       HERO VIDEO
-    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    /* ── FORM FIELDS ─────────────────────────────────────────────── */
+    .m-field { margin-bottom: 12px; }
+    .m-field label {
+      display: block; margin-bottom: 6px;
+      font-size: 12px; font-weight: 600; color: var(--muted);
+    }
+    .m-field input,
+    .m-field select,
+    .m-field textarea {
+      width: 100%; min-height: var(--tap);
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--surface-4);
+      background: var(--surface-3);
+      color: var(--white);
+      outline: none; -webkit-appearance: none;
+    }
+    .m-field input:focus,
+    .m-field select:focus,
+    .m-field textarea:focus { border-color: var(--gold); }
+
+    /* ── STATUS MESSAGES ─────────────────────────────────────────── */
+    .helper-msg { font-size: 12px; color: var(--muted); margin-top: 8px; min-height: 1em; }
+    .helper-msg.small { font-size: 11px; }
+    .helper-msg.error { color: #ff7a7a; }
+    .helper-msg.ok { color: #6fcf7f; }
+
+    /* ── OVERLAY / DIALOG ────────────────────────────────────────── */
+    .overlay {
+      position: fixed; inset: 0; z-index: 980;
+      background: rgba(0, 0, 0, 0.72);
+      -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center;
+      padding: var(--side);
+    }
+    .overlay[hidden] { display: none; }
+    .overlay .popup {
+      width: 100%; max-width: 360px;
+      background: var(--surface-2);
+      border: 1px solid var(--hairline-2);
+      border-radius: var(--radius-md);
+      padding: 22px 20px;
+      text-align: center;
+    }
+    .overlay .popup h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 20px; font-weight: 800; margin-bottom: 8px;
+    }
+    .overlay .popup p { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
+    .popup-actions { display: flex; flex-direction: column; gap: 9px; }
+
+    /* ── FOOTER ──────────────────────────────────────────────────── */
+    .m-footer { padding: 20px var(--side) 16px; border-top: 1px solid var(--hairline); }
+    .footer-logo { height: 26px; width: auto; margin-bottom: 10px; }
+    .footer-tagline { font-size: 12px; color: var(--muted-2); margin-bottom: 18px; }
+    .footer-cols { display: flex; gap: 32px; margin-bottom: 20px; }
+    .footer-col h4 {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--gold); margin-bottom: 10px;
+    }
+    .footer-col ul { display: flex; flex-direction: column; gap: 8px; }
+    .footer-col a { font-size: 13px; color: var(--muted); }
+    .footer-socials { display: flex; gap: 10px; margin-bottom: 18px; }
+    .footer-social {
+      width: 36px; height: 36px; border-radius: 9px;
+      background: var(--surface-2); border: 1px solid var(--hairline-2);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold);
+    }
+    .footer-social svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .footer-copy { font-size: 11px; color: #555; }
+
+    /* ── ACCESSIBILITY ───────────────────────────────────────────── */
+    :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    /* ── TABLET AND UP ───────────────────────────────────────────── */
+    @media (min-width: 720px) {
+      .page-shell { max-width: 620px !important; margin: 0 auto; }
+      .m-footer   { max-width: 620px; margin: 0 auto; }
+    }
+  </style>
+
+  <style>
+    /* Page-specific styles — these come after the shell above,
+       so they win where they overlap. */
+
+    /* Hero is edge-to-edge, so this page cancels the shell's gutter */
+    .page-shell {
+      padding-top: 0 !important;
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
+    .dk-section { margin: 0 var(--side); }
+
+    /* ── HERO VIDEO ─────────────────────────────────────────── */
     .hero-video-wrap {
       position: relative; width: 100%;
-      height: 420px; overflow: hidden;
-      background: #000;
+      height: 420px; overflow: hidden; background: #000;
     }
-    .hero-video-wrap video {
-      width: 100%; height: 100%;
-      object-fit: cover; display: block;
-    }
-    /* dark gradient overlay */
+    .hero-video-wrap video { width: 100%; height: 100%; object-fit: cover; display: block; }
     .hero-video-wrap::after {
-      content: '';
-      position: absolute; inset: 0;
+      content: ''; position: absolute; inset: 0;
       background: linear-gradient(to bottom,
-        rgba(10,10,10,0.2) 0%,
-        rgba(10,10,10,0.1) 40%,
-        rgba(10,10,10,0.85) 100%
-      );
+        rgba(10,10,10,0.2) 0%, rgba(10,10,10,0.1) 40%, rgba(10,10,10,0.85) 100%);
     }
     .hero-video-content {
       position: absolute; bottom: 0; left: 0; right: 0;
-      padding: 24px var(--side) 20px;
-      z-index: 2;
-    }
-    .hero-tag {
-      display: inline-block;
-      font-size: 10px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 1.5px; color: var(--gold);
-      border: 1px solid rgba(201,168,76,0.4);
-      border-radius: 20px; padding: 4px 10px;
-      margin-bottom: 10px;
+      padding: 24px var(--side) 20px; z-index: 2;
     }
     .hero-headline {
       font-family: 'Syne', sans-serif;
-      font-size: 30px; font-weight: 800;
-      color: var(--white); line-height: 1.1;
-      letter-spacing: -0.5px; margin-bottom: 6px;
+      font-size: 30px; font-weight: 800; color: var(--white);
+      line-height: 1.1; letter-spacing: -0.5px; margin-bottom: 6px;
     }
     .hero-headline span { color: var(--gold); }
     .hero-sub {
@@ -379,9 +475,7 @@
       margin-bottom: 18px; line-height: 1.5;
     }
 
-    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-       STAT PILLS
-    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    /* ── STAT PILLS ─────────────────────────────────────────── */
     .pill-row {
       display: flex; gap: 8px;
       overflow-x: auto; -webkit-overflow-scrolling: touch;
@@ -392,83 +486,29 @@
     .stat-pill {
       flex: 0 0 auto;
       background: var(--surface-2);
-      border: 1px solid rgba(201,168,76,0.15);
+      border: 1px solid var(--hairline-2);
       border-radius: 20px; padding: 7px 14px;
       display: flex; align-items: center; gap: 6px;
     }
     .stat-pill strong { font-size: 12px; font-weight: 700; color: var(--gold); white-space: nowrap; }
     .stat-pill span { font-size: 11px; color: #777; white-space: nowrap; }
 
-    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-       ABOUT
-    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-    .about-wrap {
-      background: var(--surface-2);
-      border-radius: var(--radius-md);
-      overflow: hidden;
-      margin: 0 var(--side);
-      border: 1px solid rgba(201,168,76,0.12);
-    }
-    .about-video-wrap { position: relative; height: 210px; overflow: hidden; }
-    .about-video-wrap video { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .about-video-wrap::after {
-      content: '';
-      position: absolute; bottom: 0; left: 0; right: 0; height: 80px;
-      background: linear-gradient(to bottom, transparent, var(--surface-2));
-    }
-    .about-body { padding: 16px; }
-    .about-title {
-      font-family: 'Syne', sans-serif;
-      font-size: 19px; font-weight: 800;
-      color: var(--white); margin-bottom: 5px;
-    }
-    .about-bar {
-      width: 36px; height: 3px; border-radius: 3px;
-      background: var(--gold); margin-bottom: 12px;
-    }
-    .about-text { font-size: 13px; color: #999; line-height: 1.65; margin-bottom: 10px; }
-    .about-socials { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
-    .about-social-btn {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 8px 14px; border-radius: 20px;
-      border: 1px solid rgba(201,168,76,0.25);
-      background: var(--surface-3); color: var(--gold);
-      font-size: 12px; font-weight: 600;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .about-social-btn:active { background: var(--surface-4); }
-    .about-social-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; }
-    .about-social-btn--cta {
-      background: linear-gradient(135deg, var(--gold-light), var(--gold));
-      color: #000; border-color: transparent; font-weight: 700;
-    }
-
-    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-       SERVICES SLIDER
-    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-    .services-slider-wrap {
-      overflow: hidden;
-      padding: 0 var(--side);
-    }
+    /* ── SERVICES SLIDER ────────────────────────────────────── */
     .services-slider {
       display: flex; gap: 10px;
       overflow-x: auto; -webkit-overflow-scrolling: touch;
       scroll-snap-type: x mandatory;
-      padding-bottom: 4px;
+      padding: 0 var(--side) 4px;
       scrollbar-width: none;
-      margin: 0 calc(-1 * var(--side));
-      padding-left: var(--side); padding-right: var(--side);
     }
     .services-slider::-webkit-scrollbar { display: none; }
 
     .service-slide {
-      flex: 0 0 260px;
-      scroll-snap-align: start;
+      flex: 0 0 260px; scroll-snap-align: start;
       background: var(--surface-2);
       border: 1px solid rgba(201,168,76,0.12);
       border-radius: var(--radius-md);
-      overflow: hidden;
-      display: flex; flex-direction: column;
+      overflow: hidden; display: flex; flex-direction: column;
     }
     .service-slide-header {
       padding: 16px 16px 0;
@@ -484,111 +524,37 @@
     .badge-addon    { background: rgba(120,180,255,0.12);color: #7bb4ff; }
 
     .service-price-wrap { text-align: right; }
-    .service-price-from { font-size: 9px; color: #666; }
+    .service-price-from { font-size: 9px; color: var(--muted-2); }
     .service-price { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--gold); line-height: 1; }
 
     .service-slide-body { padding: 12px 16px 16px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
     .service-name { font-size: 15px; font-weight: 700; color: var(--white); }
     .service-desc { font-size: 12px; color: #777; line-height: 1.5; }
     .service-features { display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
-    .service-features li {
-      font-size: 12px; color: #aaa;
-      padding-left: 14px; position: relative;
-    }
+    .service-features li { font-size: 12px; color: #aaa; padding-left: 14px; position: relative; }
     .service-features li::before { content: "✓"; position: absolute; left: 0; color: var(--gold); font-size: 10px; }
 
     .service-slide-cta { padding: 0 16px 16px; }
     .service-cta-btn {
-      display: block; width: 100%; padding: 11px;
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; min-height: var(--tap); padding: 11px;
       background: rgba(201,168,76,0.1);
-      border: 1px solid rgba(201,168,76,0.25);
+      border: 1px solid var(--hairline-2);
       color: var(--gold); font-size: 13px; font-weight: 600;
-      text-align: center; border-radius: var(--radius-sm);
-      text-decoration: none; -webkit-tap-highlight-color: transparent;
+      border-radius: var(--radius-sm);
+      -webkit-tap-highlight-color: transparent;
     }
     .service-cta-btn:active { background: rgba(201,168,76,0.2); }
 
-    /* scroll dots for services */
     .slider-dots { display: flex; justify-content: center; gap: 5px; margin-top: 10px; }
     .slider-dot {
       width: 5px; height: 5px; border-radius: 50%;
-      background: var(--surface-4); border: none; padding: 0; cursor: pointer;
+      background: var(--surface-4); border: none; padding: 0;
       transition: background 0.2s, width 0.2s;
     }
     .slider-dot.active { background: var(--gold); width: 16px; border-radius: 3px; }
 
-    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-       TRUST SECTION
-    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-    .trust-grid { display: flex; flex-direction: column; gap: 10px; }
-    .trust-card {
-      background: var(--surface-2);
-      border: 1px solid rgba(201,168,76,0.1);
-      border-radius: var(--radius-md);
-      padding: 16px;
-      display: flex; gap: 14px; align-items: flex-start;
-    }
-    .trust-icon {
-      width: 40px; height: 40px; border-radius: 10px;
-      background: rgba(201,168,76,0.1);
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-    .trust-icon svg { width: 20px; height: 20px; stroke: var(--gold); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-    .trust-title { font-size: 14px; font-weight: 700; color: var(--white); margin-bottom: 3px; }
-    .trust-text { font-size: 12px; color: #888; line-height: 1.55; }
-
-    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-       WHY CHOOSE US
-    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-    .why-list { display: flex; flex-direction: column; gap: 0; }
-    .why-row {
-      display: flex; align-items: center; gap: 14px;
-      padding: 14px 0;
-      border-bottom: 1px solid var(--surface-3);
-    }
-    .why-row:last-child { border-bottom: none; }
-    .why-num {
-      font-family: 'Syne', sans-serif;
-      font-size: 28px; font-weight: 800;
-      color: rgba(201,168,76,0.2);
-      flex: 0 0 36px; line-height: 1;
-    }
-    .why-content {}
-    .why-title { font-size: 14px; font-weight: 700; color: var(--white); margin-bottom: 2px; }
-    .why-text { font-size: 12px; color: #888; line-height: 1.5; }
-
-    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-       LOYALTY TIERS
-    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-    .tier-list { display: flex; flex-direction: column; gap: 8px; }
-    .tier-row {
-      display: flex; align-items: center; gap: 12px;
-      padding: 13px 14px; border-radius: var(--radius-sm);
-      background: var(--surface-2);
-      border: 1px solid rgba(201,168,76,0.1);
-      text-decoration: none;
-    }
-    .tier-row:active { background: var(--surface-3); }
-    .tier-icon {
-      width: 36px; height: 36px; border-radius: 10px;
-      background: rgba(201,168,76,0.1);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px; flex-shrink: 0;
-    }
-    .tier-info { flex: 1; }
-    .tier-name { font-size: 13px; font-weight: 700; color: var(--white); margin-bottom: 1px; text-transform: capitalize; }
-    .tier-range { font-size: 11px; color: #666; margin-bottom: 2px; }
-    .tier-perk { font-size: 12px; color: var(--gold); }
-    .tier-chevron { color: #444; font-size: 16px; }
-    .tier-tag {
-      font-size: 9px; font-weight: 700; background: var(--gold); color: #000;
-      padding: 2px 5px; border-radius: 4px; margin-left: 5px; vertical-align: middle;
-    }
-
-    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-       HOW IT WORKS
-    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    /* ── HOW IT WORKS ───────────────────────────────────────── */
     .steps-list { display: flex; flex-direction: column; }
     .step-row {
       display: flex; align-items: flex-start; gap: 14px;
@@ -603,17 +569,15 @@
       flex-shrink: 0; margin-top: 1px;
     }
     .step-title { font-size: 13px; font-weight: 700; color: var(--white); margin-bottom: 2px; }
-    .step-text { font-size: 12px; color: #888; line-height: 1.5; }
+    .step-text { font-size: 12px; color: var(--muted); line-height: 1.5; }
 
-    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-       RESTORATION CAROUSEL
-    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    /* ── RESULTS CAROUSEL ───────────────────────────────────── */
     .carousel-viewport { position: relative; overflow: hidden; background: var(--surface-2); }
     .carousel-track { display: flex; transition: transform 0.3s ease; }
     .carousel-track img { width: 100%; flex: 0 0 100%; height: 220px; object-fit: cover; display: block; }
     .carousel-btn {
       position: absolute; top: 50%; transform: translateY(-50%);
-      width: 32px; height: 32px; border-radius: 50%;
+      width: 36px; height: 36px; border-radius: 50%;
       background: rgba(0,0,0,0.55); border: 1px solid rgba(201,168,76,0.3);
       display: flex; align-items: center; justify-content: center;
       color: var(--gold); font-size: 20px;
@@ -624,120 +588,75 @@
     .carousel-dots { display: flex; justify-content: center; gap: 5px; padding: 10px 0 4px; }
     .carousel-dots button {
       width: 5px; height: 5px; border-radius: 50%;
-      border: none; background: var(--surface-4); cursor: pointer; padding: 0;
+      border: none; background: var(--surface-4); padding: 0;
     }
     .carousel-dots button.active { background: var(--gold); width: 16px; border-radius: 3px; }
 
-    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-       TESTIMONIALS
-    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    /* ── TRUST ──────────────────────────────────────────────── */
+    .trust-grid { display: flex; flex-direction: column; gap: 10px; }
+    .trust-card {
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(201,168,76,0.1);
+      border-radius: var(--radius-md);
+      padding: 16px; display: flex; gap: 14px; align-items: flex-start;
+    }
+    .trust-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: rgba(201,168,76,0.1);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .trust-icon svg { width: 20px; height: 20px; stroke: var(--gold); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .trust-title { font-size: 14px; font-weight: 700; color: var(--white); margin-bottom: 3px; }
+    .trust-text { font-size: 12px; color: var(--muted); line-height: 1.55; }
+
+    /* ── LOYALTY TIERS ──────────────────────────────────────── */
+    .tier-list { display: flex; flex-direction: column; gap: 8px; }
+    .tier-row {
+      display: flex; align-items: center; gap: 12px;
+      min-height: var(--tap);
+      padding: 13px 14px; border-radius: var(--radius-sm);
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(201,168,76,0.1);
+    }
+    .tier-row:active { background: var(--surface-3); }
+    .tier-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: rgba(201,168,76,0.1); color: var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .tier-info { flex: 1; }
+    .tier-name { font-size: 13px; font-weight: 700; color: var(--white); margin-bottom: 1px; }
+    .tier-range { font-size: 11px; color: var(--muted-2); margin-bottom: 2px; }
+    .tier-perk { font-size: 12px; color: var(--gold); }
+    .tier-chevron { color: #444; font-size: 16px; }
+    .tier-tag {
+      font-size: 9px; font-weight: 700; background: var(--gold); color: #000;
+      padding: 2px 5px; border-radius: 4px; margin-left: 5px; vertical-align: middle;
+    }
+
+    /* ── REVIEWS ────────────────────────────────────────────── */
     .review-list { display: flex; flex-direction: column; gap: 10px; }
     .review-card {
-      background: var(--surface-2); border-radius: var(--radius-sm);
+      background: rgba(0,0,0,0.25); border-radius: var(--radius-sm);
       border: 1px solid rgba(201,168,76,0.1); padding: 14px;
     }
     .review-stars { color: var(--gold); font-size: 12px; letter-spacing: 2px; margin-bottom: 8px; }
     .review-quote { font-size: 13px; color: #999; line-height: 1.6; margin-bottom: 10px; font-style: italic; }
     .review-author { font-size: 13px; font-weight: 700; color: var(--white); }
-    .review-meta { font-size: 11px; color: #666; margin-top: 1px; }
+    .review-meta { font-size: 11px; color: var(--muted-2); margin-top: 1px; }
 
-    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-       TUTORIALS
-    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-    .tutorial-list { display: flex; flex-direction: column; gap: 10px; }
-    .tutorial-row {
-      display: flex; gap: 12px; align-items: center;
-      text-decoration: none; padding: 2px 0;
-    }
-    .tutorial-thumb {
-      flex: 0 0 80px; height: 60px; border-radius: 8px;
-      overflow: hidden; background: var(--surface-3); position: relative;
-    }
-    .tutorial-thumb img { width: 100%; height: 100%; object-fit: cover; }
-    .tutorial-thumb .play-dot {
-      position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
-      background: rgba(0,0,0,0.35);
-    }
-    .play-dot::after {
-      content: ''; border-left: 12px solid var(--gold);
-      border-top: 7px solid transparent;
-      border-bottom: 7px solid transparent; margin-left: 3px;
-    }
-    .tutorial-meta h3 { font-size: 13px; font-weight: 600; color: var(--white); margin-bottom: 2px; line-height: 1.3; }
-    .tutorial-meta p { font-size: 11px; color: #666; }
-    .tutorial-tag { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gold); margin-bottom: 4px; }
-
-    .video-full { border-radius: var(--radius-sm); overflow: hidden; background: #000; }
-    .video-full video { width: 100%; height: 190px; display: block; object-fit: cover; }
-    .video-caption { padding: 10px 12px 12px; background: var(--surface-2); }
-    .video-caption .tutorial-tag { display: block; margin-bottom: 3px; }
-    .video-caption p { font-size: 13px; font-weight: 600; color: var(--white); }
-
-    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-       PAYMENT
-    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-    .payment-grid { display: flex; flex-direction: column; gap: 10px; }
-    .payment-card {
-      background: var(--surface-2); border-radius: var(--radius-sm);
-      border: 1px solid rgba(201,168,76,0.1); padding: 14px;
-      display: flex; gap: 12px; align-items: center;
-    }
-    .payment-icon {
-      width: 40px; height: 40px; border-radius: 9px;
-      background: var(--surface-3); display: flex;
-      align-items: center; justify-content: center; flex-shrink: 0;
-    }
-    .payment-icon svg { width: 20px; height: 20px; stroke: var(--gold); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-    .payment-name { font-size: 14px; font-weight: 700; color: var(--white); margin-bottom: 2px; }
-    .payment-desc { font-size: 12px; color: #777; }
-    .payment-logos { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; align-items: center; }
-    .payment-logo-chip {
-      background: var(--surface-3); border: 1px solid var(--surface-4);
-      border-radius: 6px; padding: 6px 12px;
-      font-size: 12px; font-weight: 700; color: #aaa;
-      letter-spacing: 0.5px;
-    }
-    .secure-note { display: flex; align-items: center; gap: 6px; margin-top: 12px; }
-    .secure-note svg { width: 14px; height: 14px; stroke: var(--gold); fill: none; stroke-width: 2; stroke-linecap: round; }
-    .secure-note span { font-size: 11px; color: #777; }
-
-    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-       CARD WRAPPER (padded section)
-    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-    .dk-section {
+    /* ── CLOSING CTA ────────────────────────────────────────── */
+    .cta-final {
       margin: 0 var(--side);
-      background: var(--surface-2);
-      border: 1px solid rgba(201,168,76,0.1);
+      background: linear-gradient(160deg, rgba(201,168,76,0.12), var(--surface-2));
+      border: 1px solid var(--hairline-2);
       border-radius: var(--radius-md);
-      padding: 16px;
+      padding: 22px 18px; text-align: center;
     }
-    .dk-section-header { margin-bottom: 14px; }
-    .dk-section-header .sec-label { margin-bottom: 4px; }
-    .dk-section-header .sec-title { margin-bottom: 0; }
-
-    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-       FOOTER
-    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-    .m-footer {
-      padding: 20px var(--side) 16px;
-      border-top: 1px solid rgba(201,168,76,0.12);
-    }
-    .footer-logo { height: 26px; width: auto; margin-bottom: 10px; }
-    .footer-tagline { font-size: 12px; color: #666; margin-bottom: 18px; }
-    .footer-cols { display: flex; gap: 32px; margin-bottom: 20px; }
-    .footer-col h4 { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--gold); margin-bottom: 10px; }
-    .footer-col ul { display: flex; flex-direction: column; gap: 8px; }
-    .footer-col a { font-size: 13px; color: #888; }
-    .footer-socials { display: flex; gap: 10px; margin-bottom: 18px; }
-    .footer-social {
-      width: 36px; height: 36px; border-radius: 9px;
-      background: var(--surface-2); border: 1px solid rgba(201,168,76,0.15);
-      display: flex; align-items: center; justify-content: center;
-      color: var(--gold);
-    }
-    .footer-social svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-    .footer-copy { font-size: 11px; color: #555; }
+    .cta-final .sec-title { font-size: 22px; margin-bottom: 6px; }
+    .cta-final-hours { font-size: 12px; color: #999; line-height: 1.6; margin-bottom: 16px; }
+    .cta-final-hours strong { color: var(--gold); font-weight: 600; }
   </style>
 </head>
 <body>
@@ -772,6 +691,7 @@
       </div>
 
       <div class="nav-mobile-right">
+        <span id="navPointsMirror" class="nav-points" hidden aria-live="polite"></span>
         <button class="nav-icon-btn" id="searchToggle" type="button" aria-label="search" aria-expanded="false">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
         </button>
@@ -820,7 +740,7 @@
         <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
         Login
       </a>
-      <a href="register.html" class="sidebar-link">
+      <a href="register.html" class="sidebar-link" id="sidebarRegister">
         <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
         Register
       </a>
@@ -862,14 +782,14 @@
   <!-- ━━━━━━━━━━━━━━━━━━ MAIN ━━━━━━━━━━━━━━━━━━ -->
   <main class="container page-shell" id="main" tabindex="-1">
 
-    <!-- 1. HERO VIDEO -->
+    <!-- 1. HERO — the booking pitch -->
     <section class="hero-video-wrap" aria-label="hero">
       <video autoplay muted loop playsinline preload="metadata">
         <source src="videos/v24044gl0000d6bh49fog65j901okegg 2.MP4" type="video/mp4" />
       </video>
       <div class="hero-video-content">
-        <h1 class="hero-headline">Clean.<br/><span>Restore.</span><br/>Protect.</h1>
-        <p class="hero-sub">Professional sneaker care, tracked in real time.</p>
+        <h1 class="hero-headline">Book a <span>Clean.</span></h1>
+        <p class="hero-sub">Professional sneaker cleaning and restoration in London. Pick a service, pick a slot, track it live.</p>
         <div class="cta-stack">
           <a class="btn-gold" href="booking.html" data-requires-auth="true">Book a Clean</a>
           <a class="btn-outline" href="register.html">Create Account</a>
@@ -879,45 +799,22 @@
 
     <!-- STAT PILLS -->
     <div class="pill-row" role="list" aria-label="highlights">
+      <div class="stat-pill" role="listitem"><strong>From £25</strong><span>Single pair</span></div>
+      <div class="stat-pill" role="listitem"><strong>3 pairs £60</strong><span>Bundle saving</span></div>
+      <div class="stat-pill" role="listitem"><strong>Next Day</strong><span>From £35</span></div>
       <div class="stat-pill" role="listitem"><strong>Live Tracking</strong><span>Every stage</span></div>
-      <div class="stat-pill" role="listitem"><strong>Loyalty Points</strong><span>Every clean</span></div>
       <div class="stat-pill" role="listitem"><strong>500+ Cleans</strong><span>Completed</span></div>
     </div>
 
     <hr class="gold-rule" />
 
-    <!-- 2. ABOUT US -->
-    <div class="about-wrap" aria-labelledby="aboutHeading">
-      <div class="about-video-wrap">
-        <video autoplay muted loop playsinline preload="metadata">
-          <source src="videos/1777265294133_v24044gl0000d5g0dnvog65ttturb87g_2.MP4" type="video/mp4" />
-        </video>
-      </div>
-      <div class="about-body">
-        <h2 class="about-title" id="aboutHeading">About Us</h2>
-        <div class="about-bar"></div>
-        <p class="about-text">DKCleanEdit is a professional sneaker cleaning and restoration service based in London and Leicester. We specialise in deep cleaning, stain removal, sole unyellowing, and full refreshes — protecting the look and life of every pair.</p>
-        <p class="about-text">From drop-off to collection, you have full visibility of your order at every stage. No chasing. No guessing. Just results.</p>
-        <div class="about-socials">
-          <a href="https://www.tiktok.com/@dk_asz" target="_blank" rel="noopener" class="about-social-btn" aria-label="instagram">
-            <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
-            Instagramsgit statusb
-          </a>
-          <a href="https://www.tiktok.com/@dkcleanedit" target="_blank" rel="noopener" class="about-social-btn" aria-label="tiktok">
-            <svg viewBox="0 0 24 24"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
-            TikTok
-          </a>
-          <a href="booking.html" class="about-social-btn about-social-btn--cta" data-requires-auth="true">Book Now</a>
-        </div>
-      </div>
-    </div>
-
-    <hr class="gold-rule" />
-
-    <!-- 3. SERVICES SLIDER -->
+    <!-- 2. SERVICES — what you're booking -->
     <div class="sec">
-      <div class="sec-label">Our Services</div>
-      <div class="sec-title">What We Offer</div>
+      <div class="sec-label">Step 1</div>
+      <div class="sec-title">Choose Your Service</div>
+      <p class="sec-body">
+        Prices shown are for a single pair. Bundles: 3 pairs from £60, 10 pairs from £130.
+      </p>
     </div>
 
     <div class="services-slider" id="servicesSlider" role="list">
@@ -932,12 +829,12 @@
         </div>
         <div class="service-slide-body">
           <div class="service-name">Standard Clean</div>
-          <div class="service-desc">Perfect for regular upkeep and everyday refreshes.</div>
+          <div class="service-desc">3–5 day turnaround. Perfect for regular upkeep and everyday refreshes.</div>
           <ul class="service-features">
             <li>Upper &amp; midsole clean</li>
             <li>Lace refresh</li>
             <li>Deodorising &amp; finish</li>
-            <li>Condition assessment</li>
+            <li>3 pairs £60 · 10 pairs £130</li>
           </ul>
         </div>
         <div class="service-slide-cta">
@@ -955,12 +852,12 @@
         </div>
         <div class="service-slide-body">
           <div class="service-name">Express Service</div>
-          <div class="service-desc">Same-day turnaround for when you need them fast.</div>
+          <div class="service-desc">2–3 day turnaround for when you need them back fast.</div>
           <ul class="service-features">
             <li>Priority cleaning</li>
             <li>Detailed upper refresh</li>
             <li>Sole &amp; lace attention</li>
-            <li>Same-day completion</li>
+            <li>3 pairs £70</li>
           </ul>
         </div>
         <div class="service-slide-cta">
@@ -973,7 +870,7 @@
           <span class="service-badge badge-nextday">Next Day</span>
           <div class="service-price-wrap">
             <div class="service-price-from">from</div>
-            <div class="service-price">£40</div>
+            <div class="service-price">£35</div>
           </div>
         </div>
         <div class="service-slide-body">
@@ -982,8 +879,8 @@
           <ul class="service-features">
             <li>Priority queue placement</li>
             <li>Full deep clean</li>
-            <li>Full refresh finish</li>
             <li>Next-day guaranteed</li>
+            <li>3 pairs £85</li>
           </ul>
         </div>
         <div class="service-slide-cta">
@@ -996,15 +893,15 @@
           <span class="service-badge badge-addon">Add-On</span>
           <div class="service-price-wrap">
             <div class="service-price-from">from</div>
-            <div class="service-price">£10</div>
+            <div class="service-price">£15</div>
           </div>
         </div>
         <div class="service-slide-body">
-          <div class="service-name">Sole Unyellowing</div>
-          <div class="service-desc">Restore yellowed soles back to factory-fresh clarity.</div>
+          <div class="service-name">UX Treatment</div>
+          <div class="service-desc">Unyellowing and crease reduction to restore shape and clarity.</div>
           <ul class="service-features">
-            <li>UV restoration process</li>
-            <li>Sole whitening treatment</li>
+            <li>Sole unyellowing</li>
+            <li>Crease reduction</li>
             <li>Add to any clean</li>
           </ul>
         </div>
@@ -1018,16 +915,16 @@
           <span class="service-badge badge-addon">Add-On</span>
           <div class="service-price-wrap">
             <div class="service-price-from">from</div>
-            <div class="service-price">£8</div>
+            <div class="service-price">£15</div>
           </div>
         </div>
         <div class="service-slide-body">
-          <div class="service-name">Stain Protection</div>
-          <div class="service-desc">Premium repellent spray to protect after cleaning.</div>
+          <div class="service-name">Painting</div>
+          <div class="service-desc">Precision paint restoration on midsole coins and sole edges.</div>
           <ul class="service-features">
-            <li>Water repellent coating</li>
-            <li>Stain resistant finish</li>
-            <li>Works on all materials</li>
+            <li>Midsole coin restoration</li>
+            <li>Sole edge detailing</li>
+            <li>Factory-fresh finish</li>
           </ul>
         </div>
         <div class="service-slide-cta">
@@ -1041,87 +938,24 @@
 
     <hr class="gold-rule" />
 
-    <!-- 4. TRUSTED SUPPORT -->
-    <div class="dk-section" aria-labelledby="trustHeading">
+    <!-- 3. HOW IT WORKS — the booking flow -->
+    <div class="dk-section" aria-labelledby="howHeading">
       <div class="dk-section-header">
-        <div class="sec-label">Trusted Support</div>
-        <div class="sec-title" id="trustHeading">Always Online</div>
+        <div class="sec-label">Process</div>
+        <div class="sec-title" id="howHeading">How It Works</div>
       </div>
-      <div class="trust-grid">
-        <div class="trust-card">
-          <div class="trust-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
-          <div>
-            <div class="trust-title">Live Order Tracking</div>
-            <div class="trust-text">Follow your pair through every cleaning stage in real time — no need to call or chase.</div>
-          </div>
-        </div>
-        <div class="trust-card">
-          <div class="trust-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-          <div>
-            <div class="trust-title">Instant Confirmation</div>
-            <div class="trust-text">Every booking triggers an immediate email confirmation so you always have a record.</div>
-          </div>
-        </div>
-        <div class="trust-card">
-          <div class="trust-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-          <div>
-            <div class="trust-title">Secure Platform</div>
-            <div class="trust-text">Your data and bookings are protected. Account access is verified at every step.</div>
-          </div>
-        </div>
-        <div class="trust-card">
-          <div class="trust-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-          <div>
-            <div class="trust-title">On-Time Every Time</div>
-            <div class="trust-text">We respect your turnaround times. Express and next-day slots are honoured guaranteed.</div>
-          </div>
-        </div>
+      <div class="steps-list">
+        <div class="step-row"><div class="step-badge">01</div><div><div class="step-title">Choose Your Service</div><div class="step-text">Pick the package that matches your pair, and any add-ons.</div></div></div>
+        <div class="step-row"><div class="step-badge">02</div><div><div class="step-title">Book Your Slot</div><div class="step-text">Select a date and time, or have our driver collect from you the same day.</div></div></div>
+        <div class="step-row"><div class="step-badge">03</div><div><div class="step-title">Track Progress</div><div class="step-text">Live updates through every cleaning stage.</div></div></div>
+        <div class="step-row"><div class="step-badge">04</div><div><div class="step-title">Collect &amp; Earn</div><div class="step-text">Get your pair back fresh and collect loyalty points.</div></div></div>
       </div>
+      <a class="btn-gold" href="booking.html" data-requires-auth="true" style="margin-top:14px;">Book Now</a>
     </div>
 
     <hr class="gold-rule" />
 
-    <!-- 5. WHY CHOOSE US -->
-    <div class="dk-section" aria-labelledby="whyHeading">
-      <div class="dk-section-header">
-        <div class="sec-label">Why DKCleanEdit</div>
-        <div class="sec-title" id="whyHeading">The Difference</div>
-      </div>
-      <div class="why-list">
-        <div class="why-row">
-          <div class="why-num">01</div>
-          <div class="why-content">
-            <div class="why-title">Specialists, Not Generalists</div>
-            <div class="why-text">We only do sneakers. Every process is designed specifically for footwear — not adapted from something else.</div>
-          </div>
-        </div>
-        <div class="why-row">
-          <div class="why-num">02</div>
-          <div class="why-content">
-            <div class="why-title">Full Transparency</div>
-            <div class="why-text">Live tracking, status updates, and email confirmations at every stage. You always know where your pair is.</div>
-          </div>
-        </div>
-        <div class="why-row">
-          <div class="why-num">03</div>
-          <div class="why-content">
-            <div class="why-title">Loyalty That Pays</div>
-            <div class="why-text">Every clean earns points. Reach Pearl tier and get a free clean plus a shoe tree included.</div>
-          </div>
-        </div>
-        <div class="why-row">
-          <div class="why-num">04</div>
-          <div class="why-content">
-            <div class="why-title">Two Convenient Locations</div>
-            <div class="why-text">Drop off in Leicester or London. Same standard of care at both sites.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <hr class="gold-rule" />
-
-    <!-- 6. RESTORATION CAROUSEL -->
+    <!-- 4. RESULTS — visual proof -->
     <div class="dk-section" aria-labelledby="galleryHeading">
       <div class="dk-section-header">
         <div class="sec-label">Our Work</div>
@@ -1142,7 +976,40 @@
 
     <hr class="gold-rule" />
 
-    <!-- 7. LOYALTY TIERS -->
+    <!-- 5. TRUST — reasons to book -->
+    <div class="dk-section" aria-labelledby="trustHeading">
+      <div class="dk-section-header">
+        <div class="sec-label">Why Book With Us</div>
+        <div class="sec-title" id="trustHeading">What You Get</div>
+      </div>
+      <div class="trust-grid">
+        <div class="trust-card">
+          <div class="trust-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+          <div>
+            <div class="trust-title">Live Order Tracking</div>
+            <div class="trust-text">Follow your pair through every cleaning stage in real time — no need to call or chase.</div>
+          </div>
+        </div>
+        <div class="trust-card">
+          <div class="trust-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+          <div>
+            <div class="trust-title">Instant Confirmation</div>
+            <div class="trust-text">Every booking triggers an immediate email confirmation so you always have a record.</div>
+          </div>
+        </div>
+        <div class="trust-card">
+          <div class="trust-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <div>
+            <div class="trust-title">On-Time Every Time</div>
+            <div class="trust-text">We respect your turnaround times. Express and next-day slots are honoured guaranteed.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="gold-rule" />
+
+    <!-- 6. LOYALTY — reason to come back -->
     <div class="dk-section" aria-labelledby="tiersHeading">
       <div class="dk-section-header">
         <div class="sec-label">Rewards</div>
@@ -1182,113 +1049,7 @@
 
     <hr class="gold-rule" />
 
-    <!-- 8. HOW IT WORKS -->
-    <div class="dk-section" aria-labelledby="howHeading">
-      <div class="dk-section-header">
-        <div class="sec-label">Process</div>
-        <div class="sec-title" id="howHeading">How It Works</div>
-      </div>
-      <div class="steps-list">
-        <div class="step-row"><div class="step-badge">01</div><div><div class="step-title">Choose Your Service</div><div class="step-text">Pick the package that matches your pair and needs.</div></div></div>
-        <div class="step-row"><div class="step-badge">02</div><div><div class="step-title">Book Your Slot</div><div class="step-text">Log in, select a date and time, confirm in seconds.</div></div></div>
-        <div class="step-row"><div class="step-badge">03</div><div><div class="step-title">Track Progress</div><div class="step-text">Live updates through every cleaning stage.</div></div></div>
-        <div class="step-row"><div class="step-badge">04</div><div><div class="step-title">Collect &amp; Earn</div><div class="step-text">Get your pair back fresh and collect loyalty points.</div></div></div>
-      </div>
-      <a class="btn-gold" href="booking.html" data-requires-auth="true" style="margin-top:14px;">Book Now</a>
-    </div>
-
-    <hr class="gold-rule" />
-
-    <!-- 9. TUTORIALS -->
-    <div class="dk-section" aria-labelledby="tutHeading">
-      <div class="dk-section-header">
-        <div class="sec-label">Education</div>
-        <div class="sec-title" id="tutHeading">DK Tutorials</div>
-      </div>
-      <div class="tutorial-list">
-        <a class="tutorial-row" href="booking.html" data-requires-auth="true">
-          <div class="tutorial-thumb">
-            <img src="videos/jordan1.jpg" alt="jordan 4s tutorial" loading="lazy" />
-            <div class="play-dot"></div>
-          </div>
-          <div class="tutorial-meta">
-            <div class="tutorial-tag">Technique</div>
-            <h3>How to Clean Jordan 4s</h3>
-            <p>Mesh and leather panel technique.</p>
-          </div>
-        </a>
-        <a class="tutorial-row" href="booking.html" data-requires-auth="true">
-          <div class="tutorial-thumb">
-            <img src="videos/jordan2.jpg" alt="sole unyellowing" loading="lazy" />
-            <div class="play-dot"></div>
-          </div>
-          <div class="tutorial-meta">
-            <div class="tutorial-tag">Restoration</div>
-            <h3>Sole Unyellowing Guide</h3>
-            <p>Restore clear soles to factory clarity.</p>
-          </div>
-        </a>
-      </div>
-      <div style="margin-top:12px; display:flex; flex-direction:column; gap:10px;">
-        <div class="video-full">
-          <video controls preload="metadata" aria-label="white sneaker deep clean">
-            <source src="videos/v24044gl0000d6bh49fog65j901okegg 2.MP4" type="video/mp4" />
-          </video>
-          <div class="video-caption">
-            <span class="tutorial-tag">Deep Clean</span>
-            <p>White Sneaker Deep Clean</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <hr class="gold-rule" />
-
-    <!-- 10. PAYMENT -->
-    <div class="dk-section" aria-labelledby="payHeading">
-      <div class="dk-section-header">
-        <div class="sec-label">Payments</div>
-        <div class="sec-title" id="payHeading">How to Pay</div>
-      </div>
-      <div class="payment-grid">
-        <div class="payment-card">
-          <div class="payment-icon"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
-          <div>
-            <div class="payment-name">Card Payment</div>
-            <div class="payment-desc">Visa, Mastercard, and Amex accepted at drop-off.</div>
-          </div>
-        </div>
-        <div class="payment-card">
-          <div class="payment-icon"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18" stroke-width="2"/></svg></div>
-          <div>
-            <div class="payment-name">Apple Pay &amp; Google Pay</div>
-            <div class="payment-desc">Tap to pay instantly — no card needed.</div>
-          </div>
-        </div>
-        <div class="payment-card">
-          <div class="payment-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
-          <div>
-            <div class="payment-name">Bank Transfer</div>
-            <div class="payment-desc">Pay by bank transfer before collection. Details sent on booking.</div>
-          </div>
-        </div>
-      </div>
-      <div class="payment-logos">
-        <div class="payment-logo-chip">VISA</div>
-        <div class="payment-logo-chip">MC</div>
-        <div class="payment-logo-chip">AMEX</div>
-        <div class="payment-logo-chip">Apple Pay</div>
-        <div class="payment-logo-chip">G Pay</div>
-      </div>
-      <div class="secure-note">
-        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        <span>All transactions are secure and encrypted.</span>
-      </div>
-    </div>
-
-    <hr class="gold-rule" />
-
-    <!-- 11. TESTIMONIALS -->
+    <!-- 7. REVIEWS -->
     <div class="dk-section" aria-labelledby="reviewsHeading">
       <div class="dk-section-header">
         <div class="sec-label">Reviews</div>
@@ -1299,7 +1060,7 @@
           <div class="review-stars">★★★★★</div>
           <p class="review-quote">"Gave my Dior B30s in looking wrecked. DK got them back looking fresh out the box. Live tracking gave me full clarity throughout."</p>
           <div class="review-author">Ezechiel N.</div>
-          <div class="review-meta">Stone Member · Leicester</div>
+          <div class="review-meta">Stone Member · London</div>
         </div>
         <div class="review-card">
           <div class="review-stars">★★★★★</div>
@@ -1311,9 +1072,21 @@
           <div class="review-stars">★★★★★</div>
           <p class="review-quote">"Easiest booking I've done. Collected them and they came back absolutely immaculate."</p>
           <div class="review-author">Rali N.</div>
-          <div class="review-meta">Carbon Member · Leicester</div>
+          <div class="review-meta">Carbon Member · London</div>
         </div>
       </div>
+    </div>
+
+    <!-- 8. CLOSING CTA -->
+    <div class="cta-final">
+      <div class="sec-label">Ready when you are</div>
+      <div class="sec-title">Book Your Slot</div>
+      <p class="cta-final-hours">
+        Canada Water, London<br />
+        <strong>Mon–Fri</strong> 5pm – 9pm · <strong>Sat</strong> 9am – 5pm<br />
+        Bank Transfer, Monzo, PayPal or cash
+      </p>
+      <a class="btn-gold" href="booking.html" data-requires-auth="true">Book a Clean</a>
     </div>
 
   </main>
@@ -1321,7 +1094,7 @@
   <!-- FOOTER -->
   <footer class="m-footer" aria-label="site footer">
     <img src="videos/logo.png" class="footer-logo" alt="DKCleanEdit" />
-    <p class="footer-tagline">Professional sneaker cleaning in Leicester and London.</p>
+    <p class="footer-tagline">Professional sneaker cleaning in London.</p>
     <div class="footer-socials">
       <a href="https://www.instagram.com/dkcleanedit_/" target="_blank" rel="noopener" class="footer-social" aria-label="instagram">
         <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
@@ -1331,7 +1104,7 @@
       </a>
     </div>
     <div class="footer-cols">
-      <nav aria-label="services">
+      <nav class="footer-col" aria-label="services">
         <h4>Services</h4>
         <ul>
           <li><a href="booking.html">Standard Clean</a></li>
@@ -1339,17 +1112,16 @@
           <li><a href="booking.html">Next Day</a></li>
         </ul>
       </nav>
-      <nav aria-label="company">
+      <nav class="footer-col" aria-label="company">
         <h4>Company</h4>
         <ul>
-          <li><a href="#">About</a></li>
           <li><a href="booking.html">Book</a></li>
           <li><a href="track.html">Track</a></li>
-          <li><a href="#">Contact</a></li>
+          <li><a href="customer.html">My Account</a></li>
         </ul>
       </nav>
     </div>
-    <p class="footer-copy">© 2025 DKCleanEdit. All rights reserved.</p>
+    <p class="footer-copy">© 2026 DKCleanEdit. All rights reserved.</p>
   </footer>
 
   <!-- BOTTOM TAB BAR -->
@@ -1381,79 +1153,234 @@
   <script type="module" src="./app.js"></script>
   <script type="module" src="./theme.js"></script>
 
+  <!-- Phone shell behaviour — sidebar drawer, search overlay,
+       cart badge, and mirroring app.js auth onto the sidebar/bottom bar -->
   <script>
-    /* ── SIDEBAR ── */
-    const sidebarToggle  = document.getElementById('sidebarToggle');
-    const sidebar        = document.getElementById('sidebar');
-    const sidebarOverlay = document.getElementById('sidebarOverlay');
-    const sidebarClose   = document.getElementById('sidebarClose');
+    /* ═══════════════════════════════════════════════════════════════
+       PHONE SHELL BEHAVIOUR — sidebar drawer, search overlay, cart
+       badge, and mirroring app.js's auth state onto the sidebar and
+       bottom bar.
 
-    const openSidebar  = () => { sidebar.classList.add('open'); sidebarOverlay.classList.add('open'); document.body.classList.add('sidebar-open'); sidebarToggle.setAttribute('aria-expanded','true'); };
-    const closeSidebar = () => { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('open'); document.body.classList.remove('sidebar-open'); sidebarToggle.setAttribute('aria-expanded','false'); };
+       Everything is null-guarded, so a page without a search overlay
+       or cart button is fine.
+       ═══════════════════════════════════════════════════════════════ */
+    (function () {
+      'use strict';
 
-    sidebarToggle.addEventListener('click', openSidebar);
-    sidebarClose.addEventListener('click', closeSidebar);
-    sidebarOverlay.addEventListener('click', closeSidebar);
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeSidebar(); closeSearch(); } });
+      var $ = function (id) { return document.getElementById(id); };
 
-    /* ── SEARCH ── */
-    const searchToggle   = document.getElementById('searchToggle');
-    const searchOverlay  = document.getElementById('searchOverlay');
-    const searchCancel   = document.getElementById('searchCancel');
-    const searchBackdrop = document.getElementById('searchBackdrop');
-    const searchInput    = document.getElementById('searchInput');
-    const openSearch  = () => { searchOverlay.classList.add('open'); searchToggle.setAttribute('aria-expanded','true'); setTimeout(()=>searchInput.focus(),60); };
-    const closeSearch = () => { searchOverlay.classList.remove('open'); searchToggle.setAttribute('aria-expanded','false'); searchInput.value=''; };
-    searchToggle.addEventListener('click', openSearch);
-    searchCancel.addEventListener('click', closeSearch);
-    searchBackdrop.addEventListener('click', closeSearch);
+      /* ── SIDEBAR ─────────────────────────────────────────────── */
+      var sidebar = $('sidebar');
+      var overlay = $('sidebarOverlay');
+      var toggle  = $('sidebarToggle');
+      var closeEl = $('sidebarClose');
 
-    /* ── CAROUSEL ── */
-    const track  = document.getElementById('carouselTrack');
-    const dotsEl = document.getElementById('carouselDots');
-    if (track) {
-      const imgs = track.querySelectorAll('img');
-      let cur = 0;
-      const dots = [];
-      imgs.forEach((_,i) => {
-        const b = document.createElement('button');
-        b.setAttribute('role','tab');
-        b.setAttribute('aria-label', `slide ${i+1}`);
-        if (i===0) b.classList.add('active');
-        b.addEventListener('click', ()=>goTo(i));
-        dotsEl.appendChild(b); dots.push(b);
+      function openSidebar() {
+        if (!sidebar) return;
+        sidebar.classList.add('open');
+        if (overlay) overlay.classList.add('open');
+        document.body.classList.add('sidebar-open');
+        if (toggle) toggle.setAttribute('aria-expanded', 'true');
+      }
+
+      function closeSidebar() {
+        if (!sidebar) return;
+        sidebar.classList.remove('open');
+        if (overlay) overlay.classList.remove('open');
+        document.body.classList.remove('sidebar-open');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      }
+
+      if (toggle)  toggle.addEventListener('click', openSidebar);
+      if (closeEl) closeEl.addEventListener('click', closeSidebar);
+      if (overlay) overlay.addEventListener('click', closeSidebar);
+
+      /* ── SEARCH OVERLAY ──────────────────────────────────────── */
+      var searchToggle   = $('searchToggle');
+      var searchOverlay  = $('searchOverlay');
+      var searchCancel   = $('searchCancel');
+      var searchBackdrop = $('searchBackdrop');
+      var searchInput    = $('searchInput');
+
+      function openSearch() {
+        if (!searchOverlay) return;
+        searchOverlay.classList.add('open');
+        if (searchToggle) searchToggle.setAttribute('aria-expanded', 'true');
+        if (searchInput) setTimeout(function () { searchInput.focus(); }, 60);
+      }
+
+      function closeSearch() {
+        if (!searchOverlay) return;
+        searchOverlay.classList.remove('open');
+        if (searchToggle) searchToggle.setAttribute('aria-expanded', 'false');
+        if (searchInput) searchInput.value = '';
+      }
+
+      if (searchToggle)   searchToggle.addEventListener('click', openSearch);
+      if (searchCancel)   searchCancel.addEventListener('click', closeSearch);
+      if (searchBackdrop) searchBackdrop.addEventListener('click', closeSearch);
+
+      /* Escape closes whatever is open */
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { closeSidebar(); closeSearch(); }
       });
-      const goTo = n => { cur=n; track.style.transform=`translateX(-${cur*100}%)`; dots.forEach((d,i)=>d.classList.toggle('active',i===cur)); };
-      document.getElementById('prevBtn')?.addEventListener('click', ()=>goTo((cur-1+imgs.length)%imgs.length));
-      document.getElementById('nextBtn')?.addEventListener('click', ()=>goTo((cur+1)%imgs.length));
-    }
+
+      /* Tapping any sidebar link closes the drawer before navigating */
+      var links = document.querySelectorAll('.sidebar-link');
+      for (var i = 0; i < links.length; i++) {
+        links[i].addEventListener('click', closeSidebar);
+      }
+
+      /* ── CART BADGE ──────────────────────────────────────────── */
+      window.updateCartCount = function (n) {
+        var b = $('cartCount');
+        if (!b) return;
+        b.hidden = !(n > 0);
+        if (n > 0) b.textContent = n > 9 ? '9+' : String(n);
+      };
+
+      /* ── AUTH MIRROR ─────────────────────────────────────────────
+         app.js owns auth and drives the legacy #nav* links in the
+         hidden .nav-links list. We copy that state onto the sidebar
+         and bottom bar so all three stay in step without app.js
+         needing to know this shell exists.
+         ────────────────────────────────────────────────────────── */
+      function mirrorAuth() {
+        var navLogout = $('navLogout');
+        var navAdmin  = $('navAdmin');
+        var navPoints = $('navPointsBadge');
+
+        /* Signed in when app.js has revealed the logout link */
+        var signedIn = !!(navLogout && !navLogout.hidden);
+
+        var sbLogin  = $('sidebarLogin');
+        var sbReg    = $('sidebarRegister');
+        var sbLogout = $('sidebarLogout');
+        var sbAdmin  = $('sidebarAdmin');
+        var tabLogin = $('bottomNavLogin');
+        var navPts   = $('navPointsMirror');
+
+        if (sbLogin)  sbLogin.hidden  = signedIn;
+        if (sbReg)    sbReg.hidden    = signedIn;
+        if (sbLogout) sbLogout.hidden = !signedIn;
+        if (tabLogin) tabLogin.hidden = signedIn;
+
+        /* Admin tab follows whatever app.js decided for the legacy link */
+        if (sbAdmin) sbAdmin.hidden = !(navAdmin && !navAdmin.hidden);
+
+        /* Points badge in the top bar */
+        if (navPts) {
+          if (navPoints && !navPoints.hidden) {
+            navPts.hidden = false;
+            navPts.textContent = navPoints.textContent.trim();
+          } else {
+            navPts.hidden = true;
+          }
+        }
+      }
+
+      /* Sidebar logout delegates to the link app.js already wired */
+      var sidebarLogout = $('sidebarLogout');
+      if (sidebarLogout) {
+        sidebarLogout.addEventListener('click', function (e) {
+          e.preventDefault();
+          var navLogout = $('navLogout');
+          if (navLogout) navLogout.click();
+        });
+      }
+
+      /* app.js resolves auth asynchronously, so watch for the change
+         rather than reading once on load. */
+      var hookTargets = ['navLogout', 'navAdmin', 'navPointsBadge'];
+      if (window.MutationObserver) {
+        var mo = new MutationObserver(mirrorAuth);
+        for (var j = 0; j < hookTargets.length; j++) {
+          var el = $(hookTargets[j]);
+          if (el) mo.observe(el, { attributes: true, childList: true, characterData: true, subtree: true });
+        }
+      }
+      mirrorAuth();
+      setTimeout(mirrorAuth, 600);
+      setTimeout(mirrorAuth, 2000);
+    })();
+  </script>
+
+
+  <script>
+    /* Shell behaviour is inlined above. Only this page's
+       carousel and slider live here. */
+
+    /* ── RESULTS CAROUSEL ── */
+    (function () {
+      var track  = document.getElementById('carouselTrack');
+      var dotsEl = document.getElementById('carouselDots');
+      if (!track || !dotsEl) return;
+
+      var imgs = track.querySelectorAll('img');
+      var dots = [];
+      var cur  = 0;
+
+      function goTo(n) {
+        cur = n;
+        track.style.transform = 'translateX(-' + (cur * 100) + '%)';
+        dots.forEach(function (d, i) { d.classList.toggle('active', i === cur); });
+      }
+
+      imgs.forEach(function (_, i) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.setAttribute('role', 'tab');
+        b.setAttribute('aria-label', 'Slide ' + (i + 1));
+        if (i === 0) b.classList.add('active');
+        b.addEventListener('click', function () { goTo(i); });
+        dotsEl.appendChild(b);
+        dots.push(b);
+      });
+
+      var prev = document.getElementById('prevBtn');
+      var next = document.getElementById('nextBtn');
+      if (prev) prev.addEventListener('click', function () { goTo((cur - 1 + imgs.length) % imgs.length); });
+      if (next) next.addEventListener('click', function () { goTo((cur + 1) % imgs.length); });
+
+      /* Swipe between results on touch */
+      var x0 = null;
+      track.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+      track.addEventListener('touchend', function (e) {
+        if (x0 === null) return;
+        var dx = e.changedTouches[0].clientX - x0;
+        if (Math.abs(dx) > 45) goTo(dx < 0 ? (cur + 1) % imgs.length : (cur - 1 + imgs.length) % imgs.length);
+        x0 = null;
+      }, { passive: true });
+    })();
 
     /* ── SERVICES SLIDER DOTS ── */
-    const slider   = document.getElementById('servicesSlider');
-    const dotsWrap = document.getElementById('serviceDots');
-    if (slider && dotsWrap) {
-      const slides = slider.querySelectorAll('.service-slide');
-      const sDots  = [];
-      slides.forEach((_,i) => {
-        const b = document.createElement('button');
-        b.className = 'slider-dot' + (i===0?' active':'');
-        b.setAttribute('aria-label', `service ${i+1}`);
-        b.addEventListener('click', ()=>{ slider.scrollTo({left: i * 270, behavior:'smooth'}); });
-        dotsWrap.appendChild(b); sDots.push(b);
-      });
-      slider.addEventListener('scroll', () => {
-        const idx = Math.round(slider.scrollLeft / 270);
-        sDots.forEach((d,i)=>d.classList.toggle('active',i===idx));
-      }, { passive: true });
-    }
+    (function () {
+      var slider   = document.getElementById('servicesSlider');
+      var dotsWrap = document.getElementById('serviceDots');
+      if (!slider || !dotsWrap) return;
 
-    /* ── CART BADGE ── */
-    window.updateCartCount = n => {
-      const b = document.getElementById('cartCount');
-      if (!b) return;
-      b.hidden = n < 1;
-      if (n > 0) b.textContent = n > 9 ? '9+' : n;
-    };
+      var slides = slider.querySelectorAll('.service-slide');
+      var dots   = [];
+      /* card width + gap — keep in step with .service-slide flex-basis */
+      var STEP = 270;
+
+      slides.forEach(function (_, i) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'slider-dot' + (i === 0 ? ' active' : '');
+        b.setAttribute('aria-label', 'Service ' + (i + 1));
+        b.addEventListener('click', function () {
+          slider.scrollTo({ left: i * STEP, behavior: 'smooth' });
+        });
+        dotsWrap.appendChild(b);
+        dots.push(b);
+      });
+
+      slider.addEventListener('scroll', function () {
+        var idx = Math.round(slider.scrollLeft / STEP);
+        dots.forEach(function (d, i) { d.classList.toggle('active', i === idx); });
+      }, { passive: true });
+    })();
   </script>
 
 </body>

@@ -1,37 +1,260 @@
 <!doctype html>
 <html lang="en">
 <!--
-  register.html — DKcleanedit
+  register.html — DKcleanedit (phone-first)
+
+  The phone shell CSS is inlined below, so this file is self-contained.
+  Auth pages deliberately have no bottom tab bar or side drawer: Book,
+  Track and Account all require sign-in, so those tabs would bounce a
+  signed-out visitor straight back here.
+
+  IDs consumed by register.js are unchanged:
+    registerForm, regName, regEmail, regPhone, regPass, regPassConfirm,
+    registerMsg, btnRegister
+
   References:
   [1] Firebase Auth — https://firebase.google.com/docs/auth (Accessed: 27 Apr. 2026).
   [2] 100 JS Projects — form validation pattern (Accessed: 27 Apr. 2026).
 -->
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0a0a" />
   <title>Register | DKcleanedit</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+
   <script>
     if (localStorage.getItem("theme") === "dark") {
       document.documentElement.classList.add("dark-mode");
     }
   </script>
+
   <link rel="stylesheet" href="token.css" />
   <link rel="stylesheet" href="global.css" />
   <link rel="stylesheet" href="auth.css" />
+
+  <!-- ════════════════════════════════════════════════════════════
+       PHONE SHELL — self-contained, nothing to paste elsewhere.
+       Trimmed for auth pages: tokens, reset, top bar, buttons and
+       form fields. No sidebar or bottom tab bar on this page.
+       Loads after the stylesheets above so it overrides the older
+       desktop rules in them.
+       ════════════════════════════════════════════════════════════ -->
+  <style>
+    /* ── TOKENS ─────────────────────────────────────────────── */
+    :root {
+      --surface:    #0a0a0a;
+      --surface-2:  #141414;
+      --surface-3:  #1e1e1e;
+      --surface-4:  #252525;
+      --gold:       #c9a84c;
+      --gold-light: #e8c97a;
+      --gold-dark:  #9a7a2e;
+      --white:      #f5f5f5;
+      --muted:      #888;
+      --muted-2:    #666;
+      --hairline:   rgba(201, 168, 76, 0.12);
+      --hairline-2: rgba(201, 168, 76, 0.25);
+      --radius-sm:  10px;
+      --radius-md:  14px;
+      --side:       16px;
+      --tap:        48px;
+    }
+
+    /* ── RESET ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+
+    body.auth-page {
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--white);
+      background: var(--surface);
+      overflow-x: hidden;
+      padding-top: 60px;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    img { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+    ul { list-style: none; }
+    button { cursor: pointer; border: none; background: none; font-family: inherit; }
+
+    /* 16px minimum stops iOS zooming the page on focus */
+    input, select, textarea { font-family: inherit; font-size: 16px; }
+
+    /* ── TOP BAR ────────────────────────────────────────────── */
+    .navbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 900;
+      height: 60px; padding: 0 14px;
+      display: flex; align-items: center;
+      background: rgba(10, 10, 10, 0.96);
+      -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(201, 168, 76, 0.18);
+    }
+    /* Legacy desktop link list kept in the DOM for any JS that reads it */
+    .nav-links { display: none !important; }
+
+    .nav-mobile-bar { display: flex; align-items: center; width: 100%; }
+    .nav-mobile-left  { flex: 0 0 60px; display: flex; align-items: center; }
+    .nav-mobile-center{ flex: 1; display: flex; justify-content: center; align-items: center; }
+    .nav-mobile-center img { height: 34px; width: auto; }
+    .nav-mobile-right { flex: 0 0 60px; }
+
+    .nav-icon-btn {
+      width: 38px; height: 38px; border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold); background: transparent;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.12s;
+    }
+    .nav-icon-btn:active { background: rgba(201, 168, 76, 0.12); }
+    .nav-icon-btn svg {
+      width: 20px; height: 20px; stroke: currentColor; fill: none;
+      stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    /* ── BUTTONS ────────────────────────────────────────────── */
+    .btn.primary.full, .btn-gold {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; min-height: var(--tap); padding: 14px;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      color: #000; font-size: 15px; font-weight: 700;
+      border-radius: var(--radius-sm);
+      -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 4px 18px rgba(201, 168, 76, 0.25);
+    }
+    .btn.primary.full:active, .btn-gold:active { opacity: 0.88; }
+    .btn.primary.full:disabled, .btn-gold:disabled { opacity: 0.45; box-shadow: none; }
+
+    .btn-link {
+      color: var(--gold); font-size: 13px; font-weight: 600;
+      text-decoration: underline; padding: 6px 2px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+
+  <style>
+    /* ── AUTH PAGE ──────────────────────────────────────────── */
+    .auth-container {
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px var(--side) calc(32px + env(safe-area-inset-bottom));
+      min-height: calc(100vh - 60px);
+    }
+    .auth-card {
+      width: 100%; max-width: 400px;
+      background: var(--surface-2);
+      border: 1px solid rgba(201, 168, 76, 0.12);
+      border-radius: var(--radius-md);
+      padding: 26px 20px;
+    }
+
+    .auth-brand { margin-bottom: 18px; }
+    .auth-eyebrow {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.4px; color: var(--gold);
+    }
+
+    .auth-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 26px; font-weight: 800;
+      line-height: 1.15; margin-bottom: 6px;
+    }
+    .auth-sub { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 22px; }
+
+    /* ── FIELDS ─────────────────────────────────────────────── */
+    .auth-field { margin-bottom: 16px; }
+    .auth-label {
+      display: block; margin-bottom: 6px;
+      font-size: 12px; font-weight: 600; color: var(--muted);
+    }
+    .auth-opt { font-weight: 400; color: var(--muted-2); }
+    .auth-input {
+      width: 100%; min-height: var(--tap);
+      padding: 13px 14px; border-radius: var(--radius-sm);
+      border: 1.5px solid var(--surface-4);
+      background: var(--surface-3); color: var(--white);
+      outline: none; -webkit-appearance: none;
+    }
+    .auth-input:focus { border-color: var(--gold); }
+    .auth-input::placeholder { color: #555; }
+
+    .auth-hint {
+      display: block; margin-top: 6px;
+      font-size: 11.5px; line-height: 1.5; color: var(--muted-2);
+    }
+    .auth-hint.ok   { color: #6fcf7f; }
+    .auth-hint.bad  { color: #ff7a7a; }
+
+    /* Password field with a reveal toggle */
+    .pass-wrap { position: relative; }
+    .pass-wrap .auth-input { padding-right: 52px; }
+    .pass-toggle {
+      position: absolute; top: 24px; right: 4px;
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--muted);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .pass-toggle:active { color: var(--gold); }
+    .pass-toggle svg {
+      width: 19px; height: 19px; stroke: currentColor; fill: none;
+      stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    /* ── MESSAGES ───────────────────────────────────────────── */
+    .auth-msg {
+      font-size: 12.5px; line-height: 1.5;
+      margin: 0 0 14px; min-height: 1em; color: #ff7a7a;
+    }
+    .auth-msg:empty { margin: 0; min-height: 0; }
+    .auth-msg.ok { color: #6fcf7f; }
+
+    .auth-foot {
+      margin-top: 18px; text-align: center;
+      font-size: 13px; color: var(--muted);
+    }
+    .auth-foot a { color: var(--gold); font-weight: 600; }
+  </style>
 </head>
+
 <body class="auth-page">
 
+  <!-- Legacy link list kept in the DOM for any JS that reads these IDs -->
+  <ul class="nav-links" style="display:none!important" role="list">
+    <li><a href="home.html"     id="navHome">Home</a></li>
+    <li><a href="login.html"    id="navLogin">Login</a></li>
+    <li><a href="register.html" id="navRegister" aria-current="page">Register</a></li>
+  </ul>
+
   <nav class="navbar" aria-label="Primary">
-    <ul class="nav-links">
-      <li class="nav-logo">
-        <a href="home.html" aria-label="DKcleanedit home">
-          <img src="videos/logo.png" class="logo" alt="DKcleanedit logo" />
+    <div class="nav-mobile-bar">
+      <div class="nav-mobile-left">
+        <a href="home.html" class="nav-icon-btn" aria-label="Back to home">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
         </a>
-      </li>
-      <li><a href="home.html" id="navHome">Home</a></li>
-      <li><a href="login.html" id="navLogin">Login</a></li>
-      <li><a href="register.html" id="navRegister" aria-current="page">Register</a></li>
-    </ul>
+      </div>
+      <div class="nav-mobile-center">
+        <a href="home.html" aria-label="DKcleanedit home">
+          <img src="videos/logo.png" alt="DKcleanedit" />
+        </a>
+      </div>
+      <div class="nav-mobile-right" aria-hidden="true"></div>
+    </div>
   </nav>
 
   <main class="auth-container">
@@ -53,6 +276,8 @@
             class="auth-input"
             type="text"
             autocomplete="name"
+            autocapitalize="words"
+            enterkeyhint="next"
             placeholder="Your full name"
             required
           />
@@ -64,47 +289,87 @@
             id="regEmail"
             class="auth-input"
             type="email"
+            inputmode="email"
             autocomplete="email"
+            autocapitalize="off"
+            autocorrect="off"
+            spellcheck="false"
+            enterkeyhint="next"
             placeholder="you@example.com"
             required
           />
         </div>
 
         <div class="auth-field">
-          <label class="auth-label" for="regPhone">Phone number <span class="auth-opt">(optional)</span></label>
+          <label class="auth-label" for="regPhone">
+            Phone number <span class="auth-opt">(optional)</span>
+          </label>
           <input
             id="regPhone"
             class="auth-input"
             type="tel"
+            inputmode="tel"
             autocomplete="tel"
+            enterkeyhint="next"
             placeholder="+44 7700 000000"
           />
         </div>
 
         <div class="auth-field">
           <label class="auth-label" for="regPass">Password</label>
-          <input
-            id="regPass"
-            class="auth-input"
-            type="password"
-            autocomplete="new-password"
-            placeholder="Minimum 8 characters"
-            minlength="8"
-            required
-          />
-          <span class="auth-hint">Must be at least 8 characters.</span>
+          <div class="pass-wrap">
+            <input
+              id="regPass"
+              class="auth-input"
+              type="password"
+              autocomplete="new-password"
+              enterkeyhint="next"
+              placeholder="Minimum 8 characters"
+              minlength="8"
+              required
+            />
+            <button type="button" class="pass-toggle" data-toggle-for="regPass"
+                    aria-label="Show password" aria-pressed="false">
+              <svg class="eye-open" viewBox="0 0 24 24">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg class="eye-closed" viewBox="0 0 24 24" hidden>
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </button>
+          </div>
+          <span class="auth-hint" id="passHint">Must be at least 8 characters.</span>
         </div>
 
         <div class="auth-field">
           <label class="auth-label" for="regPassConfirm">Confirm password</label>
-          <input
-            id="regPassConfirm"
-            class="auth-input"
-            type="password"
-            autocomplete="new-password"
-            placeholder="Repeat your password"
-            required
-          />
+          <div class="pass-wrap">
+            <input
+              id="regPassConfirm"
+              class="auth-input"
+              type="password"
+              autocomplete="new-password"
+              enterkeyhint="go"
+              placeholder="Repeat your password"
+              required
+            />
+            <button type="button" class="pass-toggle" data-toggle-for="regPassConfirm"
+                    aria-label="Show password" aria-pressed="false">
+              <svg class="eye-open" viewBox="0 0 24 24">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg class="eye-closed" viewBox="0 0 24 24" hidden>
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </button>
+          </div>
+          <span class="auth-hint" id="matchHint"></span>
         </div>
 
         <p id="registerMsg" class="auth-msg" role="alert" aria-live="assertive"></p>
@@ -123,5 +388,75 @@
   </main>
 
   <script type="module" src="./register.js"></script>
+
+  <!-- Password reveal toggles -->
+  <script>
+    (function () {
+      var toggles = document.querySelectorAll('.pass-toggle[data-toggle-for]');
+      Array.prototype.forEach.call(toggles, function (btn) {
+        var input = document.getElementById(btn.getAttribute('data-toggle-for'));
+        if (!input) return;
+        var open   = btn.querySelector('.eye-open');
+        var closed = btn.querySelector('.eye-closed');
+
+        btn.addEventListener('click', function () {
+          var show = input.type === 'password';
+          input.type = show ? 'text' : 'password';
+          btn.setAttribute('aria-pressed', show ? 'true' : 'false');
+          btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+          if (open)   open.hidden   = show;
+          if (closed) closed.hidden = !show;
+          input.focus();
+        });
+      });
+    })();
+  </script>
+
+  <!-- ── Live password feedback ──────────────────────────────────────────
+       Writes only to #passHint and #matchHint, never to #registerMsg,
+       so it cannot fight register.js's own validation on submit.
+  -->
+  <script>
+    (function () {
+      var pass    = document.getElementById('regPass');
+      var confirm = document.getElementById('regPassConfirm');
+      var passHint  = document.getElementById('passHint');
+      var matchHint = document.getElementById('matchHint');
+      if (!pass || !confirm) return;
+
+      function checkLength() {
+        if (!passHint) return;
+        if (!pass.value) {
+          passHint.textContent = 'Must be at least 8 characters.';
+          passHint.className = 'auth-hint';
+        } else if (pass.value.length < 8) {
+          passHint.textContent = (8 - pass.value.length) + ' more character'
+            + (8 - pass.value.length === 1 ? '' : 's') + ' needed.';
+          passHint.className = 'auth-hint bad';
+        } else {
+          passHint.textContent = 'Password length looks good.';
+          passHint.className = 'auth-hint ok';
+        }
+      }
+
+      function checkMatch() {
+        if (!matchHint) return;
+        if (!confirm.value) {
+          matchHint.textContent = '';
+          matchHint.className = 'auth-hint';
+        } else if (pass.value !== confirm.value) {
+          matchHint.textContent = 'Passwords do not match.';
+          matchHint.className = 'auth-hint bad';
+        } else {
+          matchHint.textContent = 'Passwords match.';
+          matchHint.className = 'auth-hint ok';
+        }
+      }
+
+      pass.addEventListener('input', function () { checkLength(); checkMatch(); });
+      confirm.addEventListener('input', checkMatch);
+    })();
+  </script>
+
 </body>
 </html>

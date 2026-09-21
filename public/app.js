@@ -3424,3 +3424,152 @@ if (document.readyState === "loading") {
 // Named exports allow other modules (e.g. future settings.js) to
 // import these functions directly without duplicating logic.
 export { initTheme, initSettings };
+/* ═══════════════════════════════════════════════════════════════
+   mobile-shell.js — DKCleanEdit
+   Shared phone shell behaviour: sidebar drawer, search overlay,
+   cart badge, and mirroring app.js's auth state onto the sidebar
+   and bottom bar.
+
+   Loaded as a plain script at the end of <body> on every page.
+   Everything is null-guarded, so a page can omit the search
+   overlay or the cart button without this throwing.
+   ═══════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* ── SIDEBAR ─────────────────────────────────────────────── */
+  var sidebar = $('sidebar');
+  var overlay = $('sidebarOverlay');
+  var toggle  = $('sidebarToggle');
+  var closeEl = $('sidebarClose');
+
+  function openSidebar() {
+    if (!sidebar) return;
+    sidebar.classList.add('open');
+    if (overlay) overlay.classList.add('open');
+    document.body.classList.add('sidebar-open');
+    if (toggle) toggle.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeSidebar() {
+    if (!sidebar) return;
+    sidebar.classList.remove('open');
+    if (overlay) overlay.classList.remove('open');
+    document.body.classList.remove('sidebar-open');
+    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+  }
+
+  if (toggle)  toggle.addEventListener('click', openSidebar);
+  if (closeEl) closeEl.addEventListener('click', closeSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+
+  /* ── SEARCH OVERLAY ──────────────────────────────────────── */
+  var searchToggle   = $('searchToggle');
+  var searchOverlay  = $('searchOverlay');
+  var searchCancel   = $('searchCancel');
+  var searchBackdrop = $('searchBackdrop');
+  var searchInput    = $('searchInput');
+
+  function openSearch() {
+    if (!searchOverlay) return;
+    searchOverlay.classList.add('open');
+    if (searchToggle) searchToggle.setAttribute('aria-expanded', 'true');
+    if (searchInput) setTimeout(function () { searchInput.focus(); }, 60);
+  }
+
+  function closeSearch() {
+    if (!searchOverlay) return;
+    searchOverlay.classList.remove('open');
+    if (searchToggle) searchToggle.setAttribute('aria-expanded', 'false');
+    if (searchInput) searchInput.value = '';
+  }
+
+  if (searchToggle)   searchToggle.addEventListener('click', openSearch);
+  if (searchCancel)   searchCancel.addEventListener('click', closeSearch);
+  if (searchBackdrop) searchBackdrop.addEventListener('click', closeSearch);
+
+  /* Escape closes whatever is open */
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { closeSidebar(); closeSearch(); }
+  });
+
+  /* Tapping any sidebar link closes the drawer before navigating */
+  var links = document.querySelectorAll('.sidebar-link');
+  for (var i = 0; i < links.length; i++) {
+    links[i].addEventListener('click', closeSidebar);
+  }
+
+  /* ── CART BADGE ──────────────────────────────────────────── */
+  window.updateCartCount = function (n) {
+    var b = $('cartCount');
+    if (!b) return;
+    b.hidden = !(n > 0);
+    if (n > 0) b.textContent = n > 9 ? '9+' : String(n);
+  };
+
+  /* ── AUTH MIRROR ─────────────────────────────────────────────
+     app.js owns auth and drives the legacy #nav* links in the
+     hidden .nav-links list. We copy that state onto the sidebar
+     and bottom bar so all three stay in step without app.js
+     needing to know this shell exists.
+     ────────────────────────────────────────────────────────── */
+  function mirrorAuth() {
+    var navLogout = $('navLogout');
+    var navAdmin  = $('navAdmin');
+    var navPoints = $('navPointsBadge');
+
+    /* Signed in when app.js has revealed the logout link */
+    var signedIn = !!(navLogout && !navLogout.hidden);
+
+    var sbLogin  = $('sidebarLogin');
+    var sbReg    = $('sidebarRegister');
+    var sbLogout = $('sidebarLogout');
+    var sbAdmin  = $('sidebarAdmin');
+    var tabLogin = $('bottomNavLogin');
+    var navPts   = $('navPointsMirror');
+
+    if (sbLogin)  sbLogin.hidden  = signedIn;
+    if (sbReg)    sbReg.hidden    = signedIn;
+    if (sbLogout) sbLogout.hidden = !signedIn;
+    if (tabLogin) tabLogin.hidden = signedIn;
+
+    /* Admin tab follows whatever app.js decided for the legacy link */
+    if (sbAdmin) sbAdmin.hidden = !(navAdmin && !navAdmin.hidden);
+
+    /* Points badge in the top bar */
+    if (navPts) {
+      if (navPoints && !navPoints.hidden) {
+        navPts.hidden = false;
+        navPts.textContent = navPoints.textContent.trim();
+      } else {
+        navPts.hidden = true;
+      }
+    }
+  }
+
+  /* Sidebar logout delegates to the link app.js already wired */
+  var sidebarLogout = $('sidebarLogout');
+  if (sidebarLogout) {
+    sidebarLogout.addEventListener('click', function (e) {
+      e.preventDefault();
+      var navLogout = $('navLogout');
+      if (navLogout) navLogout.click();
+    });
+  }
+
+  /* app.js resolves auth asynchronously, so watch for the change
+     rather than reading once on load. */
+  var hookTargets = ['navLogout', 'navAdmin', 'navPointsBadge'];
+  if (window.MutationObserver) {
+    var mo = new MutationObserver(mirrorAuth);
+    for (var j = 0; j < hookTargets.length; j++) {
+      var el = $(hookTargets[j]);
+      if (el) mo.observe(el, { attributes: true, childList: true, characterData: true, subtree: true });
+    }
+  }
+  mirrorAuth();
+  setTimeout(mirrorAuth, 600);
+  setTimeout(mirrorAuth, 2000);
+})();
