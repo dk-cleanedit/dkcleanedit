@@ -1,0 +1,19 @@
+# Netlify redirects — DKcleanedit
+# This file has NO extension. It must sit in the same folder as your
+# HTML files (the folder Netlify publishes).
+#
+# Your entry page is home.html, but Netlify serves index.html at the
+# root. This serves home.html at / while keeping the URL clean, so
+# dkcleanedit.com shows the home page instead of a 404.
+
+/            /home.html         200
+
+# Let people reach pages without typing .html
+/booking     /booking.html      200
+/track       /track.html        200
+/account     /customer.html     200
+/login       /login.html        200
+/register    /register.html     200
+
+# Anything else that doesn't exist goes to the home page
+/*           /home.html         404
