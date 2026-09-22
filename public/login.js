@@ -11,6 +11,7 @@ import { auth } from "./firebase.js";
 import {
   signInWithEmailAndPassword,
   onAuthStateChanged,
+  sendPasswordResetEmail,
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 import { mark2FAPassed, has2FA } from "./auth-guard.js";
 
@@ -27,6 +28,13 @@ const btnLogin    = document.getElementById("btnLogin");
 const btnVerify   = document.getElementById("btnVerify2FA");
 const resendBtn   = document.getElementById("resendCode");
 const otpInputs   = [...document.querySelectorAll(".twofa-input")];
+
+const forgotStep    = document.getElementById("forgotStep");
+const forgotPassLink= document.getElementById("forgotPassLink");
+const backToLogin   = document.getElementById("backToLogin");
+const forgotEmailEl = document.getElementById("forgotEmail");
+const forgotMsg     = document.getElementById("forgotMsg");
+const btnSendReset  = document.getElementById("btnSendReset");
 
 let pendingUser   = null;
 let expectedCode  = "";
@@ -144,5 +152,55 @@ resendBtn?.addEventListener("click", async () => {
     setMsg(twofaMsg, "New code sent.", false);
   } catch {
     setMsg(twofaMsg, "Could not resend — please try again.");
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+//  Forgot password — Ref [1] Firebase Auth sendPasswordResetEmail
+// ─────────────────────────────────────────────────────────────
+
+forgotPassLink?.addEventListener("click", () => {
+  setMsg(loginMsg, "");
+  loginStep.hidden  = true;
+  loginStep.style.display = "none";
+  forgotStep.hidden = false;
+  setMsg(forgotMsg, "");
+  if (forgotEmailEl && logEmailValue()) forgotEmailEl.value = logEmailValue();
+  forgotEmailEl?.focus();
+});
+
+backToLogin?.addEventListener("click", () => {
+  forgotStep.hidden = true;
+  loginStep.hidden  = false;
+  loginStep.style.display = "";
+  setMsg(loginMsg, "");
+});
+
+function logEmailValue() {
+  return document.getElementById("logEmail")?.value.trim() ?? "";
+}
+
+btnSendReset?.addEventListener("click", async () => {
+  const email = forgotEmailEl?.value.trim();
+  if (!email) { setMsg(forgotMsg, "Please enter your email address."); return; }
+
+  btnSendReset.disabled    = true;
+  btnSendReset.textContent = "Sending…";
+  setMsg(forgotMsg, "");
+
+  try {
+    await sendPasswordResetEmail(auth, email);
+    setMsg(forgotMsg, "Reset link sent — check your inbox.", false);
+  } catch (err) {
+    const msgs = {
+      "auth/invalid-email":         "Enter a valid email address.",
+      "auth/user-not-found":        "No account found with that email.",
+      "auth/too-many-requests":     "Too many attempts — try again later.",
+      "auth/network-request-failed":"Network error — check your connection.",
+    };
+    setMsg(forgotMsg, msgs[err?.code] ?? "Could not send reset link. Please try again.");
+  } finally {
+    btnSendReset.disabled    = false;
+    btnSendReset.textContent = "Send reset link";
   }
 });

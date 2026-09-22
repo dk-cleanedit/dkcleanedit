@@ -29,9 +29,9 @@
   --surface-hover: #233550;
 
   /* accent */
-  --accent:        #4da3ff;
-  --accent-strong: #1a7eff;
-  --accent-glow:   rgba(77, 163, 255, 0.30);
+  --accent:        #c9a84c;
+  --accent-strong: #9a7a2e;
+  --accent-glow:   rgba(201, 168, 76, 0.30);
 
   /* text */
   --text:   #e6f2ff;
@@ -46,16 +46,16 @@
   --border:      var(--line);
 
   /* primary colour scale */
-  --primary:        #4a90e8;
-  --primary-700:    #2464c8;
-  --primary-600:    #3474d8;
-  --primary-500:    #5a9eee;
-  --primary-400:    #7ab4f4;
-  --primary-300:    #9ac8f8;
-  --primary-100:    rgba(74, 144, 232, 0.18);
-  --primary-050:    rgba(74, 144, 232, 0.09);
+  --primary:        #c9a84c;
+  --primary-700:    #9a7a2e;
+  --primary-600:    #b8943f;
+  --primary-500:    #d4b662;
+  --primary-400:    #e8c97a;
+  --primary-300:    #f0dba0;
+  --primary-100:    rgba(201, 168, 76, 0.18);
+  --primary-050:    rgba(201, 168, 76, 0.09);
   --primary-bg:     var(--primary-050);
-  --primary-border: rgba(74, 144, 232, 0.30);
+  --primary-border: rgba(201, 168, 76, 0.30);
   --primary-d:      var(--primary-700);
 
   /* gold / loyalty */
@@ -134,16 +134,16 @@
   /* booking page */
   --bk-navy:         #0a1120;
   --bk-navy-mid:     #e8f0fe;
-  --bk-blue:         #005792;
-  --bk-blue-light:   rgba(74,  144, 232, 0.10);
-  --bk-blue-border:  rgba(74,  144, 232, 0.25);
+  --bk-blue:         #9a7a2e;
+  --bk-blue-light:   rgba(201, 168, 76, 0.10);
+  --bk-blue-border:  rgba(201, 168, 76, 0.25);
   --bk-gold:         #f0b843;
   --bk-gold-bg:      rgba(240, 184, 67,  0.10);
   --bk-gold-border:  rgba(240, 184, 67,  0.25);
   --bk-green:        #34c47a;
   --bk-green-bg:     rgba(52,  196, 122, 0.10);
   --bk-green-border: rgba(52,  196, 122, 0.25);
-  --bk-shadow-blue:  0 4px 16px rgba(74, 144, 232, 0.22);
+  --bk-shadow-blue:  0 4px 16px rgba(201, 168, 76, 0.22);
 
   /* admin panel */
   --adm-sidebar-bg:      #0c1422;
@@ -151,15 +151,15 @@
   --adm-sidebar-border:  rgba(255, 255, 255, 0.09);
   --adm-sidebar-text:    #e8f0fe;
   --adm-sidebar-muted:   rgba(168, 192, 222, 0.50);
-  --adm-sidebar-hover:   rgba(74,  144, 232, 0.10);
-  --adm-sidebar-active:  rgba(74,  144, 232, 0.18);
-  --adm-sidebar-accent:  #7ab4f4;
-  --adm-blue:            #4a90e8;
+  --adm-sidebar-hover:   rgba(201, 168, 76, 0.10);
+  --adm-sidebar-active:  rgba(201, 168, 76, 0.18);
+  --adm-sidebar-accent:  #e8c97a;
+  --adm-blue:            #c9a84c;
   --adm-open:            #34c47a;
   --adm-open-bg:         rgba(52,  196, 122, 0.12);
   --adm-closed:          #e05555;
   --adm-closed-bg:       rgba(224, 85,  85,  0.10);
-  --adm-today-dot:       #7ab4f4;
+  --adm-today-dot:       #e8c97a;
 
   /* schedule */
   --sched-open:        #34c47a;
@@ -189,26 +189,20 @@
 [data-theme="light"] {
 
   /* page background — clean off-white, not harsh pure white */
-  --bg:   #f8fafc;
-  --bg-2: #f1f5f9;
+  --bg:   #eef3fa;
+  --bg-2: #e3ebf6;
 
   /* surface ramp — white → light grey steps */
-  --surface:       #ffffff;
-  --surface-2:     #f8fafc;
-  --surface-3:     #f1f5f9;
-  --surface-hover: #e8eef5;
+  --surface:       #eef3fa;
+  --surface-2:     #ffffff;
+  --surface-3:     #eef3fa;
+  --surface-hover: #d7e1ef;
 
-  /* text — navy scale for light backgrounds
-     contrast vs #ffffff:
-       --text   #0f172a  ≈ 19:1  aaa
-       --text-2 #334155  ≈ 10:1  aaa
-       --text-3 #64748b  ≈  4.6:1 aa
-       --text-4 #94a3b8  ≈  2.9:1 placeholders only (intentional)
-  */
-  --text:   #0f172a;
-  --text-2: #334155;
-  --text-3: #64748b;
-  --text-4: #94a3b8;
+  /* text — all black per explicit request (no grey/white text) */
+  --text:   #000000;
+  --text-2: #000000;
+  --text-3: #000000;
+  --text-4: #000000;
 
   /* borders — dark at low opacity, adapts to any light surface */
   --line:        rgba(15, 23, 42, 0.07);
@@ -217,16 +211,16 @@
   --border:      var(--line);
 
   /* primary — slightly deeper blue for sufficient contrast on white */
-  --primary:        #2563eb;
-  --primary-700:    #1d4ed8;
-  --primary-600:    #2563eb;
-  --primary-500:    #3b82f6;
-  --primary-400:    #2563eb;
-  --primary-300:    #60a5fa;
-  --primary-100:    rgba(37, 99, 235, 0.10);
-  --primary-050:    rgba(37, 99, 235, 0.06);
+  --primary:        #9a7a2e;
+  --primary-700:    #7a5f22;
+  --primary-600:    #9a7a2e;
+  --primary-500:    #b8943f;
+  --primary-400:    #9a7a2e;
+  --primary-300:    #d4b662;
+  --primary-100:    rgba(154, 122, 46, 0.10);
+  --primary-050:    rgba(154, 122, 46, 0.06);
   --primary-bg:     var(--primary-050);
-  --primary-border: rgba(37, 99, 235, 0.22);
+  --primary-border: rgba(154, 122, 46, 0.22);
   --primary-d:      var(--primary-700);
 
   /* gold — same hue, darker for light-bg contrast */

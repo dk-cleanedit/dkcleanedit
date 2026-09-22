@@ -656,6 +656,74 @@ async function sendPickupSummaryEmail({
   });
 }
 
+async function sendHomeCollectionEmail({
+  customerEmail, customerName, orderId, pickupAddress, bookingDate, bookingTime, service, pairCount,
+}) {
+  if (!window.emailjs) return;
+  if (!customerEmail) return;
+  return window.emailjs.send(EMAILJS_SERVICE, "template_home_collection", {
+    to_email:       customerEmail,
+    customer_name:  customerName  || "Customer",
+    order_id:       orderId       || "",
+    pickup_address: pickupAddress || "",
+    booking_date:   bookingDate   || "",
+    booking_time:   bookingTime   || "",
+    service:        service       || "",
+    pair_count:     pairCount     || 1,
+  }).catch((err) => console.warn("Home collection email failed:", err));
+}
+
+async function sendRescheduleEmail({
+  customerEmail, customerName, orderId, bookingDate, bookingTime, service, location,
+}) {
+  if (!window.emailjs) return;
+  if (!customerEmail) return;
+  return window.emailjs.send(EMAILJS_SERVICE, "template_reschedule_confirmed", {
+    to_email:      customerEmail,
+    customer_name: customerName || "Customer",
+    order_id:      orderId      || "",
+    booking_date:  bookingDate  || "",
+    booking_time:  bookingTime  || "",
+    service:       service      || "",
+    location:      location     || "",
+  }).catch((err) => console.warn("Reschedule email failed:", err));
+}
+
+async function sendCancellationEmail({
+  customerEmail, customerName, orderId, bookingDate, bookingTime, location,
+}) {
+  if (!window.emailjs) return;
+  if (!customerEmail) return;
+  return window.emailjs.send(EMAILJS_SERVICE, "template_booking_cancelled", {
+    to_email:      customerEmail,
+    customer_name: customerName || "Customer",
+    order_id:      orderId      || "",
+    booking_date:  bookingDate  || "",
+    booking_time:  bookingTime  || "",
+    location:      location     || "",
+  }).catch((err) => console.warn("Cancellation email failed:", err));
+}
+
+async function sendWelcomeEmail({ customerEmail, customerName }) {
+  if (!window.emailjs) return;
+  if (!customerEmail) return;
+  return window.emailjs.send(EMAILJS_SERVICE, "template_welcome", {
+    to_email:      customerEmail,
+    customer_name: customerName || "there",
+  }).catch((err) => console.warn("Welcome email failed:", err));
+}
+
+async function sendTierUpgradeEmail({ recipientEmail, recipientName, newTier, totalPoints }) {
+  if (!window.emailjs) return;
+  if (!recipientEmail) return;
+  return window.emailjs.send(EMAILJS_SERVICE, "template_tier_upgrade", {
+    to_email:       recipientEmail,
+    customer_name:  recipientName || "Customer",
+    new_tier:       newTier       || "",
+    total_points:   totalPoints ?? 0,
+  }).catch((err) => console.warn("Tier upgrade email failed:", err));
+}
+
 
 // ─────────────────────────────────────────────────────────────
 //  SECTION 6 — AVAILABILITY
@@ -1022,6 +1090,23 @@ async function saveOrder(orderId) {
   const newGranted   = newStatus === "Completed" ? newPoints : 0;
   const pointsDelta  = newGranted - prevGranted;
 
+  // read the customer's current points before the batch so a tier-crossing
+  // upgrade email can fire right after (increment() is write-only — it
+  // doesn't hand back the resulting total, so we snapshot "before" here).
+  let pointsBefore = null;
+  let userEmailForTier = null, userNameForTier = null;
+  if (prev.uid && pointsDelta > 0) {
+    try {
+      const userSnap = await withRetry(() => getDoc(doc(db, "users", prev.uid)));
+      if (userSnap.exists()) {
+        const u = userSnap.data();
+        pointsBefore     = Number(u.points || 0);
+        userEmailForTier = u.email || prev.customerEmail;
+        userNameForTier  = u.name  || prev.customerName;
+      }
+    } catch (err) { console.warn("Tier check: couldn't read user points", err); }
+  }
+
   const batch = writeBatch(db);
   if (prev.uid && pointsDelta !== 0) {
     batch.set(doc(db, "users", prev.uid), { points: increment(pointsDelta) }, { merge: true });
@@ -1037,6 +1122,20 @@ async function saveOrder(orderId) {
     updatedAt:           serverTimestamp(),
   });
   await withRetry(() => batch.commit());
+
+  if (pointsBefore !== null) {
+    const pointsAfter = pointsBefore + pointsDelta;
+    const tierBefore   = _settingsTierFor(pointsBefore);
+    const tierAfter    = _settingsTierFor(pointsAfter);
+    if (tierAfter !== tierBefore) {
+      sendTierUpgradeEmail({
+        recipientEmail: userEmailForTier,
+        recipientName:  userNameForTier,
+        newTier:        tierAfter,
+        totalPoints:    pointsAfter,
+      });
+    }
+  }
 
   if (newStatus === "Completed" && prev.status !== "Completed") {
     if (!prev.customerEmail) {
@@ -1069,7 +1168,8 @@ async function cancelOrder(orderId) {
   const ref  = doc(db, "orders", orderId);
   const snap = await withRetry(() => getDoc(ref));
   if (!snap.exists()) { toast("Order not found", "error"); return; }
-  const { status, date, timeSlot } = snap.data();
+  const data = snap.data();
+  const { status, date, timeSlot } = data;
   if (!["Booked", "Received"].includes(status)) {
     toast("This order can no longer be cancelled."); return;
   }
@@ -1081,6 +1181,14 @@ async function cancelOrder(orderId) {
   await withRetry(() => updateDoc(ref, {
     status: "Cancelled", cancelledAt: Date.now(), updatedAt: serverTimestamp(),
   }));
+  sendCancellationEmail({
+    customerEmail: data.customerEmail,
+    customerName:  data.customerName,
+    orderId,
+    bookingDate: date,
+    bookingTime: timeSlot,
+    location:    data.location,
+  });
   toast("Booking cancelled", "success");
 }
 
@@ -1096,23 +1204,78 @@ async function rescheduleOrder(orderId) {
   if (apptMs - Date.now() < 24 * 60 * 60 * 1000) {
     toast("Reschedules must be made more than 24 hours before your appointment.", "error"); return;
   }
-  const newDate = prompt("New date (YYYY-MM-DD):", data.date || "");
-  if (!newDate) return;
-  const newTime = prompt("New time slot (HH:MM):", data.timeSlot || "");
-  if (!newTime) return;
-  if (!isValidDate(newDate.trim())) { toast("Invalid date format. Use YYYY-MM-DD.", "error"); return; }
-  if (!isValidTime(newTime.trim())) { toast("Invalid time format. Use HH:MM.", "error"); return; }
-  if (newDate.trim() < todayISO())  { toast("Cannot reschedule to a past date.", "error"); return; }
-  if (!(await withRetry(() => slotAvailable(newDate.trim(), data.location, newTime.trim())))) {
-    toast("That slot is already taken. Please try another time.", "error"); return;
-  }
-  await withRetry(() => updateDoc(ref, {
-    date:          newDate.trim(),
-    timeSlot:      newTime.trim(),
-    rescheduledAt: Date.now(),
-    updatedAt:     serverTimestamp(),
-  }));
-  toast("Booking rescheduled ✅", "success");
+  openCustomerRescheduleModal(orderId, data);
+}
+
+// Customer-facing reschedule modal — replaces the old prompt()-based flow,
+// which forced customers to type an exact "YYYY-MM-DD" / "HH:MM" string
+// with no guidance and constantly failed validation. This reuses the same
+// date input + time-slot dropdown pattern as the staff reschedule modal.
+function openCustomerRescheduleModal(orderId, data) {
+  document.getElementById("custReschedModal")?.remove();
+  const modal = document.createElement("div");
+  modal.id = "custReschedModal";
+  modal.setAttribute("role", "dialog"); modal.setAttribute("aria-modal", "true");
+  modal.setAttribute("aria-labelledby", "crModalHeading");
+  modal.style.cssText = "position:fixed;inset:0;z-index:9999;background:rgba(10,17,32,.60);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;";
+  const box = document.createElement("div");
+  box.style.cssText = "background:#ffffff;border-radius:18px;padding:28px 26px;width:min(440px,100%);box-shadow:0 20px 60px rgba(10,17,32,.35);font-family:inherit;";
+  box.innerHTML = `
+    <h2 id="crModalHeading" style="margin:0 0 6px;font-size:1.2rem;color:#0a1120;">Reschedule your booking</h2>
+    <p style="margin:0 0 20px;font-size:0.88rem;color:#5a6b85;">${esc(serviceLabel(data.service))} — currently ${esc(formatDate(data.date))} at ${esc(data.timeSlot || "")}.</p>
+    <label for="crModalDate" style="display:block;font-size:0.78rem;font-weight:700;color:#3a4a63;margin-bottom:5px;text-transform:uppercase;letter-spacing:.03em;">New date</label>
+    <input id="crModalDate" type="date" value="${esc(data.date || "")}" min="${todayISO()}" style="width:100%;min-height:46px;padding:9px 12px;border:1px solid #d8e0ea;border-radius:10px;margin-bottom:16px;font:inherit;"/>
+    <label for="crModalTime" style="display:block;font-size:0.78rem;font-weight:700;color:#3a4a63;margin-bottom:5px;text-transform:uppercase;letter-spacing:.03em;">New time slot</label>
+    <select id="crModalTime" style="width:100%;min-height:46px;padding:9px 12px;border:1px solid #d8e0ea;border-radius:10px;margin-bottom:22px;font:inherit;">
+      ${TIME_SLOTS.map((s) => `<option value="${s}" ${s === data.timeSlot ? "selected" : ""}>${s}</option>`).join("")}
+    </select>
+    <div style="display:flex;gap:10px;">
+      <button id="crModalCancel"  type="button" style="flex:1;min-height:46px;border-radius:10px;border:1px solid #d8e0ea;background:#f6f8fb;color:#3a4a63;font:inherit;font-weight:700;cursor:pointer;">Cancel</button>
+      <button id="crModalConfirm" type="button" style="flex:1;min-height:46px;border-radius:10px;border:none;background:linear-gradient(135deg,#e8c97a,#c9a84c);color:#0a1120;font:inherit;font-weight:700;cursor:pointer;">Confirm</button>
+    </div>
+    <p id="crModalMsg" style="margin:10px 0 0;font-size:0.82rem;color:#c93c3c;min-height:18px;" role="alert"></p>`;
+  modal.appendChild(box); document.body.appendChild(modal);
+  const closeModal = () => modal.remove();
+  modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+  document.getElementById("crModalCancel").addEventListener("click", closeModal);
+  document.addEventListener("keydown", function onEsc(e) {
+    if (e.key === "Escape") { closeModal(); document.removeEventListener("keydown", onEsc); }
+  });
+  document.getElementById("crModalConfirm").addEventListener("click", async () => {
+    const newDate    = document.getElementById("crModalDate").value.trim();
+    const newTime    = document.getElementById("crModalTime").value;
+    const msgEl      = document.getElementById("crModalMsg");
+    const confirmBtn = document.getElementById("crModalConfirm");
+    msgEl.textContent = "";
+    if (!isValidDate(newDate)) { msgEl.textContent = "Please choose a valid date."; return; }
+    if (newDate < todayISO())  { msgEl.textContent = "Cannot reschedule to a past date."; return; }
+    confirmBtn.disabled = true; confirmBtn.textContent = "Checking…";
+    try {
+      const available = await withRetry(() => slotAvailable(newDate, data.location, newTime));
+      if (!available) {
+        msgEl.textContent = "That slot is already taken. Please choose another.";
+        confirmBtn.disabled = false; confirmBtn.textContent = "Confirm"; return;
+      }
+      await withRetry(() => updateDoc(doc(db, "orders", orderId), {
+        date: newDate, timeSlot: newTime, rescheduledAt: Date.now(), updatedAt: serverTimestamp(),
+      }));
+      sendRescheduleEmail({
+        customerEmail: data.customerEmail,
+        customerName:  data.customerName,
+        orderId,
+        bookingDate: newDate,
+        bookingTime: newTime,
+        service:     serviceLabel(data.service),
+        location:    data.location,
+      });
+      toast(`Rescheduled to ${formatDate(newDate)} at ${newTime} ✅`, "success");
+      closeModal();
+    } catch (err) {
+      console.error(err);
+      msgEl.textContent = "Reschedule failed. Please try again.";
+      confirmBtn.disabled = false; confirmBtn.textContent = "Confirm";
+    }
+  });
 }
 
 function wireOrderActions(containerEl) {
@@ -1462,6 +1625,7 @@ function initRegister() {
           name, email, phone, points: 0, tier: "Carbon", createdAt: serverTimestamp(),
         }),
       ]);
+      sendWelcomeEmail({ customerEmail: email, customerName: name });
       // send to login so they complete 2FA before accessing the app
       location.replace("login.html?registered=1");
     } catch (err) {
@@ -1948,6 +2112,18 @@ function initBooking() {
         amountDueNow:     needsQuote ? "" : `£${amountDueNow}`,
       });
 
+      if (isPickup) {
+        sendHomeCollectionEmail({
+          customerEmail, customerName,
+          orderId:       newOrderId,
+          pickupAddress,
+          bookingDate:   date,
+          bookingTime:   timeSlot,
+          service:       serviceLabel(service),
+          pairCount:     pairs,
+        });
+      }
+
       if (_slotWatcherUnsub) { _slotWatcherUnsub(); _slotWatcherUnsub = null; }
       toast(needsQuote ? "Quote request sent ✅" : "Booking confirmed ✅", "success");
       setMsg(needsQuote
@@ -2122,7 +2298,13 @@ function initCustomer() {
           toast("Profile photo updated ✅", "success");
         } catch (err) {
           console.error("Avatar upload failed:", err);
-          toast("Upload failed — please try again.", "error");
+          let msg = "Upload failed — please try again.";
+          if (err?.code === "storage/unauthorized" || err?.code === "storage/unauthenticated") {
+            msg = "Upload blocked by storage permissions — contact support.";
+          } else if (err?.code === "storage/canceled" || err?.code === "storage/retry-limit-exceeded") {
+            msg = "Upload was interrupted — check your connection and try again.";
+          }
+          toast(msg, "error");
         }
       });
     }
@@ -2610,10 +2792,21 @@ function initAdmin() {
     if (cancelBtn) {
       if (!confirm("Cancel this no-show order?")) return;
       cancelBtn.disabled = true;
+      const cancelId = cancelBtn.dataset.cancelMissed;
       try {
-        await withRetry(() => updateDoc(doc(db, "orders", cancelBtn.dataset.cancelMissed), {
+        const cancelSnap = await withRetry(() => getDoc(doc(db, "orders", cancelId)));
+        const cancelData = cancelSnap.exists() ? cancelSnap.data() : {};
+        await withRetry(() => updateDoc(doc(db, "orders", cancelId), {
           status: "Cancelled", cancelledAt: Date.now(), updatedAt: serverTimestamp(),
         }));
+        sendCancellationEmail({
+          customerEmail: cancelData.customerEmail,
+          customerName:  cancelData.customerName,
+          orderId:       cancelId,
+          bookingDate:   cancelData.date,
+          bookingTime:   cancelData.timeSlot,
+          location:      cancelData.location,
+        });
         toast("Order cancelled ✅", "success");
       } catch (err) {
         console.error(err); toast("Cancel failed. Please retry.", "error");
@@ -2967,7 +3160,7 @@ function initSchedule() {
       </select>
       <div style="display:flex;gap:10px;">
         <button id="rModalCancel"  type="button" style="flex:1;min-height:44px;border-radius:10px;border:1px solid #c7d3e3;background:#f5f9ff;color:#44506a;font:inherit;font-weight:700;cursor:pointer;">Cancel</button>
-        <button id="rModalConfirm" type="button" style="flex:1;min-height:44px;border-radius:10px;border:none;background:linear-gradient(180deg,#1f74ea,#006ce4);color:#fff;font:inherit;font-weight:700;cursor:pointer;">Confirm reschedule</button>
+        <button id="rModalConfirm" type="button" style="flex:1;min-height:44px;border-radius:10px;border:none;background:linear-gradient(135deg,#e8c97a,#c9a84c);color:#0a1120;font:inherit;font-weight:700;cursor:pointer;">Confirm reschedule</button>
       </div>
       <p id="rModalMsg" style="margin:10px 0 0;font-size:0.82rem;color:#c93c3c;min-height:18px;" role="alert"></p>`;
     modal.appendChild(box); document.body.appendChild(modal);
@@ -2998,6 +3191,15 @@ function initSchedule() {
         await withRetry(() => updateDoc(doc(db, "orders", orderId), {
           date: newDate, timeSlot: newTime, rescheduledAt: Date.now(), updatedAt: serverTimestamp(),
         }));
+        sendRescheduleEmail({
+          customerEmail: order.customerEmail,
+          customerName:  order.customerName,
+          orderId,
+          bookingDate: newDate,
+          bookingTime: newTime,
+          service:     serviceLabel(order.service),
+          location:    order.location,
+        });
         toast(`Rescheduled to ${formatDate(newDate)} at ${newTime} ✅`, "success");
         closeModal(); renderTimeline(selectedISO); buildCal();
       } catch (err) {
@@ -3331,7 +3533,17 @@ async function _settingsSave(user) {
     toast("Profile saved ✅", "success");
   } catch (err) {
     console.error("settings save:", err);
-    _settingsStatus("profileMsg", "Save failed — try again.");
+    let msg = "Save failed — try again.";
+    if (err?.code === "storage/unauthorized" || err?.code === "storage/unauthenticated") {
+      msg = "Couldn't upload photo — storage permissions are blocking it. Contact support.";
+    } else if (err?.code === "permission-denied") {
+      msg = "Couldn't save — permission denied.";
+    } else if (err?.code === "storage/canceled" || err?.code === "storage/retry-limit-exceeded") {
+      msg = "Upload was interrupted — check your connection and try again.";
+    }
+    _settingsStatus("profileMsg", msg);
+    const fb = document.getElementById("sUploadFeedback");
+    if (fb && err?.code?.startsWith?.("storage/")) fb.textContent = "Photo upload failed — profile details were not saved.";
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = "Save changes"; }
   }

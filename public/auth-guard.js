@@ -19,7 +19,7 @@ import {
   getDocs,
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
-const ADMIN_EMAIL = "danielasouzu2@gmail.com";
+const ADMIN_EMAIL = "dkcleaneditnotts@gmail.com";
 
 // Page roles: which roles may access each page.
 // "admin" | "staff" | "customer" | "any"
