@@ -10,20 +10,53 @@
   <!--
     booking.html — phone-first booking.
 
-    Shared shell (navbar, sidebar, bottom tab bar) lives in global.css
-    and app.js. Page-specific styles are inline below.
+    Phone shell (navbar, sidebar, bottom tab bar) is inlined below,
+    so this file is self-contained. Page-specific styles follow it.
 
-    Pricing follows the DK price list exactly:
+    Pairs are a basket-style stepper (any whole number ≥ 1), not fixed
+    tiers. The DK price list only fixes three points per service —
       ONE PAIR    Standard (3–5 days) £25 · Express (2–3 days) £30 · Next Day £35
       THREE PAIRS Standard £60 · Express £70 · Next Day £85
       TEN PAIRS   Standard £130 · Express & Next Day quoted separately
+    — and priceForQuantity() in the PRICING script below straight-line
+    interpolates/extrapolates between those anchor points for any other
+    quantity (2, 4, 9, 15…), rounded to the nearest £1. Express and Next
+    Day still require a quote at 10 pairs or more. app.js keeps its own
+    copy of the same anchors/formula (PAIR_PRICE_ANCHORS) for the
+    authoritative Firestore write — keep the two in sync if you change
+    the price list.
     Add-ons are charged once per order, not per pair.
 
     Hidden fields for the booking payload:
-      #pairCount      1 | 3 | 10
-      #quoteRequired  "true" when the combination has no set price
-      #collectionMode "dropoff" | "courier"
-      #timeSlot       the chosen time, whichever control set it
+      #pairCount        any whole number ≥ 1 (visible stepper input, not hidden)
+      #quoteRequired    "true" when the combination has no set price
+      #collectionMode   "dropoff" | "courier"   (same-day courier slot, see Time slot step)
+      #timeSlot         the chosen time, whichever control set it
+      #collectionOption "dropoff" | "homepickup" — general collection method, +£10 flat fee
+                        when "homepickup"; #pickupAddress (visible field) holds the address
+      #paymentOption    "full" | "deposit" — "deposit" is a fixed £10 now, balance on collection
+      #depositAmount    fixed £10 (informational, mirrors DEPOSIT_AMOUNT in the pricing script)
+      #amountDueNow     numeric amount actually due now, blank when a quote is required
+
+    This page's own inline scripts (PRICING; OPENING HOURS + TIME SLOTS)
+    own all of the above fields and their on-page display. app.js (loaded as a
+    module, so it runs after these inline scripts) owns Firestore access
+    only: the calendar, availability/double-booking checks, and actually
+    submitting the booking. The two sides talk over two DOM events instead
+    of sharing direct function calls, so neither can race or clobber the
+    other's DOM writes:
+      "dk:price-recalculated"   fired by PRICING's recalc() after every
+                                 service/pairs/collection/payment/add-on
+                                 change — app.js listens to layer the
+                                 loyalty-tier discount on top.
+      "dk:timeslots-rendered"   fired at the end of render() whenever the
+                                 day's .time-slot buttons are rebuilt —
+                                 app.js listens to grey out/label whichever
+                                 of them are already booked or admin-closed.
+    When needsQuote is true (Express/Next Day on 10 pairs), the booking
+    still submits as a quote request per the on-page "Enquire separately"
+    note — app.js saves price:"Enquire", basePrice: null and
+    quoteRequired: true rather than blocking the button.
   -->
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -40,13 +73,427 @@
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script>(function () { emailjs.init({ publicKey: "v1GO4hYhLibhbnt_N" }); })();</script>
 
+
   <link rel="stylesheet" href="token.css" />
+  <link rel="stylesheet" href="global.css" />
   <link rel="stylesheet" href="booking.css" />
   <link rel="stylesheet" href="timeslot.css" />
-  <!-- global.css MUST load last: it holds the shared phone shell
-       (tokens, reset, navbar, sidebar, bottom tab bar, buttons),
-       which has to override the older desktop rules above. -->
-  <link rel="stylesheet" href="global.css" />
+  <!-- ════════════════════════════════════════════════════════════
+       PHONE SHELL — self-contained, nothing to paste elsewhere.
+       Tokens, reset, top navbar, sidebar drawer, bottom tab bar,
+       buttons and form fields. Loads after the stylesheets above
+       so it overrides the older desktop rules.
+       ════════════════════════════════════════════════════════════ -->
+  <style>
+    /* ═══════════════════════════════════════════════════════════════
+       PHONE SHELL — tokens, reset, top navbar, sidebar drawer, search
+       overlay, bottom tab bar, buttons, form fields, section helpers
+       and footer.
+
+       This sits after the linked stylesheets on purpose: it has to
+       override the older desktop rules in them. The page's own styles
+       come after this block, so they win where they overlap.
+       ═══════════════════════════════════════════════════════════════ */
+
+    /* ── TOKENS ──────────────────────────────────────────────────── */
+    :root {
+      --surface:    #0a0a0a;
+      --surface-2:  #141414;
+      --surface-3:  #1e1e1e;
+      --surface-4:  #252525;
+      --gold:       #c9a84c;
+      --gold-light: #e8c97a;
+      --gold-dark:  #9a7a2e;
+      --white:      #f5f5f5;
+      --muted:      #888;
+      --muted-2:    #666;
+      --hairline:   rgba(201, 168, 76, 0.12);
+      --hairline-2: rgba(201, 168, 76, 0.25);
+      --radius-sm:  10px;
+      --radius-md:  14px;
+      --side:       16px;
+      --tap:        48px;   /* minimum touch target */
+    }
+
+    /* ── RESET ───────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+    body {
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--white);
+      background: var(--surface);
+      overflow-x: hidden;
+      padding-top: 60px;
+      padding-bottom: calc(68px + env(safe-area-inset-bottom));
+      -webkit-font-smoothing: antialiased;
+    }
+    body.sidebar-open { overflow: hidden; }
+
+    img { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+    ul { list-style: none; }
+    button { cursor: pointer; border: none; background: none; font-family: inherit; }
+
+    /* Stop iOS zooming on focus — inputs must be >= 16px */
+    input, select, textarea {
+      font-family: inherit;
+      font-size: 16px;
+    }
+
+    .container, .page-shell {
+      padding-left: var(--side) !important;
+      padding-right: var(--side) !important;
+      max-width: 100% !important;
+      width: 100% !important;
+    }
+
+    .page-shell {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 14px !important;
+      padding-top: 16px !important;
+      padding-bottom: 20px !important;
+    }
+
+    /* ── TOP NAVBAR ──────────────────────────────────────────────── */
+    .navbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 900;
+      height: 60px; padding: 0 14px;
+      display: flex; align-items: center;
+      background: rgba(10, 10, 10, 0.96);
+      -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(201, 168, 76, 0.18);
+    }
+
+    /* Legacy desktop link list — kept in the DOM for app.js auth hooks */
+    .nav-links { display: none !important; }
+
+    .nav-mobile-bar   { display: flex; align-items: center; width: 100%; }
+    .nav-mobile-left  { flex: 0 0 72px; display: flex; align-items: center; gap: 4px; }
+    .nav-mobile-center{ flex: 1; display: flex; justify-content: center; align-items: center; }
+    .nav-mobile-center img { height: 34px; width: auto; }
+    .nav-mobile-right { flex: 0 0 72px; display: flex; align-items: center; justify-content: flex-end; gap: 2px; }
+
+    .nav-icon-btn {
+      width: 38px; height: 38px; border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold); background: transparent;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.12s;
+    }
+    .nav-icon-btn:active { background: rgba(201, 168, 76, 0.12); }
+    .nav-icon-btn svg {
+      width: 20px; height: 20px;
+      stroke: currentColor; fill: none;
+      stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    .nav-points {
+      font-size: 11px; font-weight: 700; color: var(--gold);
+      background: rgba(201, 168, 76, 0.12);
+      border: 1px solid var(--hairline-2);
+      border-radius: 20px; padding: 4px 9px;
+      white-space: nowrap;
+    }
+
+    /* ── SIDEBAR ─────────────────────────────────────────────────── */
+    .sidebar-overlay {
+      position: fixed; inset: 0; z-index: 950;
+      background: rgba(0, 0, 0, 0.6);
+      -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .sidebar-overlay.open { opacity: 1; pointer-events: all; }
+
+    .sidebar {
+      position: fixed; top: 0; left: -280px; bottom: 0; z-index: 960;
+      width: 272px;
+      background: var(--surface-2);
+      border-right: 1px solid var(--hairline-2);
+      display: flex; flex-direction: column;
+      transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .sidebar.open { left: 0; }
+
+    .sidebar-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 16px 16px;
+      border-bottom: 1px solid var(--hairline);
+    }
+    .sidebar-header img { height: 30px; width: auto; }
+
+    .sidebar-close {
+      width: 34px; height: 34px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold); -webkit-tap-highlight-color: transparent;
+    }
+    .sidebar-close:active { background: var(--surface-3); }
+    .sidebar-close svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+
+    .sidebar-nav { flex: 1; overflow-y: auto; padding: 12px 0; }
+
+    .sidebar-link {
+      display: flex; align-items: center; gap: 14px;
+      min-height: var(--tap);
+      padding: 13px 20px;
+      color: #ccc; font-size: 15px; font-weight: 500;
+      -webkit-tap-highlight-color: transparent;
+      transition: color 0.12s, background 0.12s;
+      border-left: 3px solid transparent;
+    }
+    .sidebar-link:active, .sidebar-link.active {
+      color: var(--gold);
+      background: rgba(201, 168, 76, 0.07);
+      border-left-color: var(--gold);
+    }
+    .sidebar-link svg {
+      width: 18px; height: 18px; stroke: currentColor; fill: none;
+      stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;
+    }
+
+    .sidebar-divider { height: 1px; background: rgba(201, 168, 76, 0.1); margin: 8px 20px; }
+    .sidebar-label {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--gold); padding: 12px 20px 6px;
+    }
+
+    .sidebar-footer { padding: 16px 20px; border-top: 1px solid var(--hairline); }
+    .sidebar-socials { display: flex; gap: 12px; }
+    .sidebar-social {
+      width: 36px; height: 36px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--surface-3); color: var(--gold);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .sidebar-social svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* ── SEARCH OVERLAY ──────────────────────────────────────────── */
+    .search-overlay {
+      position: fixed; inset: 0; z-index: 970;
+      background: rgba(0, 0, 0, 0.6);
+      display: none; flex-direction: column;
+    }
+    .search-overlay.open { display: flex; }
+    .search-sheet {
+      background: var(--surface-2); padding: 12px 14px;
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid var(--hairline-2);
+    }
+    .search-input {
+      flex: 1; height: 42px; border: 1.5px solid var(--surface-4);
+      border-radius: 10px; padding: 0 14px;
+      background: var(--surface-3); color: var(--white);
+      outline: none; -webkit-appearance: none;
+    }
+    .search-input:focus { border-color: var(--gold); }
+    .search-cancel {
+      font-size: 14px; font-weight: 500; color: var(--gold);
+      white-space: nowrap; padding: 4px;
+    }
+    .search-backdrop { flex: 1; }
+
+    /* ── BOTTOM TAB BAR ──────────────────────────────────────────── */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 900;
+      height: calc(64px + env(safe-area-inset-bottom));
+      padding-bottom: env(safe-area-inset-bottom);
+      background: rgba(10, 10, 10, 0.97);
+      -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+      border-top: 1px solid rgba(201, 168, 76, 0.18);
+      display: flex; align-items: stretch;
+    }
+    .bottom-tab {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 3px;
+      color: #555; font-size: 10px; font-weight: 500;
+      -webkit-tap-highlight-color: transparent;
+      padding-top: 6px;
+      transition: color 0.14s;
+    }
+    .bottom-tab.active { color: var(--gold); }
+    .bottom-tab svg {
+      width: 22px; height: 22px; stroke: currentColor; fill: none;
+      stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    .bottom-tab-book {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 4px;
+      color: #000; font-size: 10px; font-weight: 700;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .book-pill {
+      width: 46px; height: 46px;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      margin-top: -14px;
+      box-shadow: 0 4px 20px rgba(201, 168, 76, 0.4);
+    }
+    .book-pill svg { width: 20px; height: 20px; stroke: #000; fill: none; stroke-width: 2.2; stroke-linecap: round; }
+
+    /* ── SECTION HELPERS ─────────────────────────────────────────── */
+    .sec { padding: 0 var(--side); }
+    .sec-label {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.2px; color: var(--gold); margin-bottom: 6px;
+    }
+    .sec-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 20px; font-weight: 800;
+      color: var(--white); line-height: 1.2; margin-bottom: 8px;
+    }
+    .sec-body { font-size: 13px; line-height: 1.65; color: #999; }
+
+    .gold-rule {
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--gold), transparent);
+      border: none; margin: 0;
+    }
+
+    /* Padded card-style section */
+    .dk-section {
+      background: var(--surface-2);
+      border: 1px solid rgba(201, 168, 76, 0.1);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+    .dk-section-header { margin-bottom: 14px; }
+    .dk-section-header .sec-label { margin-bottom: 4px; }
+    .dk-section-header .sec-title { margin-bottom: 0; }
+
+    /* ── BUTTONS ─────────────────────────────────────────────────── */
+    .btn-gold {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; min-height: var(--tap); padding: 14px;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      color: #000; font-size: 14px; font-weight: 700;
+      border-radius: var(--radius-sm);
+      -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 4px 18px rgba(201, 168, 76, 0.25);
+    }
+    .btn-gold:active { opacity: 0.88; }
+    .btn-gold:disabled { opacity: 0.45; box-shadow: none; }
+
+    .btn-outline {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; min-height: var(--tap); padding: 13px;
+      background: transparent; color: var(--white);
+      font-size: 14px; font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-outline:active { background: var(--surface-3); }
+
+    .btn-ghost {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 40px; padding: 9px 16px;
+      background: rgba(201, 168, 76, 0.1);
+      border: 1px solid var(--hairline-2);
+      color: var(--gold); font-size: 13px; font-weight: 600;
+      border-radius: var(--radius-sm);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-ghost:active { background: rgba(201, 168, 76, 0.2); }
+
+    .cta-stack { display: flex; flex-direction: column; gap: 9px; }
+
+    /* ── FORM FIELDS ─────────────────────────────────────────────── */
+    .m-field { margin-bottom: 12px; }
+    .m-field label {
+      display: block; margin-bottom: 6px;
+      font-size: 12px; font-weight: 600; color: var(--muted);
+    }
+    .m-field input,
+    .m-field select,
+    .m-field textarea {
+      width: 100%; min-height: var(--tap);
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--surface-4);
+      background: var(--surface-3);
+      color: var(--white);
+      outline: none; -webkit-appearance: none;
+    }
+    .m-field input:focus,
+    .m-field select:focus,
+    .m-field textarea:focus { border-color: var(--gold); }
+
+    /* ── STATUS MESSAGES ─────────────────────────────────────────── */
+    .helper-msg { font-size: 12px; color: var(--muted); margin-top: 8px; min-height: 1em; }
+    .helper-msg.small { font-size: 11px; }
+    .helper-msg.error { color: #ff7a7a; }
+    .helper-msg.ok { color: #6fcf7f; }
+
+    /* ── OVERLAY / DIALOG ────────────────────────────────────────── */
+    .overlay {
+      position: fixed; inset: 0; z-index: 980;
+      background: rgba(0, 0, 0, 0.72);
+      -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center;
+      padding: var(--side);
+    }
+    .overlay[hidden] { display: none; }
+    .overlay .popup {
+      width: 100%; max-width: 360px;
+      background: var(--surface-2);
+      border: 1px solid var(--hairline-2);
+      border-radius: var(--radius-md);
+      padding: 22px 20px;
+      text-align: center;
+    }
+    .overlay .popup h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 20px; font-weight: 800; margin-bottom: 8px;
+    }
+    .overlay .popup p { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
+    .popup-actions { display: flex; flex-direction: column; gap: 9px; }
+
+    /* ── FOOTER ──────────────────────────────────────────────────── */
+    .m-footer { padding: 20px var(--side) 16px; border-top: 1px solid var(--hairline); }
+    .footer-logo { height: 26px; width: auto; margin-bottom: 10px; }
+    .footer-tagline { font-size: 12px; color: var(--muted-2); margin-bottom: 18px; }
+    .footer-cols { display: flex; gap: 32px; margin-bottom: 20px; }
+    .footer-col h4 {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--gold); margin-bottom: 10px;
+    }
+    .footer-col ul { display: flex; flex-direction: column; gap: 8px; }
+    .footer-col a { font-size: 13px; color: var(--muted); }
+    .footer-socials { display: flex; gap: 10px; margin-bottom: 18px; }
+    .footer-social {
+      width: 36px; height: 36px; border-radius: 9px;
+      background: var(--surface-2); border: 1px solid var(--hairline-2);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold);
+    }
+    .footer-social svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .footer-copy { font-size: 11px; color: #555; }
+
+    /* ── ACCESSIBILITY ───────────────────────────────────────────── */
+    :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    /* ── TABLET AND UP ───────────────────────────────────────────── */
+    @media (min-width: 720px) {
+      .page-shell { max-width: 620px !important; margin: 0 auto; }
+      .m-footer   { max-width: 620px; margin: 0 auto; }
+    }
+  </style>
 
   <style>
     /* Room for the bottom tab bar AND the sticky book bar */
@@ -113,25 +560,36 @@
     .badge.info    { background: rgba(201,168,76,0.14); color: var(--gold); }
     .badge.warning { background: rgba(255,165,0,0.14);  color: #ffa500; }
 
-    /* ── PAIR QUANTITY ──────────────────────────────────────── */
+    /* ── PAIR QUANTITY (basket-style stepper) ──────────────────── */
     .qty-label { display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600; color: var(--muted); }
-    .qty-opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
-    .qty-opt {
-      position: relative;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 2px;
-      min-height: 62px; padding: 10px 6px;
+    .qty-stepper {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; margin-bottom: 6px;
+      padding: 10px 14px;
       border-radius: 12px; border: 1.5px solid var(--surface-4);
       background: rgba(0,0,0,0.25);
-      text-align: center; cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      transition: border-color 0.15s, background 0.15s;
     }
-    .qty-opt.active { border-color: var(--gold); background: rgba(201,168,76,0.10); }
-    .qty-opt input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
-    .qty-opt strong { font-size: 14px; color: var(--white); }
-    .qty-opt .qty-sub { font-size: 11px; color: var(--muted-2); }
-    .qty-opt.active strong { color: var(--gold); }
+    .qty-stepper-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px; flex: 0 0 auto;
+      border-radius: 10px; border: 1.5px solid var(--surface-4);
+      background: rgba(255,255,255,0.03); color: var(--white);
+      font-size: 18px; font-weight: 700; line-height: 1;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+      transition: border-color 0.15s, background 0.15s, opacity 0.15s;
+    }
+    .qty-stepper-btn:hover:not(:disabled) { border-color: var(--gold); }
+    .qty-stepper-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .qty-stepper-mid { flex: 1 1 auto; text-align: center; }
+    .qty-stepper-count {
+      font-size: 20px; font-weight: 700; color: var(--white);
+      width: 100%; border: none; background: transparent; text-align: center;
+      -moz-appearance: textfield;
+    }
+    .qty-stepper-count::-webkit-outer-spin-button,
+    .qty-stepper-count::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .qty-stepper-unit { display: block; font-size: 11px; color: var(--muted-2); margin-top: 2px; }
+    .qty-rate-hint { font-size: 11px; color: var(--muted-2); margin: 0 0 16px; }
 
     /* ── SERVICE CARDS ──────────────────────────────────────── */
     .svc-opts { display: flex; flex-direction: column; gap: 10px; }
@@ -524,26 +982,18 @@
             <span class="section-label" id="sectionServiceLabel">Select service</span>
           </div>
 
-          <!-- How many pairs -->
+          <!-- How many pairs — basket-style stepper, any whole number ≥ 1 -->
           <span class="qty-label" id="qtyLabel">How many pairs?</span>
-          <div class="qty-opts" role="radiogroup" aria-labelledby="qtyLabel">
-            <label class="qty-opt active">
-              <input type="radio" name="pairCount" value="1" checked aria-label="One pair" />
-              <strong>1 pair</strong>
-              <span class="qty-sub">from £25</span>
-            </label>
-            <label class="qty-opt">
-              <input type="radio" name="pairCount" value="3" aria-label="Three pairs" />
-              <strong>3 pairs</strong>
-              <span class="qty-sub">from £60</span>
-            </label>
-            <label class="qty-opt">
-              <input type="radio" name="pairCount" value="10" aria-label="Ten pairs" />
-              <strong>10 pairs</strong>
-              <span class="qty-sub">from £130</span>
-            </label>
+          <div class="qty-stepper" role="group" aria-labelledby="qtyLabel">
+            <button type="button" class="qty-stepper-btn" id="qtyMinus" aria-label="One fewer pair">−</button>
+            <div class="qty-stepper-mid">
+              <input type="number" id="pairCount" class="qty-stepper-count" value="1" min="1" max="30"
+                     step="1" inputmode="numeric" aria-label="Number of pairs" />
+              <span class="qty-stepper-unit" id="qtyUnitLabel">pair</span>
+            </div>
+            <button type="button" class="qty-stepper-btn" id="qtyPlus" aria-label="One more pair">+</button>
           </div>
-          <input type="hidden" id="pairCount" value="1" />
+          <p class="sub qty-rate-hint">Add shoes one pair at a time — the price below updates as you go.</p>
           <input type="hidden" id="quoteRequired" value="false" />
 
           <!-- Hidden select kept in sync for JS logic -->
@@ -691,6 +1141,51 @@
             </div>
           </div>
 
+          <!-- Collection method -->
+          <div class="field">
+            <label id="collectionLabel">Collection method</label>
+            <div class="svc-opts" role="radiogroup" aria-labelledby="collectionLabel">
+
+              <label class="svc-opt active" data-collection-card="dropoff">
+                <input type="radio" name="collectionOption" value="dropoff" checked
+                       aria-label="Drop off at our branch, free" />
+                <div class="svc-opt-top">
+                  <strong>Drop off at our branch</strong>
+                  <span class="badge info">Free</span>
+                </div>
+                <p class="sub svc-opt-sub">Bring your shoes to us at Canada Water, London.</p>
+              </label>
+
+              <label class="svc-opt" data-collection-card="homepickup">
+                <input type="radio" name="collectionOption" value="homepickup"
+                       aria-label="Home pickup, plus 10 pounds" />
+                <div class="svc-opt-top">
+                  <strong>Home pickup</strong>
+                  <span class="badge warning">+£10</span>
+                </div>
+                <p class="sub svc-opt-sub">Can't get to us? Our driver collects your shoes from your address instead.</p>
+              </label>
+
+            </div>
+          </div>
+
+          <!-- Home pickup address — shown only when Home pickup is selected -->
+          <div class="field" id="pickupAddressField" hidden>
+            <label for="pickupAddress">Pickup address</label>
+            <textarea
+              id="pickupAddress"
+              rows="3"
+              placeholder="Full address for collection, including postcode"
+              aria-describedby="pickupAddressHint"
+            ></textarea>
+            <p id="pickupAddressHint" class="sub" style="font-size:11px;color:var(--muted-2);margin:6px 0 0;">
+              Our driver will collect your shoes from this address at your chosen time.
+            </p>
+          </div>
+
+          <!-- Hidden field kept in sync for JS / booking payload -->
+          <input id="collectionOption" type="hidden" value="dropoff" />
+
           <!-- Date Picker -->
           <div class="field">
             <label id="datePickerLabel">Pick a date</label>
@@ -779,8 +1274,8 @@
             <input id="collectionMode" type="hidden" value="dropoff" />
           </div>
 
-          <!-- Branch Map -->
-          <div class="field">
+          <!-- Branch Map — shown only when Drop off is selected -->
+          <div class="field" id="dropoffLocationField">
             <label id="mapLabel">Your selected branch</label>
             <div class="map-card" aria-labelledby="mapLabel">
               <div class="map-info">
@@ -869,10 +1364,48 @@
             </div>
           </div>
 
+          <!-- Payment method -->
+          <div class="field">
+            <label id="paymentLabel">Payment method</label>
+            <div class="svc-opts" role="radiogroup" aria-labelledby="paymentLabel">
+
+              <label class="svc-opt active" data-payment-card="full">
+                <input type="radio" name="paymentOption" value="full" checked
+                       aria-label="Pay in full now" />
+                <div class="svc-opt-top">
+                  <strong>Pay in full now</strong>
+                  <span class="badge info" id="paymentFullBadge">£25</span>
+                </div>
+                <p class="sub svc-opt-sub">Pay the full amount now to confirm your booking.</p>
+              </label>
+
+              <label class="svc-opt" data-payment-card="deposit">
+                <input type="radio" name="paymentOption" value="deposit"
+                       aria-label="Pay 10 pound deposit now, rest on collection" />
+                <div class="svc-opt-top">
+                  <strong>Pay £10 deposit</strong>
+                  <span class="badge warning">Rest on collection</span>
+                </div>
+                <p class="sub svc-opt-sub">Secure your booking with a £10 deposit now — pay the remaining balance when your shoes are ready.</p>
+              </label>
+
+            </div>
+          </div>
+
+          <!-- Hidden fields kept in sync for JS / booking payload -->
+          <input id="paymentOption" type="hidden" value="full" />
+          <input id="depositAmount" type="hidden" value="10" />
+          <input id="amountDueNow" type="hidden" value="25" />
+
           <!-- Terms -->
           <div class="terms-block">
             <h3>Payment &amp; terms</h3>
             <p>Online payment &amp; cash accepted (Bank Transfer, Monzo or PayPal).</p>
+            <p>
+              Choosing the £10 deposit reserves your slot — the remaining balance is
+              due when your shoes are ready for collection or return. Home pickup adds
+              a flat £10 to your order, on top of the service price.
+            </p>
             <p>
               If you're unsatisfied, message us within 24 hours of receiving your
               cleaned pair(s). Late responses or delayed payments may delay your
@@ -926,9 +1459,25 @@
               <span>Odour Removal</span>
               <strong>+£5</strong>
             </div>
+            <div class="sum-row">
+              <span>Collection</span>
+              <strong id="summaryCollection">Drop off</strong>
+            </div>
+            <div class="sum-row addon-summary-row" id="summaryPickupFee" hidden>
+              <span>Home pickup</span>
+              <strong>+£10</strong>
+            </div>
             <div class="sum-row total">
               <span>Total</span>
               <strong id="selectedPriceText">£25</strong>
+            </div>
+            <div class="sum-row">
+              <span>Payment</span>
+              <strong id="summaryPayment">Full, now</strong>
+            </div>
+            <div class="sum-row" id="summaryDueRow" hidden>
+              <span>Due now</span>
+              <strong id="summaryDueNow">£10</strong>
             </div>
           </div>
 
@@ -981,20 +1530,196 @@
     </a>
   </nav>
 
-  <!-- app.js also carries the shared shell behaviour
-       (sidebar drawer, search overlay, auth mirroring) -->
   <script type="module" src="./app.js"></script>
   <script type="module" src="./theme.js"></script>
+
+  <!-- Phone shell behaviour — sidebar drawer, search overlay,
+       cart badge, and mirroring app.js auth onto the sidebar/bottom bar -->
+  <script>
+    /* ═══════════════════════════════════════════════════════════════
+       PHONE SHELL BEHAVIOUR — sidebar drawer, search overlay, cart
+       badge, and mirroring app.js's auth state onto the sidebar and
+       bottom bar.
+
+       Everything is null-guarded, so a page without a search overlay
+       or cart button is fine.
+       ═══════════════════════════════════════════════════════════════ */
+    (function () {
+      'use strict';
+
+      var $ = function (id) { return document.getElementById(id); };
+
+      /* ── SIDEBAR ─────────────────────────────────────────────── */
+      var sidebar = $('sidebar');
+      var overlay = $('sidebarOverlay');
+      var toggle  = $('sidebarToggle');
+      var closeEl = $('sidebarClose');
+
+      function openSidebar() {
+        if (!sidebar) return;
+        sidebar.classList.add('open');
+        if (overlay) overlay.classList.add('open');
+        document.body.classList.add('sidebar-open');
+        if (toggle) toggle.setAttribute('aria-expanded', 'true');
+      }
+
+      function closeSidebar() {
+        if (!sidebar) return;
+        sidebar.classList.remove('open');
+        if (overlay) overlay.classList.remove('open');
+        document.body.classList.remove('sidebar-open');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      }
+
+      if (toggle)  toggle.addEventListener('click', openSidebar);
+      if (closeEl) closeEl.addEventListener('click', closeSidebar);
+      if (overlay) overlay.addEventListener('click', closeSidebar);
+
+      /* ── SEARCH OVERLAY ──────────────────────────────────────── */
+      var searchToggle   = $('searchToggle');
+      var searchOverlay  = $('searchOverlay');
+      var searchCancel   = $('searchCancel');
+      var searchBackdrop = $('searchBackdrop');
+      var searchInput    = $('searchInput');
+
+      function openSearch() {
+        if (!searchOverlay) return;
+        searchOverlay.classList.add('open');
+        if (searchToggle) searchToggle.setAttribute('aria-expanded', 'true');
+        if (searchInput) setTimeout(function () { searchInput.focus(); }, 60);
+      }
+
+      function closeSearch() {
+        if (!searchOverlay) return;
+        searchOverlay.classList.remove('open');
+        if (searchToggle) searchToggle.setAttribute('aria-expanded', 'false');
+        if (searchInput) searchInput.value = '';
+      }
+
+      if (searchToggle)   searchToggle.addEventListener('click', openSearch);
+      if (searchCancel)   searchCancel.addEventListener('click', closeSearch);
+      if (searchBackdrop) searchBackdrop.addEventListener('click', closeSearch);
+
+      /* Escape closes whatever is open */
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { closeSidebar(); closeSearch(); }
+      });
+
+      /* Tapping any sidebar link closes the drawer before navigating */
+      var links = document.querySelectorAll('.sidebar-link');
+      for (var i = 0; i < links.length; i++) {
+        links[i].addEventListener('click', closeSidebar);
+      }
+
+      /* ── CART BADGE ──────────────────────────────────────────── */
+      window.updateCartCount = function (n) {
+        var b = $('cartCount');
+        if (!b) return;
+        b.hidden = !(n > 0);
+        if (n > 0) b.textContent = n > 9 ? '9+' : String(n);
+      };
+
+      /* ── AUTH MIRROR ─────────────────────────────────────────────
+         app.js owns auth and drives the legacy #nav* links in the
+         hidden .nav-links list. We copy that state onto the sidebar
+         and bottom bar so all three stay in step without app.js
+         needing to know this shell exists.
+         ────────────────────────────────────────────────────────── */
+      function mirrorAuth() {
+        var navLogout = $('navLogout');
+        var navAdmin  = $('navAdmin');
+        var navPoints = $('navPointsBadge');
+
+        /* Signed in when app.js has revealed the logout link */
+        var signedIn = !!(navLogout && !navLogout.hidden);
+
+        var sbLogin  = $('sidebarLogin');
+        var sbReg    = $('sidebarRegister');
+        var sbLogout = $('sidebarLogout');
+        var sbAdmin  = $('sidebarAdmin');
+        var tabLogin = $('bottomNavLogin');
+        var navPts   = $('navPointsMirror');
+
+        if (sbLogin)  sbLogin.hidden  = signedIn;
+        if (sbReg)    sbReg.hidden    = signedIn;
+        if (sbLogout) sbLogout.hidden = !signedIn;
+        if (tabLogin) tabLogin.hidden = signedIn;
+
+        /* Admin tab follows whatever app.js decided for the legacy link */
+        if (sbAdmin) sbAdmin.hidden = !(navAdmin && !navAdmin.hidden);
+
+        /* Points badge in the top bar */
+        if (navPts) {
+          if (navPoints && !navPoints.hidden) {
+            navPts.hidden = false;
+            navPts.textContent = navPoints.textContent.trim();
+          } else {
+            navPts.hidden = true;
+          }
+        }
+      }
+
+      /* Sidebar logout delegates to the link app.js already wired */
+      var sidebarLogout = $('sidebarLogout');
+      if (sidebarLogout) {
+        sidebarLogout.addEventListener('click', function (e) {
+          e.preventDefault();
+          var navLogout = $('navLogout');
+          if (navLogout) navLogout.click();
+        });
+      }
+
+      /* app.js resolves auth asynchronously, so watch for the change
+         rather than reading once on load. */
+      var hookTargets = ['navLogout', 'navAdmin', 'navPointsBadge'];
+      if (window.MutationObserver) {
+        var mo = new MutationObserver(mirrorAuth);
+        for (var j = 0; j < hookTargets.length; j++) {
+          var el = $(hookTargets[j]);
+          if (el) mo.observe(el, { attributes: true, childList: true, characterData: true, subtree: true });
+        }
+      }
+      mirrorAuth();
+      setTimeout(mirrorAuth, 600);
+      setTimeout(mirrorAuth, 2000);
+    })();
+  </script>
+
 
   <!-- ── PRICING ───────────────────────────────────────────────────────── -->
   <script>
     (function () {
-      // null = "enquire separately", no fixed price
-      var PRICES = {
-        1:  { standard_clean: 25,  express: 30,   next_day: 35   },
-        3:  { standard_clean: 60,  express: 70,   next_day: 85   },
-        10: { standard_clean: 130, express: null, next_day: null }
+      // DK's real, fixed prices — only three quantities are actually
+      // priced. priceForQuantity() below straight-line interpolates or
+      // extrapolates between these for any other quantity the stepper
+      // allows. Keep app.js's PAIR_PRICE_ANCHORS in sync with this.
+      var PAIR_PRICE_ANCHORS = {
+        standard_clean: [[1, 25], [3, 60], [10, 130]],
+        express:        [[1, 30], [3, 70]],   // 10+ pairs quoted separately
+        next_day:       [[1, 35], [3, 85]]    // 10+ pairs quoted separately
       };
+      var QUOTE_AT = { standard_clean: null, express: 10, next_day: 10 };
+      var MAX_PAIRS = 30;
+
+      // Returns a numeric price for `qty` pairs of `service`, or null when
+      // that quantity needs a manual quote.
+      function priceForQuantity(service, qty) {
+        var anchors = PAIR_PRICE_ANCHORS[service];
+        if (!anchors || !qty || qty < 1) return null;
+        var quoteAt = QUOTE_AT[service];
+        if (quoteAt && qty >= quoteAt) return null;
+
+        for (var i = 0; i < anchors.length; i++) {
+          if (anchors[i][0] === qty) return anchors[i][1];
+        }
+
+        var lo = anchors[0], hi = anchors[anchors.length - 1];
+        for (var j = 0; j < anchors.length - 1; j++) {
+          if (qty >= anchors[j][0]) { lo = anchors[j]; hi = anchors[j + 1]; }
+        }
+        var rate = (hi[1] - lo[1]) / (hi[0] - lo[0]);
+        return Math.max(0, Math.round(lo[1] + (qty - lo[0]) * rate));
+      }
 
       var SERVICE_NAMES = {
         standard_clean: 'Standard',
@@ -1009,44 +1734,121 @@
         odour_removal: { summaryId: 'summaryAddonOdour', price: 5  }
       };
 
+      var PICKUP_FEE     = 10; // Home pickup — flat per order, on top of service + add-ons
+      var DEPOSIT_AMOUNT = 10; // Fixed deposit; remaining balance is due on collection
+
       function $(id) { return document.getElementById(id); }
 
-      function currentPairs() {
-        var c = document.querySelector('input[name="pairCount"]:checked');
-        return c ? Number(c.value) : 1;
+      var qtyInput   = $('pairCount');
+      var qtyMinus   = $('qtyMinus');
+      var qtyPlus    = $('qtyPlus');
+      var qtyUnitEl  = $('qtyUnitLabel');
+
+      function clampQty(n) {
+        n = Math.floor(Number(n));
+        if (!Number.isFinite(n) || n < 1) n = 1;
+        if (n > MAX_PAIRS) n = MAX_PAIRS;
+        return n;
       }
+
+      function currentPairs() {
+        return qtyInput ? clampQty(qtyInput.value) : 1;
+      }
+
+      function setQty(n) {
+        n = clampQty(n);
+        if (qtyInput) qtyInput.value = String(n);
+        if (qtyUnitEl) qtyUnitEl.textContent = n === 1 ? 'pair' : 'pairs';
+        if (qtyMinus) qtyMinus.disabled = n <= 1;
+        if (qtyPlus)  qtyPlus.disabled  = n >= MAX_PAIRS;
+      }
+
+      if (qtyInput) {
+        qtyInput.addEventListener('input', function () { setQty(qtyInput.value); recalc(); });
+        qtyInput.addEventListener('blur',  function () { setQty(qtyInput.value); recalc(); });
+      }
+      if (qtyMinus) qtyMinus.addEventListener('click', function () { setQty(currentPairs() - 1); recalc(); });
+      if (qtyPlus)  qtyPlus.addEventListener('click',  function () { setQty(currentPairs() + 1); recalc(); });
 
       function currentService() {
         var c = document.querySelector('input[name="serviceCard"]:checked');
         return c ? c.value : 'standard_clean';
       }
 
+      function currentCollection() {
+        var c = document.querySelector('input[name="collectionOption"]:checked');
+        return c ? c.value : 'dropoff';
+      }
+
+      function currentPayment() {
+        var c = document.querySelector('input[name="paymentOption"]:checked');
+        return c ? c.value : 'full';
+      }
+
+      // Swap the branch map for the pickup-address box, and toggle whether
+      // an address is actually required, based on the chosen collection method.
+      function updateCollectionUI(collection) {
+        var isPickup    = collection === 'homepickup';
+        var dropoffEl   = $('dropoffLocationField');
+        var pickupEl    = $('pickupAddressField');
+        var addressBox  = $('pickupAddress');
+        var collectHold = $('collectionOption');
+
+        if (collectHold) collectHold.value = collection;
+        if (dropoffEl)   dropoffEl.hidden  = isPickup;
+        if (pickupEl)    pickupEl.hidden   = !isPickup;
+        if (addressBox) {
+          if (isPickup) {
+            addressBox.setAttribute('required', 'required');
+            addressBox.setAttribute('aria-required', 'true');
+          } else {
+            addressBox.removeAttribute('required');
+            addressBox.setAttribute('aria-required', 'false');
+          }
+        }
+
+        Array.prototype.forEach.call(document.querySelectorAll('[data-collection-card]'), function (el) {
+          el.classList.toggle('active', el.dataset.collectionCard === collection);
+        });
+      }
+
+      function updatePaymentUI(payment) {
+        var payHold = $('paymentOption');
+        if (payHold) payHold.value = payment;
+        Array.prototype.forEach.call(document.querySelectorAll('[data-payment-card]'), function (el) {
+          el.classList.toggle('active', el.dataset.paymentCard === payment);
+        });
+      }
+
       function recalc() {
-        var pairs   = currentPairs();
-        var service = currentService();
-        var table   = PRICES[pairs] || PRICES[1];
-        var base    = table[service];
+        var pairs      = currentPairs();
+        var service    = currentService();
+        var collection = currentCollection();
+        var payment    = currentPayment();
+        var base       = priceForQuantity(service, pairs);
+        var isPickup   = collection === 'homepickup';
 
         // Keep hidden fields in sync for the booking payload
         var serviceEl = $('service');
-        var pairsEl   = $('pairCount');
         if (serviceEl) serviceEl.value = service;
-        if (pairsEl)   pairsEl.value   = String(pairs);
+        setQty(pairs); // clamps + keeps the stepper's +/- buttons in sync
 
-        // Highlight the chosen cards
-        Array.prototype.forEach.call(document.querySelectorAll('.svc-opt'), function (el) {
-          el.classList.toggle('active', el.dataset.serviceCard === service);
-        });
-        Array.prototype.forEach.call(document.querySelectorAll('.qty-opt'), function (el) {
-          var input = el.querySelector('input[name="pairCount"]');
-          el.classList.toggle('active', !!input && input.checked);
+        updateCollectionUI(collection);
+        updatePaymentUI(payment);
+
+        // Highlight the chosen service cards only (collection/payment cards
+        // share the .svc-opt class but their own data attributes, handled above)
+        Array.prototype.forEach.call(document.querySelectorAll('.svc-opt[data-service-card]'), function (el) {
+          var on = el.dataset.serviceCard === service;
+          el.classList.toggle('active', on);
+          el.setAttribute('aria-selected', on ? 'true' : 'false');
         });
 
-        // Price badges follow the pair count
+        // Price badges follow the pair count (interpolated for odd quantities)
         Object.keys(SERVICE_NAMES).forEach(function (key) {
           var badge = document.querySelector('[data-price-badge="' + key + '"]');
           if (!badge) return;
-          var p = table[key];
+          var p = priceForQuantity(key, pairs);
           badge.textContent = (p === null || p === undefined) ? 'Enquire' : '£' + p;
         });
 
@@ -1060,18 +1862,36 @@
           if (row) row.hidden = !cb.checked;
         });
 
-        // Total, or a quote request when the combination has no set price
-        var needsQuote = (base === null || base === undefined);
-        var total      = needsQuote ? 'Enquire' : '£' + (base + addonsTotal);
-        var label      = needsQuote ? 'Request a quote' : 'Confirm booking';
+        var pickupFeeRow = $('summaryPickupFee');
+        if (pickupFeeRow) pickupFeeRow.hidden = !isPickup;
 
-        var quoteEl = $('quoteRequired');
-        var noteEl  = $('enquireNote');
-        var priceEl = $('selectedPriceText');
-        var barEl   = $('barPriceText');
-        var btnBook = $('btnBook');
-        var sumSvc  = $('summaryService');
-        var sumPair = $('summaryPairs');
+        // Total, or a quote request when the combination has no set price
+        var needsQuote   = (base === null || base === undefined);
+        var numericTotal = needsQuote ? null : base + addonsTotal + (isPickup ? PICKUP_FEE : 0);
+        var total        = needsQuote ? 'Enquire' : '£' + numericTotal;
+
+        var dueNowNumeric = needsQuote ? null : (payment === 'deposit' ? Math.min(DEPOSIT_AMOUNT, numericTotal) : numericTotal);
+        var dueNowText    = needsQuote ? 'Enquire' : '£' + dueNowNumeric;
+
+        var label;
+        if (needsQuote)              label = 'Request a quote';
+        else if (payment === 'deposit') label = 'Pay £' + DEPOSIT_AMOUNT + ' deposit';
+        else                          label = 'Confirm & pay in full';
+
+        var quoteEl      = $('quoteRequired');
+        var noteEl       = $('enquireNote');
+        var priceEl      = $('selectedPriceText');
+        var barEl        = $('barPriceText');
+        var btnBook      = $('btnBook');
+        var sumSvc       = $('summaryService');
+        var sumPair      = $('summaryPairs');
+        var sumCollect   = $('summaryCollection');
+        var sumLocation  = $('summaryLocation');
+        var sumPayment   = $('summaryPayment');
+        var dueRow       = $('summaryDueRow');
+        var dueEl        = $('summaryDueNow');
+        var amountDueEl  = $('amountDueNow');
+        var fullBadge    = $('paymentFullBadge');
 
         if (quoteEl) quoteEl.value  = needsQuote ? 'true' : 'false';
         if (noteEl)  noteEl.hidden  = !needsQuote;
@@ -1080,6 +1900,22 @@
         if (btnBook) btnBook.textContent = label;
         if (sumSvc)  sumSvc.textContent  = SERVICE_NAMES[service] || '—';
         if (sumPair) sumPair.textContent = pairs === 1 ? '1 pair' : pairs + ' pairs';
+
+        if (sumCollect)  sumCollect.textContent  = isPickup ? 'Home pickup' : 'Drop off';
+        if (sumLocation) sumLocation.textContent = isPickup ? 'Home pickup — see address below' : 'Canada Water, London';
+        if (sumPayment)  sumPayment.textContent  = payment === 'deposit' ? ('£' + DEPOSIT_AMOUNT + ' deposit') : 'Full, now';
+        if (fullBadge)   fullBadge.textContent   = total;
+
+        if (dueRow) dueRow.hidden = needsQuote || payment !== 'deposit';
+        if (dueEl)  dueEl.textContent = dueNowText;
+        if (amountDueEl) amountDueEl.value = needsQuote ? '' : String(dueNowNumeric);
+
+        // Lets app.js layer the loyalty-tier discount on top of these
+        // numbers (it can't wire its own listeners here without
+        // reintroducing the duplicate-state bug this file's header warns
+        // about) and keeps the summary labels (service/location/time/date)
+        // in app.js in sync with a service-card click.
+        document.dispatchEvent(new CustomEvent('dk:price-recalculated'));
       }
 
       Array.prototype.forEach.call(document.querySelectorAll('.addon-opt input[type="checkbox"]'), function (cb) {
@@ -1093,10 +1929,16 @@
       Array.prototype.forEach.call(document.querySelectorAll('input[name="serviceCard"]'), function (r) {
         r.addEventListener('change', recalc);
       });
-      Array.prototype.forEach.call(document.querySelectorAll('input[name="pairCount"]'), function (r) {
+      // Pair count is now the #pairCount stepper, wired above (qtyInput/
+      // qtyMinus/qtyPlus listeners) — no radios left to listen to here.
+      Array.prototype.forEach.call(document.querySelectorAll('input[name="collectionOption"]'), function (r) {
+        r.addEventListener('change', recalc);
+      });
+      Array.prototype.forEach.call(document.querySelectorAll('input[name="paymentOption"]'), function (r) {
         r.addEventListener('change', recalc);
       });
 
+      setQty(currentPairs()); // sets initial +/- disabled state
       recalc();
     })();
   </script>
@@ -1256,6 +2098,12 @@
           withinToggle.checked = false;
           showCourier(false);
         }
+
+        // Lets app.js grey out/label whichever of these fresh buttons are
+        // already booked or admin-closed (it queries Firestore for that —
+        // this script has no access to it). Dispatched last, once the
+        // buttons for this date actually exist in the DOM.
+        document.dispatchEvent(new CustomEvent('dk:timeslots-rendered', { detail: { date: dateStr } }));
       }
 
       function showCourier(on) {
@@ -1270,18 +2118,15 @@
       if (withinTime)   withinTime.addEventListener('change', function () { setTime(withinTime.value, 'courier'); });
       if (withinToggle) withinToggle.addEventListener('change', function () { showCourier(withinToggle.checked); });
 
-      // app.js owns the calendar and may set #date without firing an
-      // event, so watch the value three ways.
-      if (dateInput) {
-        dateInput.addEventListener('change', render);
-        if (window.MutationObserver) {
-          new MutationObserver(render).observe(dateInput, { attributes: true, attributeFilter: ['value'] });
-        }
-        var last = dateInput.value;
-        setInterval(function () {
-          if (dateInput.value !== last) { last = dateInput.value; render(); }
-        }, 400);
-      }
+      // app.js's calendar sets #date and dispatches a real "change" event
+      // on it (see the booking-page calendar's onPick handler in app.js),
+      // so a single change listener is enough. A MutationObserver/polling
+      // fallback used to live here too, but it re-ran render() a few
+      // hundred ms after this listener already had — wiping out whatever
+      // "already booked" labels app.js had just applied to the freshly
+      // rebuilt buttons via dk:timeslots-rendered, and briefly showing a
+      // taken slot as available again.
+      if (dateInput) dateInput.addEventListener('change', render);
 
       render();
     })();

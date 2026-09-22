@@ -189,9 +189,41 @@ const ROLES = {
 
 const LOCATIONS = { leicester: "Leicester", "canada-water": "Canada Water" };
 
-// Base prices stored as numbers so add-ons can be summed correctly.
-// Previously SERVICE_PRICES stored strings like "£25" which broke addition.
-const SERVICE_BASE_PRICES = { standard_clean: 25, express: 30, next_day: 40 };
+// The pair-count picker on booking.html is a basket-style stepper (any
+// whole number ≥ 1), not fixed 1/3/10 tiers — but DK's real price list
+// only fixes three points per service. priceForQuantity() below straight-
+// line interpolates/extrapolates between those anchor points for any
+// other quantity, exactly mirroring booking.html's own PRICING <script>
+// (PAIR_PRICE_ANCHORS there). Keep the two in sync if the price list
+// changes — this copy is the authoritative one for the Firestore write.
+const PAIR_PRICE_ANCHORS = {
+  standard_clean: [[1, 25], [3, 60], [10, 130]],
+  express:        [[1, 30], [3, 70]],   // 10+ pairs quoted separately
+  next_day:       [[1, 35], [3, 85]],   // 10+ pairs quoted separately
+};
+const PAIR_QUOTE_AT = { standard_clean: null, express: 10, next_day: 10 };
+const MAX_PAIRS = 30;
+
+/** Numeric price for `qty` pairs of `service`, or null when a manual quote is needed. */
+function priceForQuantity(service, qty) {
+  const anchors = PAIR_PRICE_ANCHORS[service];
+  if (!anchors || !qty || qty < 1) return null;
+  const quoteAt = PAIR_QUOTE_AT[service];
+  if (quoteAt && qty >= quoteAt) return null;
+
+  for (const [q, p] of anchors) if (q === qty) return p;
+
+  let [loQ, loP] = anchors[0];
+  let [hiQ, hiP] = anchors[anchors.length - 1];
+  for (let j = 0; j < anchors.length - 1; j++) {
+    if (qty >= anchors[j][0]) { [loQ, loP] = anchors[j]; [hiQ, hiP] = anchors[j + 1]; }
+  }
+  const rate = (hiP - loP) / (hiQ - loQ);
+  return Math.max(0, Math.round(loP + (qty - loQ) * rate));
+}
+
+const PICKUP_FEE     = 10; // Home pickup — flat per order, on top of service + add-ons.
+const DEPOSIT_AMOUNT = 10; // Fixed deposit; remaining balance is due on collection.
 
 // Single source of truth for add-on configuration, shared by UI and booking
 // submission. Centralising this prevents the duplicate-state bug where the
@@ -379,22 +411,24 @@ function goLogin(next = "home.html") {
 
 
 // ─────────────────────────────────────────────────────────────
-//  SECTION 3b — ADD-ON HELPERS
+//  SECTION 3b — PRICING / ADD-ON HELPERS
 //
-//  All add-on logic lives here (app.js) so it executes after the
-//  DOM is ready as an ES module rather than racing with an inline
-//  <script>. The old inline script caused a race condition: checkboxes
-//  were wired before app.js loaded, so service card clicks (which
-//  dispatch through app.js event handlers) did not trigger
-//  recalculation. Moving everything here eliminates that race.
+//  booking.html's own inline "PRICING" <script> is the single owner of
+//  the booking page's live UI wiring: it reads pairCount/serviceCard/
+//  collectionOption/paymentOption/addon checkboxes, toggles the .active
+//  card classes, and writes the un-discounted price into
+//  #selectedPriceText, #barPriceText, #summaryDueNow, #amountDueNow etc.
+//  every time recalc() runs. It then fires a "dk:price-recalculated"
+//  DOM event so app.js can react.
 //
-//  updateSummary() now calls syncAddonSummary() instead of
-//  calling getPrice() directly — this guarantees every summary
-//  refresh includes base + selected add-ons, not base price only.
-//
-//  Design informed by the single-source-of-truth principle from
-//  Ref [4] (GeeksforGeeks) and the form-validation pattern from
-//  Ref [8] (100 JS Projects).
+//  app.js does NOT re-wire those same inputs (that was the old
+//  duplicate-state bug — two listeners fighting over the same DOM,
+//  one of them using stale flat pricing). Instead app.js listens for
+//  "dk:price-recalculated" and layers the loyalty-tier discount on top
+//  of whatever booking.html's script just computed — see
+//  applyTierDiscountedPricing() in SECTION 16. The functions below are
+//  the shared, pairs-aware pricing math used both for that overlay and
+//  for the authoritative numbers written to Firestore at submit time.
 // ─────────────────────────────────────────────────────────────
 
 /** Numeric total of currently checked add-ons. */
@@ -421,9 +455,36 @@ function getSelectedAddons() {
   return out;
 }
 
-/** Numeric base price for the currently selected service. */
+/** How many pairs are currently selected (1 | 3 | 10). */
+function currentPairCount() {
+  const n = Math.floor(Number($("#pairCount")?.value));
+  if (!Number.isFinite(n) || n < 1) return 1;
+  return Math.min(n, MAX_PAIRS);
+}
+
+/** "dropoff" | "homepickup" — general collection method. */
+function currentCollectionOption() {
+  return $("#collectionOption")?.value === "homepickup" ? "homepickup" : "dropoff";
+}
+
+/** "full" | "deposit" — payment method chosen for this booking. */
+function currentPaymentOption() {
+  return $("#paymentOption")?.value === "deposit" ? "deposit" : "full";
+}
+
+/**
+ * Numeric base price for the selected pair count + service, or null when
+ * that combination has no fixed price and must be quoted (mirrors
+ * booking.html's priceForQuantity()/#quoteRequired exactly).
+ */
 function getBasePrice() {
-  return SERVICE_BASE_PRICES[$("#service")?.value] ?? 25;
+  const svc = $("#service")?.value;
+  return priceForQuantity(svc, currentPairCount());
+}
+
+/** True when the current pair/service combination needs a manual quote. */
+function priceNeedsQuote() {
+  return getBasePrice() === null;
 }
 
 /**
@@ -442,42 +503,34 @@ function getTierDiscount(tier) {
   return { pct: 0, label: "" };
 }
 
-/** Full price string including add-ons and tier discount, e.g. "£36". */
-function getTotalPriceStr(tierDiscount = 0) {
-  const base     = getBasePrice();
+/**
+ * Full numeric total including add-ons, home-pickup fee and tier
+ * discount, or null when the combination needs a manual quote.
+ */
+function getTotalPriceNumeric(tierDiscount = 0) {
+  const base = getBasePrice();
+  if (base === null) return null;
   const addons   = getAddonsTotal();
+  const pickup   = currentCollectionOption() === "homepickup" ? PICKUP_FEE : 0;
   const discount = Math.round(base * (tierDiscount / 100));
-  return "£" + Math.max(0, base - discount + addons);
+  return Math.max(0, base - discount + addons + pickup);
+}
+
+/** Full price string, e.g. "£36" or "Enquire" when a quote is needed. */
+function getTotalPriceStr(tierDiscount = 0) {
+  const total = getTotalPriceNumeric(tierDiscount);
+  return total === null ? "Enquire" : "£" + total;
 }
 
 /**
- * Syncs add-on summary rows in the order sidebar and updates the total.
- * Called by updateSummary() and by each addon checkbox change event so
- * the displayed price is always consistent with the user's selections.
+ * Amount actually due right now, honouring the deposit/full choice and
+ * the tier discount. Null when a quote is required (nothing is charged
+ * until DKcleanedit follows up with a price).
  */
-function syncAddonSummary() {
-  document.querySelectorAll('.addon-opt input[type="checkbox"]').forEach((cb) => {
-    const cfg = ADDON_CONFIG[cb.value];
-    if (!cfg) return;
-    const row = document.getElementById(cfg.summaryId);
-    if (row) row.hidden = !cb.checked;
-  });
-  const priceEl = document.getElementById("selectedPriceText");
-  if (priceEl) priceEl.textContent = getTotalPriceStr();
-}
-
-/**
- * Wire all addon checkbox change events. Called once inside initBooking()
- * after the DOM is confirmed ready, avoiding the race condition that
- * existed when wiring was done in a separate inline <script>.
- */
-function wireAddons() {
-  document.querySelectorAll('.addon-opt input[type="checkbox"]').forEach((cb) => {
-    cb.addEventListener("change", function () {
-      this.closest(".addon-opt")?.classList.toggle("active", this.checked);
-      syncAddonSummary();
-    });
-  });
+function getAmountDueNowNumeric(tierDiscount = 0) {
+  const total = getTotalPriceNumeric(tierDiscount);
+  if (total === null) return null;
+  return currentPaymentOption() === "deposit" ? Math.min(DEPOSIT_AMOUNT, total) : total;
 }
 
 
@@ -529,6 +582,7 @@ function _drainToasts() {
 function sendBookingEmail({
   customerName, customerEmail, orderId, service,
   location, bookingDate, bookingTime, price, shoeNotes, addons,
+  pairCount, collectionMethod, pickupAddress, paymentMethod, amountDueNow,
 }) {
   if (!window.emailjs) return;
   const addonText = addons?.length
@@ -545,6 +599,14 @@ function sendBookingEmail({
     price:          price         || "",
     shoe_notes:     shoeNotes     || "",
     addons:         addonText,
+    // New merge fields — add matching placeholders to the EmailJS
+    // template (template_qca25sq) if you want these to show up in the
+    // confirmation email; harmless if the template ignores them.
+    pair_count:       pairCount || 1,
+    collection_method: collectionMethod || "Drop off at branch",
+    pickup_address:    pickupAddress    || "",
+    payment_method:    paymentMethod    || "",
+    amount_due_now:    amountDueNow     || "",
   }).catch((err) => console.warn("Booking email failed:", err));
 }
 
@@ -1421,19 +1483,26 @@ function initRegister() {
 // ─────────────────────────────────────────────────────────────
 //  SECTION 16 — BOOKING PAGE
 //
-//  BUGS FIXED IN THIS VERSION:
-//  1. Race condition: inline <script> addon logic ran before this
-//     module loaded. wireAddons() now runs inside initBooking().
-//  2. updateSummary() no longer overwrites the total with base
-//     price only — it calls syncAddonSummary() which adds addons.
-//  3. SERVICE_PRICES strings replaced with SERVICE_BASE_PRICES
-//     numbers so arithmetic works correctly.
-//  4. Booking transaction saves addons[] array and the correct
-//     total price string to Firestore.
-//  5. sendBookingEmail now receives addons for email breakdown.
-//  6. Photo remove button wired here, not in a separate inline module.
-//  7. slotHint cleared inside onPick, not in a separate inline script.
-//  8. time-slot aria-pressed now set to "false" on deselect.
+//  Ownership split with booking.html's inline <script>s (avoids the old
+//  duplicate-state race between the two):
+//    - booking.html's "PRICING" script owns pairs/service/collection/
+//      payment/add-on selection UI and the un-discounted price display,
+//      and fires "dk:price-recalculated" after every recalc().
+//    - booking.html's "OPENING HOURS + TIME SLOTS" script owns building
+//      and click-wiring the .time-slot buttons for the selected date,
+//      and fires "dk:timeslots-rendered" after every rebuild.
+//    - app.js listens for both events: it layers the loyalty-tier
+//      discount on top of the displayed price (applyTierDiscountedPricing,
+//      SECTION 3b has the shared pairs-aware pricing math) and greys out
+//      slots that are admin-closed or already booked (refreshSlots).
+//    - app.js remains the sole owner of Firestore access: the calendar,
+//      availability queries/watchers, and the atomic double-booking
+//      transaction that actually creates the order.
+//
+//  Booking transaction saves pairCount, collectionOption/pickupAddress/
+//  collectionMode, paymentOption/depositAmount/amountDueNow and
+//  quoteRequired alongside the existing fields, and sendBookingEmail
+//  forwards all of it so the confirmation email can show it too.
 //
 //  Atomic double-booking sentinel pattern — Ref [5]
 //  (GitHub firebase-js-sdk runTransaction example).
@@ -1445,7 +1514,6 @@ function initBooking() {
   if (!btnBook) return;
 
   wireOverlay();
-  wireAddons();
 
   let _slotWatcherUnsub = null;
   // User's tier discount loaded once auth resolves — Ref [13] (tier discount spec).
@@ -1453,25 +1521,39 @@ function initBooking() {
   let _userTierLabel    = "";
   let _userTier         = "Carbon";
 
-  // updateSummary calls syncAddonSummary — never clobbers addon total.
-  // Applies tier discount to the displayed price — Ref [13].
+  // Date/time labels only. #summaryService and #summaryLocation are NOT
+  // touched here — booking.html's own recalc() owns those two (it needs
+  // to show "Home pickup — see address below" instead of the branch name
+  // once home pickup is chosen, which this function has no way to know).
+  // Writing to them here as well used to let this function win a race
+  // right after recalc() ran (via "dk:price-recalculated") and silently
+  // stomp that home-pickup message back to the branch name.
   function updateSummary() {
-    const svc    = $("#service")?.value  || "";
-    const locKey = $("#location")?.value || "";
-    const time   = $("#timeSlot")?.value || "";
-    const date   = document.getElementById("date")?.value || "";
-    const loc    = LOCATION_DATA[locKey]?.name || locKey || "—";
-    if ($("#summaryService"))  $("#summaryService").textContent  = serviceLabel(svc) || "—";
-    if ($("#summaryLocation")) $("#summaryLocation").textContent = loc;
-    if ($("#summaryTime"))     $("#summaryTime").textContent     = time || "—";
-    if ($("#summaryDate"))     $("#summaryDate").textContent     = date && isValidDate(date) ? formatDate(date) : "—";
+    const time = $("#timeSlot")?.value || "";
+    const date = document.getElementById("date")?.value || "";
+    if ($("#summaryTime")) $("#summaryTime").textContent = time || "—";
+    if ($("#summaryDate")) $("#summaryDate").textContent = date && isValidDate(date) ? formatDate(date) : "—";
+  }
 
-    // Show tier discount row if applicable — Ref [13] (DKcleanedit tier spec).
+  /**
+   * Layers the loyalty-tier discount on top of whatever booking.html's
+   * own PRICING script just computed. Runs whenever that script
+   * recalculates (service/pairs/collection/payment/add-on changes fire
+   * "dk:price-recalculated" — see booking.html) and once tier data has
+   * loaded via onAuthStateChanged below. Ref [13] (tier discount spec).
+   *
+   * When the current pair/service combination needs a manual quote, or
+   * the customer has no discount, booking.html's own numbers are already
+   * correct and this leaves them alone.
+   */
+  function applyTierDiscountedPricing() {
+    const svc  = $("#service")?.value || "";
+    const base = getBasePrice();
+
     const discountRow = document.getElementById("summaryDiscount");
     if (discountRow) {
-      if (_userTierDiscount > 0 && svc) {
-        const base     = SERVICE_BASE_PRICES[svc] ?? 25;
-        const saving   = Math.round(base * (_userTierDiscount / 100));
+      if (_userTierDiscount > 0 && svc && base !== null) {
+        const saving = Math.round(base * (_userTierDiscount / 100));
         discountRow.textContent = `${_userTierLabel} (-£${saving})`;
         discountRow.hidden = false;
       } else {
@@ -1479,11 +1561,25 @@ function initBooking() {
       }
     }
 
-    syncAddonSummary();
+    if (_userTierDiscount <= 0 || base === null) return;
 
-    // Override the price display with discount applied — Ref [13].
-    const priceEl = document.getElementById("selectedPriceText");
-    if (priceEl) priceEl.textContent = getTotalPriceStr(_userTierDiscount);
+    const total      = getTotalPriceNumeric(_userTierDiscount);
+    const dueNow     = getAmountDueNowNumeric(_userTierDiscount);
+    const isDeposit  = currentPaymentOption() === "deposit";
+
+    const priceEl   = document.getElementById("selectedPriceText");
+    const barEl     = document.getElementById("barPriceText");
+    const dueRow    = document.getElementById("summaryDueRow");
+    const dueEl     = document.getElementById("summaryDueNow");
+    const amountEl  = document.getElementById("amountDueNow");
+    const fullBadge = document.getElementById("paymentFullBadge");
+
+    if (priceEl)  priceEl.textContent  = "£" + total;
+    if (barEl)    barEl.textContent    = "£" + total;
+    if (amountEl) amountEl.value       = String(dueNow);
+    if (fullBadge && !isDeposit) fullBadge.textContent = "£" + total;
+    if (dueRow)   dueRow.hidden        = !isDeposit;
+    if (dueEl)    dueEl.textContent    = "£" + dueNow;
   }
 
   async function refreshSlots(dateISO) {
@@ -1545,16 +1641,24 @@ function initBooking() {
     if (dateISO && loc) refreshSlots(dateISO);
   }
 
-  // aria-pressed set to "false" on previously active time-slot buttons.
-  $$(".time-slot").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      if (btn.disabled) return;
-      $$(".time-slot").forEach((b) => { b.classList.remove("active"); b.setAttribute("aria-pressed", "false"); });
-      btn.classList.add("active"); btn.setAttribute("aria-pressed", "true");
-      const sel = $("#timeSlot");
-      if (sel) { sel.value = btn.dataset.time; sel.dispatchEvent(new Event("change", { bubbles: true })); }
-      updateSummary();
-    });
+  // booking.html's own "OPENING HOURS + TIME SLOTS" <script> owns building
+  // and click-wiring the .time-slot buttons (it regenerates them from
+  // scratch whenever #date changes, since opening hours vary by day). It
+  // dispatches "dk:timeslots-rendered" right after doing so, which is our
+  // cue to grey out/label whichever of those fresh buttons are already
+  // booked or admin-closed. This replaces polling for #date changes,
+  // which raced with that rebuild and could momentarily show a booked
+  // slot as available again.
+  document.addEventListener("dk:timeslots-rendered", (e) => {
+    const dateISO = e?.detail?.date || document.getElementById("date")?.value;
+    if (dateISO) refreshSlots(dateISO);
+  });
+
+  // booking.html's PRICING script owns the pairs/service/collection/
+  // payment/add-on UI and dispatches this after every recalculation.
+  document.addEventListener("dk:price-recalculated", () => {
+    updateSummary();
+    applyTierDiscountedPricing();
   });
 
   // Calendar — Ref [3] (GreatStack, calendar grid pattern).
@@ -1586,7 +1690,10 @@ function initBooking() {
           const hint = document.getElementById("slotHint");
           if (hint) hint.textContent = "";
           buildCal(); updateSummary();
-          await refreshSlots(iso);
+          // refreshSlots() runs via the "dk:timeslots-rendered" listener
+          // above once booking.html finishes rebuilding the day's
+          // .time-slot buttons for this new date — no need to call it
+          // here too (that used to race the buttons' own rebuild).
           if (_slotWatcherUnsub) { _slotWatcherUnsub(); _slotWatcherUnsub = null; }
           const loc = $("#location")?.value || "";
           if (loc) _slotWatcherUnsub = watchOpenSlots(iso, loc, applyOpenSlots);
@@ -1602,20 +1709,13 @@ function initBooking() {
     buildCal();
   }
 
-  // Service card click calls updateSummary() which includes syncAddonSummary().
-  $$("[data-service-card]").forEach((card) => {
-    card.addEventListener("click", () => {
-      $$("[data-service-card]").forEach((c) => {
-        c.classList.remove("active"); c.removeAttribute("aria-selected");
-      });
-      card.classList.add("active"); card.setAttribute("aria-selected", "true");
-      const radio = card.querySelector('input[type="radio"]');
-      if (radio) radio.checked = true;
-      const sel = $("#service");
-      if (sel) { sel.value = card.dataset.serviceCard; sel.dispatchEvent(new Event("change", { bubbles: true })); }
-      updateSummary(); // Recalculates total including current add-ons.
-    });
-  });
+  // NOTE: service/pair-count cards are plain <label> elements wrapping
+  // their radio inputs, so clicking one already checks the radio natively
+  // and fires booking.html's own recalc() (which toggles .active and
+  // aria-selected on [data-service-card]/[data-collection-card]/
+  // [data-payment-card] and dispatches "dk:price-recalculated", handled
+  // above). A second click handler here used to duplicate that wiring
+  // with flat (non-pairs) pricing and could win the race against it.
 
   function updateMap() {
     const picked = LOCATION_DATA[$("#location")?.value];
@@ -1703,7 +1803,7 @@ function initBooking() {
           if (form) form.insertBefore(banner, form.firstChild);
         }
         banner.innerHTML = `🏅 <span>${_userTierLabel} — your discount will be applied automatically.</span>`;
-        updateSummary(); // Refresh price display with discount.
+        applyTierDiscountedPricing(); // Refresh price display with discount.
       }
     } catch { /* non-critical */ }
   });
@@ -1723,13 +1823,28 @@ function initBooking() {
     const shoeNotes = $("#shoeNotes")?.value.trim() || "";
     const images    = Array.from($("#shoeImages")?.files || []);
 
+    // Collection / payment choices — owned by booking.html's own PRICING
+    // and OPENING HOURS scripts; read straight from the DOM here so the
+    // Firestore write always matches what the customer actually saw.
+    const pairs            = currentPairCount();
+    const collectionOption = currentCollectionOption();      // "dropoff" | "homepickup"
+    const collectionMode   = $("#collectionMode")?.value === "courier" ? "courier" : "dropoff";
+    const paymentOption    = currentPaymentOption();          // "full" | "deposit"
+    const pickupAddress    = $("#pickupAddress")?.value.trim() || "";
+    const isPickup         = collectionOption === "homepickup";
+    const pickupFee        = isPickup ? PICKUP_FEE : 0;
+
     // Capture add-ons and total price at submission time.
     // Tier discount applied here — Ref [13] (DKcleanedit loyalty tier spec).
-    const selectedAddons  = getSelectedAddons();
-    const totalPrice      = getTotalPriceStr(_userTierDiscount);
-    const basePrice       = SERVICE_BASE_PRICES[service] ?? 25;
-    const discountSaving  = Math.round(basePrice * (_userTierDiscount / 100));
-    const discountApplied = _userTierDiscount > 0;
+    const needsQuote       = priceNeedsQuote();
+    const selectedAddons   = getSelectedAddons();
+    const totalPriceNumeric = needsQuote ? null : getTotalPriceNumeric(_userTierDiscount);
+    const totalPrice        = needsQuote ? "Enquire" : "£" + totalPriceNumeric;
+    const basePrice         = getBasePrice(); // null when needsQuote
+    const discountSaving    = (!needsQuote && _userTierDiscount > 0)
+      ? Math.round(basePrice * (_userTierDiscount / 100)) : 0;
+    const discountApplied   = !needsQuote && _userTierDiscount > 0;
+    const amountDueNow      = needsQuote ? null : getAmountDueNowNumeric(_userTierDiscount);
 
     // Field validation — Ref [8] (100 JS Projects, form validation pattern).
     if (!service)  { setMsg("Please select a service.");  return; }
@@ -1737,8 +1852,11 @@ function initBooking() {
     if (!date)     { setMsg("Please pick a date.");       return; }
     if (!timeSlot) { setMsg("Please pick a time slot.");  return; }
     if (date < todayISO()) { setMsg("Please select a future date."); return; }
+    if (isPickup && !pickupAddress) { setMsg("Please enter your pickup address."); return; }
 
-    btnBook.disabled = true; btnBook.textContent = "Checking availability…"; setMsg("");
+    btnBook.disabled = true;
+    btnBook.textContent = needsQuote ? "Sending quote request…" : "Checking availability…";
+    setMsg("");
 
     try {
       const userSnap      = await getDoc(doc(db, "users", user.uid));
@@ -1766,11 +1884,21 @@ function initBooking() {
 
         transaction.set(orderRef, {
           uid: user.uid, customerName, customerEmail, customerPhone,
-          service, serviceLabel: serviceLabel(service),
+          service, serviceLabel: serviceLabel(service), pairCount: pairs,
           location: loc, date, timeSlot,
-          price:     totalPrice,       // Total after tier discount + add-ons e.g. "£36".
-          basePrice: basePrice,
+          price:     totalPrice,       // Total after tier discount + add-ons, e.g. "£36", or "Enquire".
+          basePrice: basePrice,        // null when quoteRequired is true.
           addons:    selectedAddons,   // [{key, label, price}, …]
+          quoteRequired: needsQuote,
+          // Collection method — Ref: home-pickup feature.
+          collectionOption,                              // "dropoff" | "homepickup"
+          pickupAddress: isPickup ? pickupAddress : "",
+          pickupFee,
+          collectionMode,                                 // "dropoff" | "courier" (same-day)
+          // Payment choice — Ref: deposit/pay-in-full feature.
+          paymentOption:  needsQuote ? "quote" : paymentOption,
+          depositAmount:  (!needsQuote && paymentOption === "deposit") ? DEPOSIT_AMOUNT : 0,
+          amountDueNow,                                   // null when quoteRequired is true.
           // Tier discount fields — Ref [13] (DKcleanedit loyalty tier spec).
           tierApplied:     _userTier,
           discountPct:     _userTierDiscount,
@@ -1813,11 +1941,18 @@ function initBooking() {
         price:       totalPrice,
         shoeNotes,
         addons:      selectedAddons,
+        pairCount:        pairs,
+        collectionMethod: isPickup ? "Home pickup (+£10)" : "Drop off at branch",
+        pickupAddress,
+        paymentMethod:    needsQuote ? "Arranged after quote" : (paymentOption === "deposit" ? `£${DEPOSIT_AMOUNT} deposit now, balance on collection` : "Paid in full now"),
+        amountDueNow:     needsQuote ? "" : `£${amountDueNow}`,
       });
 
       if (_slotWatcherUnsub) { _slotWatcherUnsub(); _slotWatcherUnsub = null; }
-      toast("Booking confirmed ✅", "success");
-      setMsg(`Booking confirmed! Order ID: ${newOrderId}`);
+      toast(needsQuote ? "Quote request sent ✅" : "Booking confirmed ✅", "success");
+      setMsg(needsQuote
+        ? `Quote request sent! We'll be in touch about pricing. Order ID: ${newOrderId}`
+        : `Booking confirmed! Order ID: ${newOrderId}`);
       setTimeout(() => { location.href = "track.html"; }, 900);
 
     } catch (err) {
@@ -3424,152 +3559,3 @@ if (document.readyState === "loading") {
 // Named exports allow other modules (e.g. future settings.js) to
 // import these functions directly without duplicating logic.
 export { initTheme, initSettings };
-/* ═══════════════════════════════════════════════════════════════
-   mobile-shell.js — DKCleanEdit
-   Shared phone shell behaviour: sidebar drawer, search overlay,
-   cart badge, and mirroring app.js's auth state onto the sidebar
-   and bottom bar.
-
-   Loaded as a plain script at the end of <body> on every page.
-   Everything is null-guarded, so a page can omit the search
-   overlay or the cart button without this throwing.
-   ═══════════════════════════════════════════════════════════════ */
-(function () {
-  'use strict';
-
-  var $ = function (id) { return document.getElementById(id); };
-
-  /* ── SIDEBAR ─────────────────────────────────────────────── */
-  var sidebar = $('sidebar');
-  var overlay = $('sidebarOverlay');
-  var toggle  = $('sidebarToggle');
-  var closeEl = $('sidebarClose');
-
-  function openSidebar() {
-    if (!sidebar) return;
-    sidebar.classList.add('open');
-    if (overlay) overlay.classList.add('open');
-    document.body.classList.add('sidebar-open');
-    if (toggle) toggle.setAttribute('aria-expanded', 'true');
-  }
-
-  function closeSidebar() {
-    if (!sidebar) return;
-    sidebar.classList.remove('open');
-    if (overlay) overlay.classList.remove('open');
-    document.body.classList.remove('sidebar-open');
-    if (toggle) toggle.setAttribute('aria-expanded', 'false');
-  }
-
-  if (toggle)  toggle.addEventListener('click', openSidebar);
-  if (closeEl) closeEl.addEventListener('click', closeSidebar);
-  if (overlay) overlay.addEventListener('click', closeSidebar);
-
-  /* ── SEARCH OVERLAY ──────────────────────────────────────── */
-  var searchToggle   = $('searchToggle');
-  var searchOverlay  = $('searchOverlay');
-  var searchCancel   = $('searchCancel');
-  var searchBackdrop = $('searchBackdrop');
-  var searchInput    = $('searchInput');
-
-  function openSearch() {
-    if (!searchOverlay) return;
-    searchOverlay.classList.add('open');
-    if (searchToggle) searchToggle.setAttribute('aria-expanded', 'true');
-    if (searchInput) setTimeout(function () { searchInput.focus(); }, 60);
-  }
-
-  function closeSearch() {
-    if (!searchOverlay) return;
-    searchOverlay.classList.remove('open');
-    if (searchToggle) searchToggle.setAttribute('aria-expanded', 'false');
-    if (searchInput) searchInput.value = '';
-  }
-
-  if (searchToggle)   searchToggle.addEventListener('click', openSearch);
-  if (searchCancel)   searchCancel.addEventListener('click', closeSearch);
-  if (searchBackdrop) searchBackdrop.addEventListener('click', closeSearch);
-
-  /* Escape closes whatever is open */
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') { closeSidebar(); closeSearch(); }
-  });
-
-  /* Tapping any sidebar link closes the drawer before navigating */
-  var links = document.querySelectorAll('.sidebar-link');
-  for (var i = 0; i < links.length; i++) {
-    links[i].addEventListener('click', closeSidebar);
-  }
-
-  /* ── CART BADGE ──────────────────────────────────────────── */
-  window.updateCartCount = function (n) {
-    var b = $('cartCount');
-    if (!b) return;
-    b.hidden = !(n > 0);
-    if (n > 0) b.textContent = n > 9 ? '9+' : String(n);
-  };
-
-  /* ── AUTH MIRROR ─────────────────────────────────────────────
-     app.js owns auth and drives the legacy #nav* links in the
-     hidden .nav-links list. We copy that state onto the sidebar
-     and bottom bar so all three stay in step without app.js
-     needing to know this shell exists.
-     ────────────────────────────────────────────────────────── */
-  function mirrorAuth() {
-    var navLogout = $('navLogout');
-    var navAdmin  = $('navAdmin');
-    var navPoints = $('navPointsBadge');
-
-    /* Signed in when app.js has revealed the logout link */
-    var signedIn = !!(navLogout && !navLogout.hidden);
-
-    var sbLogin  = $('sidebarLogin');
-    var sbReg    = $('sidebarRegister');
-    var sbLogout = $('sidebarLogout');
-    var sbAdmin  = $('sidebarAdmin');
-    var tabLogin = $('bottomNavLogin');
-    var navPts   = $('navPointsMirror');
-
-    if (sbLogin)  sbLogin.hidden  = signedIn;
-    if (sbReg)    sbReg.hidden    = signedIn;
-    if (sbLogout) sbLogout.hidden = !signedIn;
-    if (tabLogin) tabLogin.hidden = signedIn;
-
-    /* Admin tab follows whatever app.js decided for the legacy link */
-    if (sbAdmin) sbAdmin.hidden = !(navAdmin && !navAdmin.hidden);
-
-    /* Points badge in the top bar */
-    if (navPts) {
-      if (navPoints && !navPoints.hidden) {
-        navPts.hidden = false;
-        navPts.textContent = navPoints.textContent.trim();
-      } else {
-        navPts.hidden = true;
-      }
-    }
-  }
-
-  /* Sidebar logout delegates to the link app.js already wired */
-  var sidebarLogout = $('sidebarLogout');
-  if (sidebarLogout) {
-    sidebarLogout.addEventListener('click', function (e) {
-      e.preventDefault();
-      var navLogout = $('navLogout');
-      if (navLogout) navLogout.click();
-    });
-  }
-
-  /* app.js resolves auth asynchronously, so watch for the change
-     rather than reading once on load. */
-  var hookTargets = ['navLogout', 'navAdmin', 'navPointsBadge'];
-  if (window.MutationObserver) {
-    var mo = new MutationObserver(mirrorAuth);
-    for (var j = 0; j < hookTargets.length; j++) {
-      var el = $(hookTargets[j]);
-      if (el) mo.observe(el, { attributes: true, childList: true, characterData: true, subtree: true });
-    }
-  }
-  mirrorAuth();
-  setTimeout(mirrorAuth, 600);
-  setTimeout(mirrorAuth, 2000);
-})();
