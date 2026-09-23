@@ -48,7 +48,7 @@
     html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
       font-size: 14px;
       line-height: 1.55;
       color: var(--ink);
@@ -137,10 +137,14 @@
       font-size: 11px; font-weight: 700; color: var(--gold);
       background: rgba(79, 195, 247, 0.12);
       border: 1px solid var(--hairline-2);
-      border-radius: 20px; padding: 4px 9px;
+      border-radius: 8px; padding: 4px 9px;
       white-space: nowrap;
+      display: inline-flex; align-items: center; gap: 5px;
       box-shadow: 0 2px 6px rgba(79, 195, 247, 0.18);
     }
+    .nav-points .np-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; opacity: 0.85; }
+    .nav-points .np-sep { opacity: 0.5; margin: 0 1px; }
+    .nav-points .np-pts { font-weight: 800; }
 
     /* ── SIDEBAR ─────────────────────────────────────────────────── */
     .sidebar-overlay {
@@ -300,7 +304,7 @@
       letter-spacing: 1.2px; color: var(--ink); opacity: 0.72; margin-bottom: 6px;
     }
     .sec-title {
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+      font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
       font-size: 20px; font-weight: 800;
       color: var(--ink); line-height: 1.2; margin-bottom: 8px;
     }
@@ -405,7 +409,7 @@
       text-align: center;
     }
     .overlay .popup h2 {
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+      font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
       font-size: 20px; font-weight: 800; margin-bottom: 8px;
     }
     .overlay .popup p { font-size: 13px; color: var(--muted); margin-bottom: 18px; }

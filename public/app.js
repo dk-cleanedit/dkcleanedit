@@ -1449,7 +1449,7 @@ async function setupNav(user) {
       const snap = await getDoc(doc(db, "users", user.uid));
       const pts  = snap.exists() ? Number(snap.data().points || 0) : 0;
       const tierName = tierNameForPoints(pts);
-      badge.textContent = `${tierName} · ${pts} pts`;
+      badge.innerHTML = `<span class="np-dot" aria-hidden="true"></span><span class="np-tier">${esc(tierName)}</span><span class="np-sep" aria-hidden="true">&middot;</span><span class="np-pts">${esc(String(pts))} pts</span>`;
       badge.dataset.tier = tierName;
       badge.hidden = false;
       badge.setAttribute("aria-label", `${tierName} tier — ${pts} loyalty points`);
@@ -2311,9 +2311,10 @@ function initCustomer() {
     const badge = document.getElementById("navPointsBadge");
     if (badge) {
       const tierName = tierNameForPoints(points);
-      badge.textContent = `${tierName} · ${points} pts`;
+      badge.innerHTML = `<span class="np-dot" aria-hidden="true"></span><span class="np-tier">${esc(tierName)}</span><span class="np-sep" aria-hidden="true">&middot;</span><span class="np-pts">${esc(String(points))} pts</span>`;
       badge.dataset.tier = tierName;
       badge.hidden = false;
+      badge.setAttribute("aria-label", `${tierName} tier — ${points} loyalty points`);
     }
 
     // avatar upload — Ref [2] MDN FileReader

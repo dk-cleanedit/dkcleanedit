@@ -105,8 +105,8 @@
   --s-10: 72px;
 
   /* typography */
-  --font:         -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Helvetica Neue", Arial, sans-serif;
-  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, "Helvetica Neue", Arial, sans-serif;
+  --font:         'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
   --font-mono:    'IBM Plex Mono', 'DM Mono', ui-monospace, monospace;
 
   /* motion */

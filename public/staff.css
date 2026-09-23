@@ -195,8 +195,8 @@
 
   /* ── Typography ─────────────────────────────────────────────────────────── */
 
-  --font:         -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Helvetica Neue", Arial, sans-serif;
-  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, "Helvetica Neue", Arial, sans-serif;
+  --font:         'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
   --font-mono:    'DM Mono', ui-monospace, monospace;
 
   /* ── Motion ─────────────────────────────────────────────────────────────── */
@@ -326,7 +326,7 @@ button { cursor: pointer; }
 h1, h2, h3, h4, p { margin-top: 0; }
 
 h1 {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;);
+  font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
   font-size: clamp(2rem, 4vw, 3.05rem);
   font-weight: 800;
   line-height: 1.06;
@@ -336,7 +336,7 @@ h1 {
 }
 
 h2 {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;);
+  font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
   font-size: clamp(1.5rem, 3vw, 2.15rem);
   font-weight: 700;
   line-height: 1.12;

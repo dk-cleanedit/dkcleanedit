@@ -148,7 +148,7 @@ p {
   gap:            8px;
   height:         28px;
   padding:        0 12px;
-  border-radius:  var(--r-pill);
+  border-radius:  8px;
   border:         1px solid var(--primary-border);
   background:     var(--primary-050);
   color:          var(--primary-400);
@@ -481,7 +481,7 @@ textarea:focus {
   justify-content: center;
   min-height:      26px;
   padding:         3px 10px;
-  border-radius:   var(--r-pill);
+  border-radius:   8px;
   font-size:       0.76rem;
   font-weight:     700;
   border:          1px solid var(--line-2);
@@ -893,7 +893,7 @@ textarea:focus {
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 14px;
   line-height: 1.55;
   color: var(--white);
@@ -982,10 +982,14 @@ input, select, textarea {
   font-size: 11px; font-weight: 700; color: var(--gold);
   background: rgba(79, 195, 247, 0.12);
   border: 1px solid var(--hairline-2);
-  border-radius: 20px; padding: 4px 9px;
+  border-radius: 8px; padding: 4px 9px;
   white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 5px;
   box-shadow: 0 2px 6px rgba(79, 195, 247, 0.18);
 }
+.nav-points .np-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; opacity: 0.85; }
+.nav-points .np-sep { opacity: 0.5; margin: 0 1px; }
+.nav-points .np-pts { font-weight: 800; }
 
 /* ── SIDEBAR ─────────────────────────────────────────────────── */
 .sidebar-overlay {
@@ -1145,7 +1149,7 @@ input, select, textarea {
   letter-spacing: 1.2px; color: var(--white); opacity: 0.72; margin-bottom: 6px;
 }
 .sec-title {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
   font-size: 20px; font-weight: 800;
   color: var(--white); line-height: 1.2; margin-bottom: 8px;
 }
@@ -1250,7 +1254,7 @@ input, select, textarea {
   text-align: center;
 }
 .overlay .popup h2 {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
   font-size: 20px; font-weight: 800; margin-bottom: 8px;
 }
 .overlay .popup p { font-size: 13px; color: var(--muted); margin-bottom: 18px; }

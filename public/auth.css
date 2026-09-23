@@ -4,10 +4,7 @@
    Requires tokens.css + global.css  */
 
 .auth-page {
-  background:
-    radial-gradient(760px 320px at 0% 0%,   rgba(74,144,232,0.07), transparent 60%),
-    radial-gradient(860px 340px at 100% 0%,  rgba(74,144,232,0.06), transparent 60%),
-    linear-gradient(180deg, #0b1220 0%, #0e1828 100%);
+  background: #0b1220;
 }
 
 .auth-container {
@@ -34,10 +31,9 @@
   content: "";
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--primary), var(--primary-400));
+  height: 3px;
+  background: var(--primary);
   border-radius: 22px 22px 0 0;
-  opacity: 1;
 }
 
 .auth-brand { margin-bottom: 12px; }
@@ -87,7 +83,7 @@
   outline: none;
   border-color: var(--primary);
   background: var(--surface-2);
-  box-shadow: 0 0 0 4px rgba(74,144,232,0.12);
+  box-shadow: 0 0 0 2px rgba(74,144,232,0.16);
 }
 
 .auth-submit {
@@ -97,9 +93,9 @@
   border-radius: 12px;
   font-size: 1rem;
   font-weight: 800;
-  box-shadow: 0 8px 22px rgba(74,144,232,0.22);
+  box-shadow: 0 2px 8px rgba(11,18,32,0.35);
 }
-.auth-submit:hover { box-shadow: 0 12px 28px rgba(74,144,232,0.30); }
+.auth-submit:hover { box-shadow: 0 4px 12px rgba(11,18,32,0.4); }
 
 .auth-alt { width: 100%; min-height: 52px; margin-top: 10px; border-radius: 12px; font-size: 1rem; font-weight: 700; }
 
