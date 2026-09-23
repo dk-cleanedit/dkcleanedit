@@ -88,8 +88,9 @@
 //       Pearl tier (500+ pts): free standard clean (base price waived),
 //         automatically applied at booking submission.
 //       Used in: getTierDiscount(), getTotalPriceStr(), initBooking()
-//       (Section 16), renderOrderCard() (Section 7), renderAdminCard()
-//       (Section 8), and applyCustomerTier() (Section 19).
+//       (Section 16), renderOrderCard() (Section 7), and renderAdminCard()
+//       (Section 8). customer.html's own tier-progress UI (badge, bar,
+//       hint text) is owned entirely by customer.js's applyTierUI().
 //
 // ═══════════════════════════════════════════════════════════════
 
@@ -178,6 +179,18 @@ const LOCATION_DATA = {
     embed:    "https://www.google.com/maps?q=Canada%20Water%20London%20UK&z=15&output=embed",
   },
 };
+
+// Shows the customer's actual home-pickup address instead of the branch
+// name, for any order booked as "homepickup" — otherwise falls back to
+// the branch's display name. Use this anywhere an order's "location" is
+// shown to a customer or to staff (order cards, schedule rows, emails).
+function orderLocationLabel(order) {
+  if (!order) return "";
+  if (order.collectionOption === "homepickup" && order.pickupAddress) {
+    return `Home pickup — ${order.pickupAddress}`;
+  }
+  return LOCATION_DATA[order.location]?.name || order.location || "";
+}
 
 const ROLES = {
   pickup:   "Shoe pickup",
@@ -843,7 +856,7 @@ function renderOrderCard(order) {
   return `<article class="order-card" data-id="${esc(order.id)}" aria-label="Order ${esc(order.id)}">
     <div class="order-top">
       <div>
-        <div class="order-title">${esc(serviceLabel(order.service))} &bull; ${esc(order.location)}</div>
+        <div class="order-title">${esc(serviceLabel(order.service))} &bull; ${esc(orderLocationLabel(order))}</div>
         <div class="sub">${esc(formatDate(order.date))} &bull; ${esc(order.timeSlot)} &bull; ${esc(order.price || "")}</div>
         ${addonsHtml}
         ${discountHtml}
@@ -951,7 +964,7 @@ function renderAdminCard(order, currentUser, conflict = false) {
           ${conflict ? `<span class="conflict-badge">Double-booked</span>` : ""}
         </div>
         <div class="sub">${esc(order.customerEmail || "")}${order.customerPhone ? ` &bull; ${esc(order.customerPhone)}` : ""}</div>
-        <div class="sub">${esc(order.location || "")}</div>
+        <div class="sub">${esc(orderLocationLabel(order))}</div>
         <div class="sub">${esc(dateStr)} &bull; ${esc(order.timeSlot || "")} &bull; ${esc(order.price || "")}</div>
         ${addonsHtml}
         ${discountHtml}
@@ -1187,7 +1200,7 @@ async function cancelOrder(orderId) {
     orderId,
     bookingDate: date,
     bookingTime: timeSlot,
-    location:    data.location,
+    location:    orderLocationLabel(data),
   });
   toast("Booking cancelled", "success");
 }
@@ -1266,7 +1279,7 @@ function openCustomerRescheduleModal(orderId, data) {
         bookingDate: newDate,
         bookingTime: newTime,
         service:     serviceLabel(data.service),
-        location:    data.location,
+        location:    orderLocationLabel(data),
       });
       toast(`Rescheduled to ${formatDate(newDate)} at ${newTime} ✅`, "success");
       closeModal();
@@ -2265,8 +2278,8 @@ function initCustomer() {
     const savedPhoto = userData.photoURL || user.photoURL;
     if (avatarImg && savedPhoto) avatarImg.src = savedPhoto;
 
-    // tier progress
-    applyCustomerTier(points);
+    // Tier progress UI (badge, bar, hint text) is rendered by
+    // customer.js's applyTierUI() — this page also loads that script.
 
     // nav points badge
     const badge = document.getElementById("navPointsBadge");
@@ -2368,33 +2381,6 @@ function initCustomer() {
     }
   });
 }
-
-function applyCustomerTier(pts) {
-  let tier = "Carbon", next = "Stone", needed = 100;
-  let pct = Math.min((pts / 100) * 100, 100);
-  if (pts >= 500) { tier = "Pearl"; next = null; pct = 100; }
-  else if (pts >= 100) { tier = "Stone"; next = "Pearl"; needed = 500; pct = Math.min(((pts - 100) / 400) * 100, 100); }
-
-  if ($("#custTierBadge")) $("#custTierBadge").textContent = tier;
-  if ($("#tierChip"))      $("#tierChip").textContent      = tier;
-
-  const bar   = document.getElementById("tierBar");
-  const label = document.getElementById("tierProgressLabel");
-  const pctEl = document.getElementById("tierProgressPct");
-  const hint  = document.getElementById("tierHint");
-  if (bar)   bar.style.width       = `${pct}%`;
-  if (pctEl) pctEl.textContent     = `${Math.round(pct)}%`;
-  if (label) label.textContent     = next ? `Progress to ${next}` : "Top tier reached";
-  if (hint)  hint.textContent      = next
-    ? `Earn ${needed - pts} more pts to reach ${next}.`
-    : "You're at our highest tier!";
-
-  ["Carbon","Stone","Pearl"].forEach((t) => {
-    const el = document.getElementById(`tier-${t.toLowerCase()}`);
-    if (el) el.classList.toggle("active-tier", t === tier);
-  });
-}
-
 
 // ─────────────────────────────────────────────────────────────
 //  SECTION 20 — ADMIN AVAILABILITY CALENDAR
@@ -2514,7 +2500,7 @@ function exportOrdersToCSV(orders) {
 
   const headers = [
     "Order ID", "Customer Name", "Email", "Phone",
-    "Service", "Location", "Date", "Time",
+    "Service", "Location", "Pickup Address", "Date", "Time",
     "Base Price", "Add-ons", "Total Price",
     "Status", "Picked Up", "Points Awarded",
     "Delivery Mode", "Assigned Staff", "Notes", "Created",
@@ -2531,6 +2517,7 @@ function exportOrdersToCSV(orders) {
       o.customerPhone || "",
       serviceLabel(o.service),
       o.location      || "",
+      o.pickupAddress || "",
       o.date          || "",
       o.timeSlot      || "",
       o.basePrice ? `£${o.basePrice}` : "",
@@ -2636,7 +2623,7 @@ function initAdmin() {
           <div>
             <div class="order-title">${esc(o.customerName || "Customer")} &bull; ${esc(serviceLabel(o.service))}</div>
             <div class="sub">${esc(o.customerEmail || "No email on file")}</div>
-            <div class="sub">${esc(o.location || "")}</div>
+            <div class="sub">${esc(orderLocationLabel(o))}</div>
             <div class="sub">${esc(formatDate(o.date))} at ${esc(o.timeSlot || "")} &bull; ${esc(o.price || "")}</div>
             <div class="sub">Order: <code>${esc(o.id)}</code></div>
             <div class="sub" style="color:#ef4444;font-weight:600;margin-top:4px;">⚠ Did not drop off — appointment passed</div>
@@ -2693,7 +2680,7 @@ function initAdmin() {
     const filtered = visible.filter((o) => {
       const matchesFilter = !filter || o.status === filter;
       const haystack = [
-        o.customerName, o.customerEmail, o.location, o.service,
+        o.customerName, o.customerEmail, o.location, o.pickupAddress, o.service,
         o.date, o.timeSlot, o.price, o.status, o.id,
       ].join(" ").toLowerCase();
       return matchesFilter && (!search || haystack.includes(search));
@@ -2805,7 +2792,7 @@ function initAdmin() {
           orderId:       cancelId,
           bookingDate:   cancelData.date,
           bookingTime:   cancelData.timeSlot,
-          location:      cancelData.location,
+          location:      orderLocationLabel(cancelData),
         });
         toast("Order cancelled ✅", "success");
       } catch (err) {
@@ -3049,7 +3036,7 @@ function initSchedule() {
               ${o.assignedStaff ? `<span class="badge info" style="font-size:0.7rem;">Staff: ${esc(o.assignedStaff)}</span>` : ""}
             </div>
             <div class="sched-order-meta">
-              ${esc(serviceLabel(o.service))} &bull; ${esc(o.location || "")} &bull; ${esc(o.price || "")}
+              ${esc(serviceLabel(o.service))} &bull; ${esc(orderLocationLabel(o))} &bull; ${esc(o.price || "")}
             </div>
             ${o.deliveryMode && o.deliveryMode !== "pending"
               ? `<div class="sched-order-meta" style="color:var(--text-2);">Handoff: ${esc(o.deliveryMode)}</div>` : ""}
@@ -3198,7 +3185,7 @@ function initSchedule() {
           bookingDate: newDate,
           bookingTime: newTime,
           service:     serviceLabel(order.service),
-          location:    order.location,
+          location:    orderLocationLabel(order),
         });
         toast(`Rescheduled to ${formatDate(newDate)} at ${newTime} ✅`, "success");
         closeModal(); renderTimeline(selectedISO); buildCal();

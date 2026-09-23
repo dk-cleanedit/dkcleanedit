@@ -56,6 +56,7 @@ function analyticsBuildData(allOrders) {
   const timeSlotData = {};
   const revenueData = {};
   const customerData = {};
+  const customerNames = {};
 
   let totalRevenue = 0;
   let completedRevenue = 0;
@@ -81,6 +82,9 @@ function analyticsBuildData(allOrders) {
     dayData[orderDay] = (dayData[orderDay] || 0) + 1;
     timeSlotData[orderTimeSlot] = (timeSlotData[orderTimeSlot] || 0) + 1;
     customerData[customerKey] = (customerData[customerKey] || 0) + 1;
+    if (!customerNames[customerKey]) {
+      customerNames[customerKey] = order.customerName || order.customerEmail || "Customer";
+    }
 
     totalRevenue += orderPrice;
     totalPoints += Number(order.grantedPointsAmount || 0);
@@ -95,9 +99,17 @@ function analyticsBuildData(allOrders) {
   const completedOrders = statusData["Completed"] || 0;
   const cancelledOrders = statusData["Cancelled"] || 0;
   const activeOrders = totalOrders - completedOrders - cancelledOrders;
+  const uniqueCustomers = Object.keys(customerData).length;
+  const cancelRate = totalOrders ? Math.round((cancelledOrders / totalOrders) * 100) : 0;
   const repeatCustomers = Object.values(customerData).filter((count) => count > 1).length;
   const popularService = analyticsSortEntries(serviceData)[0]?.[0] || "-";
   const topLocation = analyticsSortEntries(locationData)[0]?.[0] || "-";
+
+  // Top 8 customers by order count, for the "Top customers" chart.
+  const topCustomersData = {};
+  analyticsSortEntries(customerData).slice(0, 8).forEach(([key, count]) => {
+    topCustomersData[customerNames[key] || key] = count;
+  });
 
   return {
     summaryData: {
@@ -105,6 +117,8 @@ function analyticsBuildData(allOrders) {
       completedOrders,
       cancelledOrders,
       activeOrders,
+      uniqueCustomers,
+      cancelRate,
       totalRevenue,
       completedRevenue,
       totalPoints,
@@ -119,6 +133,7 @@ function analyticsBuildData(allOrders) {
       dayData,
       timeSlotData,
       revenueData,
+      topCustomersData,
     },
   };
 }
@@ -128,10 +143,10 @@ function analyticsRenderSummary(summaryData) {
   analyticsSetText("kpiCompletedInline", summaryData.completedOrders);
   analyticsSetText("kpiRevenue", `£${summaryData.totalRevenue}`);
   analyticsSetText("kpiCompletedRevenue", `£${summaryData.completedRevenue}`);
-  analyticsSetText("kpiActive", summaryData.activeOrders);
-  analyticsSetText("kpiCancelled", summaryData.cancelledOrders);
+  analyticsSetText("kpiCustomers", summaryData.uniqueCustomers);
   analyticsSetText("kpiPoints", summaryData.totalPoints);
-  analyticsSetText("kpiRepeat", summaryData.repeatCustomers);
+  analyticsSetText("kpiCancelled", summaryData.cancelledOrders);
+  analyticsSetText("kpiCancelRate", `${summaryData.cancelRate}%`);
 
   analyticsSetText("kpiCompletedCard", summaryData.completedOrders);
   analyticsSetText("kpiRepeatCard", summaryData.repeatCustomers);
@@ -192,15 +207,6 @@ function analyticsRenderCharts(chartData, summaryData) {
     options: { responsive: true, maintainAspectRatio: false },
   });
 
-  analyticsMakeChart("pointsChart", {
-    type: "bar",
-    data: {
-      labels: ["Points Awarded"],
-      datasets: [{ label: "Points", data: [summaryData.totalPoints], borderWidth: 1 }],
-    },
-    options: { responsive: true, maintainAspectRatio: false },
-  });
-
   analyticsMakeChart("revenueChart", {
     type: "bar",
     data: {
@@ -208,6 +214,19 @@ function analyticsRenderCharts(chartData, summaryData) {
       datasets: [{ label: "Revenue (£)", data: Object.values(chartData.revenueData), borderWidth: 1 }],
     },
     options: { responsive: true, maintainAspectRatio: false },
+  });
+
+  analyticsMakeChart("customersChart", {
+    type: "bar",
+    data: {
+      labels: Object.keys(chartData.topCustomersData),
+      datasets: [{ label: "Orders", data: Object.values(chartData.topCustomersData), borderWidth: 1 }],
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+    },
   });
 }
 

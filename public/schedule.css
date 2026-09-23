@@ -40,7 +40,7 @@
 .sched-shell {
   font-family: var(--font, system-ui, sans-serif);
   width: min(1280px, calc(100% - 32px));
-  margin: 28px auto 80px;
+  margin: 20px auto 24px;
   display: grid;
   gap: 20px;
 }
@@ -125,6 +125,25 @@
   .sched-layout {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* Phone — stack the hero, turn the 4 stat pills into a tidy 2x2 grid,
+   and give every action button a real tap target. */
+@media (max-width: 560px) {
+  .sched-shell { width: calc(100% - 24px); margin: 16px auto 20px; gap: 14px; }
+
+  .sched-hero { flex-direction: column; align-items: stretch; gap: 16px; padding: 18px; }
+  .sched-hero-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; width: 100%; }
+  .sched-stat { min-width: 0; padding: 10px 12px; }
+  .sched-stat-val { font-size: 1.5rem; }
+
+  .sched-card-head { padding: 14px 16px; }
+
+  .sched-pill-btn { height: 40px; padding: 0 15px; font-size: 0.82rem; }
+  .sched-editor-actions { gap: 8px; }
+  .sched-editor-actions .sched-pill-btn { flex: 1 1 calc(50% - 4px); }
+
+  .sched-cal-btn { width: 38px; height: 38px; }
 }
 
 .sched-right-col { display: grid; gap: 20px; }

@@ -945,7 +945,7 @@ input, select, textarea {
 .nav-mobile-bar   { display: flex; align-items: center; width: 100%; }
 .nav-mobile-left  { flex: 0 0 72px; display: flex; align-items: center; gap: 4px; }
 .nav-mobile-center{ flex: 1; display: flex; justify-content: center; align-items: center; }
-.nav-mobile-center img { height: 34px; width: auto; }
+.nav-mobile-center img { height: 44px; width: auto; }
 .nav-mobile-right { flex: 0 0 72px; display: flex; align-items: center; justify-content: flex-end; gap: 2px; }
 
 .nav-icon-btn {
@@ -996,7 +996,7 @@ input, select, textarea {
   padding: 18px 16px 16px;
   border-bottom: 1px solid var(--hairline);
 }
-.sidebar-header img { height: 30px; width: auto; }
+.sidebar-header img { height: 38px; width: auto; }
 
 .sidebar-close {
   width: 34px; height: 34px; border-radius: 8px;

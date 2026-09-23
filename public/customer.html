@@ -142,7 +142,7 @@
     .nav-mobile-bar   { display: flex; align-items: center; width: 100%; }
     .nav-mobile-left  { flex: 0 0 72px; display: flex; align-items: center; gap: 4px; }
     .nav-mobile-center{ flex: 1; display: flex; justify-content: center; align-items: center; }
-    .nav-mobile-center img { height: 34px; width: auto; }
+    .nav-mobile-center img { height: 44px; width: auto; }
     .nav-mobile-right { flex: 0 0 72px; display: flex; align-items: center; justify-content: flex-end; gap: 2px; }
 
     .nav-icon-btn {
@@ -193,7 +193,7 @@
       padding: 18px 16px 16px;
       border-bottom: 1px solid rgba(201, 168, 76, 0.12);
     }
-    .sidebar-header img { height: 30px; width: auto; }
+    .sidebar-header img { height: 38px; width: auto; }
 
     .sidebar-close {
       width: 34px; height: 34px; border-radius: 8px;
@@ -741,6 +741,11 @@
              class="acct-av"
              alt="Your profile picture" />
         <span class="acct-av-badge" id="custTierBadge">Carbon</span>
+        <label class="acct-av-edit" for="avatarUpload" aria-label="Change profile picture">
+          <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </label>
+        <input type="file" id="avatarUpload" accept="image/jpeg,image/png,image/webp"
+               aria-label="Upload profile picture" style="display:none;" />
       </div>
       <div class="acct-info">
         <h1 id="custName" class="acct-name">—</h1>

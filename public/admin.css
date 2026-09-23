@@ -251,6 +251,81 @@
 
 
 /* =============================================================================
+   STATS ROW — phone-first: 2x2 grid of cards, a single row from tablet up.
+============================================================================= */
+
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.admin-stat-box {
+  padding: 14px 16px !important;
+  display: flex; flex-direction: column; gap: 4px;
+  min-width: 0;
+}
+.admin-stat-lbl {
+  font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--text-3);
+}
+.admin-stat-val {
+  font-size: 1.5rem; font-weight: 800; color: var(--text);
+  letter-spacing: -0.02em; line-height: 1.1;
+  font-variant-numeric: tabular-nums; font-family: var(--font-mono);
+}
+
+@media (min-width: 700px) {
+  .admin-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+  .admin-stat-val { font-size: 1.7rem; }
+}
+
+
+/* =============================================================================
+   SEARCH / FILTER TOOLBAR — stacked full-width fields on the phone,
+   a single row from tablet up. Inputs are 16px+ so iOS doesn't zoom in.
+============================================================================= */
+
+.admin-toolbar {
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+}
+
+.admin-search {
+  height: var(--tap, 44px); width: 100%; padding: 0 14px;
+  border: 1.5px solid var(--line); border-radius: 8px;
+  background: var(--surface-3); font-size: 16px; color: var(--text);
+  -webkit-appearance: none; appearance: none;
+  transition: border-color var(--ease), box-shadow var(--ease), background var(--ease);
+}
+.admin-search:focus { outline: none; border-color: var(--adm-blue); background: var(--surface-2); box-shadow: 0 0 0 3px rgba(74,144,232,0.12); }
+.admin-search::placeholder { color: var(--text-4); }
+
+.admin-filter {
+  height: var(--tap, 44px); width: 100%; padding: 0 32px 0 14px;
+  border: 1.5px solid var(--line); border-radius: 8px;
+  background: var(--surface-3);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%233d5470' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center;
+  -webkit-appearance: none; appearance: none;
+  font-size: 16px; color: var(--text); cursor: pointer;
+  transition: border-color var(--ease), box-shadow var(--ease);
+}
+.admin-filter:focus { outline: none; border-color: var(--adm-blue); box-shadow: 0 0 0 3px rgba(74,144,232,0.12); }
+
+.admin-toolbar-actions { display: flex; gap: 10px; }
+.admin-toolbar-actions .btn { flex: 1; min-height: var(--tap, 44px); }
+
+@media (min-width: 700px) {
+  .admin-toolbar { flex-direction: row; align-items: center; padding: 16px 26px; }
+  .admin-search  { flex: 1; min-width: 0; }
+  .admin-filter  { width: auto; flex: 0 0 auto; }
+  .admin-toolbar-actions { flex-shrink: 0; }
+}
+
+
+/* =============================================================================
    FOCUS RINGS
 ============================================================================= */
 
@@ -261,6 +336,25 @@
 .avail-slot-btn:focus-visible {
   outline: 2px solid var(--primary-400);
   outline-offset: 2px;
+}
+
+
+/* =============================================================================
+   STAFF PAGE — form grid + modal cards (admin_account.html)
+============================================================================= */
+
+.staff-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+@media (max-width: 480px) {
+  .staff-form-grid { grid-template-columns: 1fr; }
+}
+
+.staff-modal-card { padding: 20px !important; }
+@media (min-width: 560px) {
+  .staff-modal-card { padding: 28px !important; }
 }
 
 
@@ -282,6 +376,7 @@
 }
 
 @media (max-width: 560px) {
+  .admin-tabs { padding: 0 16px; }
   .admin-tab { padding: 11px 12px; font-size: 0.8rem; }
   .admin-tab-panel { padding: 16px; }
   .admin-header { padding: 16px; }

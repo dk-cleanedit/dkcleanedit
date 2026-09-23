@@ -23,49 +23,21 @@
   margin-bottom: var(--s-2);
 }
 
-/* top nav */
-.adminNavg {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.adminLinkPage {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 42px;
-  padding: 10px 16px;
-  border-radius: var(--r-pill);
-  border: 1px solid var(--line-2);
-  background: var(--surface-2);
-  color: var(--text-2);
-  font-weight: 700;
-  transition:
-    background-color var(--ease),
-    border-color var(--ease),
-    color var(--ease),
-    transform var(--ease);
-}
-
-.adminLinkPage:hover {
-  background: var(--surface-hover);
-  border-color: var(--line-strong);
-  color: var(--text);
-  transform: translateY(-1px);
-}
-
-.analyticsActiveLink {
-  background: var(--primary-050);
-  border-color: var(--primary-border);
-  color: var(--primary-400);
-}
-
 /* summary cards */
 .analyticsSummary {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: var(--s-5);
+}
+
+/* charts grid — one per row on the phone, two across from tablet up */
+.analyticsChartsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--s-5);
+}
+@media (min-width: 720px) {
+  .analyticsChartsGrid { grid-template-columns: repeat(2, 1fr); }
 }
 
 .analyticsCard {
@@ -168,6 +140,26 @@
   box-shadow: 0 8px 20px rgba(140, 100, 255, 0.12);
 }
 
+.greenCard {
+  background: linear-gradient(
+    135deg,
+    rgba(61, 201, 138, 0.22),
+    rgba(61, 201, 138, 0.10)
+  );
+  border-color: rgba(61, 201, 138, 0.28);
+  box-shadow: 0 8px 20px rgba(61, 201, 138, 0.12);
+}
+
+.redCard {
+  background: linear-gradient(
+    135deg,
+    rgba(224, 92, 92, 0.22),
+    rgba(224, 92, 92, 0.10)
+  );
+  border-color: rgba(224, 92, 92, 0.28);
+  box-shadow: 0 8px 20px rgba(224, 92, 92, 0.12);
+}
+
 /* extra kpi */
 .analyticsExtra {
   display: grid;
@@ -235,7 +227,8 @@
   }
 
   .analyticsSection {
-    padding: 20px;
+    padding: 16px;
+    gap: var(--s-5);
   }
 
   .analyticsValue {
