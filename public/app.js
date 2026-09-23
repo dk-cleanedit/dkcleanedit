@@ -209,8 +209,21 @@ const LOCATIONS = { leicester: "Leicester", "canada-water": "Canada Water" };
 // other quantity, exactly mirroring booking.html's own PRICING <script>
 // (PAIR_PRICE_ANCHORS there). Keep the two in sync if the price list
 // changes — this copy is the authoritative one for the Firestore write.
+/**
+ * Loyalty tier name for a given points total. Mirrors customer.js's
+ * TIERS breakpoints (Carbon 0-99, Stone 100-499, Pearl 500+) so the
+ * site-wide nav points badge can show the same tier everywhere,
+ * not just on the account page.
+ */
+function tierNameForPoints(pts) {
+  const n = Number(pts) || 0;
+  if (n >= 500) return "Pearl";
+  if (n >= 100) return "Stone";
+  return "Carbon";
+}
+
 const PAIR_PRICE_ANCHORS = {
-  standard_clean: [[1, 25], [3, 60], [10, 130]],
+  standard_clean: [[1, 25], [3, 60], [10, 200]],  // £20/pair flat after 3 pairs
   express:        [[1, 30], [3, 70]],   // 10+ pairs quoted separately
   next_day:       [[1, 35], [3, 85]],   // 10+ pairs quoted separately
 };
@@ -339,6 +352,17 @@ function esc(val) {
     /[&<>"']/g,
     (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[c])
   );
+}
+
+/**
+ * Only allow http(s) URLs through to href/src attributes. Firestore data
+ * (e.g. uploaded photo URLs) is treated as untrusted — without this, a
+ * tampered "imageUrl" field containing a javascript: URI could run script
+ * when a staff member clicks the "view upload" link.
+ */
+function safeUrl(val) {
+  const s = String(val ?? "").trim();
+  return /^https?:\/\//i.test(s) ? s : "";
 }
 
 function pad(n) { return String(n).padStart(2, "0"); }
@@ -929,8 +953,8 @@ function renderAdminCard(order, currentUser, conflict = false) {
          <div class="sub" style="margin-bottom:8px;">Customer Uploads (${imageUrls.length})</div>
          <div style="display:flex;gap:10px;flex-wrap:wrap;">
            ${imageUrls.map((url, i) =>
-             `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" aria-label="View upload ${i + 1}">
-                <img src="${esc(url)}" alt="Upload ${i + 1}"
+             `<a href="${esc(safeUrl(url))}" target="_blank" rel="noopener noreferrer" aria-label="View upload ${i + 1}">
+                <img src="${esc(safeUrl(url))}" alt="Upload ${i + 1}"
                      style="width:88px;height:88px;object-fit:cover;border-radius:10px;border:1px solid var(--line);"
                      loading="lazy"/>
               </a>`
@@ -1424,9 +1448,11 @@ async function setupNav(user) {
     try {
       const snap = await getDoc(doc(db, "users", user.uid));
       const pts  = snap.exists() ? Number(snap.data().points || 0) : 0;
-      badge.textContent = `${pts} pts`;
+      const tierName = tierNameForPoints(pts);
+      badge.textContent = `${tierName} · ${pts} pts`;
+      badge.dataset.tier = tierName;
       badge.hidden = false;
-      badge.setAttribute("aria-label", `You have ${pts} loyalty points`);
+      badge.setAttribute("aria-label", `${tierName} tier — ${pts} loyalty points`);
     } catch { badge.hidden = true; }
   } else if (badge) {
     badge.hidden = true;
@@ -2283,7 +2309,12 @@ function initCustomer() {
 
     // nav points badge
     const badge = document.getElementById("navPointsBadge");
-    if (badge) { badge.textContent = `${points} pts`; badge.hidden = false; }
+    if (badge) {
+      const tierName = tierNameForPoints(points);
+      badge.textContent = `${tierName} · ${points} pts`;
+      badge.dataset.tier = tierName;
+      badge.hidden = false;
+    }
 
     // avatar upload — Ref [2] MDN FileReader
     const avatarInput = document.getElementById("avatarUpload");

@@ -26,9 +26,6 @@
   <meta name="theme-color" content="#0a1120" />
   <title>Login | DKcleanedit</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
 
   <script>
     if (localStorage.getItem("theme") === "dark") {
@@ -56,9 +53,9 @@
       --surface-4:  #d7e1ef;
       --navy:       #0a1120;
       --navy-2:     #111b2c;
-      --gold:       #c9a84c;
-      --gold-light: #e8c97a;
-      --gold-dark:  #9a7a2e;
+      --gold:       #4fc3f7;
+      --gold-light: #8ad9fb;
+      --gold-dark:  #0288d1;
       --white:      #f5f5f5;
       --ink:        #000000;
       --ink-2:      #000000;
@@ -72,18 +69,34 @@
       --tap:        48px;
     }
 
+    /* Dark Mode override (Settings > Appearance) — html.dark-mode set
+       by app.js's initTheme()/initSettings(), persisted in localStorage. */
+    html.dark-mode {
+      --surface:    #0a1120;
+      --surface-2:  #111b2c;
+      --surface-3:  #172334;
+      --surface-4:  #1d2e42;
+      --white:      #0a1120;
+      --ink:        #f5f5f5;
+      --ink-2:      #e6f2ff;
+      --muted:      #9fb0c4;
+      --muted-2:    #7c93ab;
+      --hairline:   rgba(79, 195, 247, 0.14);
+      --hairline-2: rgba(79, 195, 247, 0.28);
+    }
+
     /* ── RESET ──────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { -webkit-text-size-adjust: 100%; }
 
     body.auth-page {
-      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
       font-size: 14px;
       line-height: 1.55;
       color: var(--ink);
       background: var(--surface);
       overflow-x: hidden;
-      padding-top: 60px;
+      padding-top: 96px;
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
     }
@@ -99,11 +112,11 @@
     /* ── TOP BAR ────────────────────────────────────────────── */
     .navbar {
       position: fixed; top: 0; left: 0; right: 0; z-index: 900;
-      height: 60px; padding: 0 14px;
+      height: 96px; padding: 0 14px;
       display: flex; align-items: center;
       background: rgba(10, 17, 32, 0.97);
       -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
-      border-bottom: 1px solid rgba(201, 168, 76, 0.18);
+      border-bottom: 1px solid rgba(79, 195, 247, 0.18);
     }
     /* Legacy desktop link list kept in the DOM for any JS that reads it */
     .nav-links { display: none !important; }
@@ -111,7 +124,19 @@
     .nav-mobile-bar { display: flex; align-items: center; width: 100%; }
     .nav-mobile-left  { flex: 0 0 60px; display: flex; align-items: center; }
     .nav-mobile-center{ flex: 1; display: flex; justify-content: center; align-items: center; }
-    .nav-mobile-center img { height: 44px; width: auto; }
+        @keyframes logoSpin3D {
+      from { transform: perspective(400px) rotateY(0deg); }
+      to   { transform: perspective(400px) rotateY(360deg); }
+    }
+    @keyframes pageEnter {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: none; }
+    }
+.nav-mobile-center img {
+      height: 84px; width: auto;
+      transform-style: preserve-3d;
+      animation: logoSpin3D 9s linear infinite;
+    }
     .nav-mobile-right { flex: 0 0 60px; }
 
     .nav-icon-btn {
@@ -121,7 +146,7 @@
       -webkit-tap-highlight-color: transparent;
       transition: background 0.12s;
     }
-    .nav-icon-btn:active { background: rgba(201, 168, 76, 0.12); }
+    .nav-icon-btn:active { background: rgba(79, 195, 247, 0.12); }
     .nav-icon-btn svg {
       width: 20px; height: 20px; stroke: currentColor; fill: none;
       stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
@@ -135,7 +160,7 @@
       color: #000; font-size: 15px; font-weight: 700;
       border-radius: var(--radius-sm);
       -webkit-tap-highlight-color: transparent;
-      box-shadow: 0 4px 18px rgba(201, 168, 76, 0.25);
+      box-shadow: 0 4px 18px rgba(79, 195, 247, 0.25);
     }
     .btn.primary.full:active, .btn-gold:active { opacity: 0.88; }
     .btn.primary.full:disabled, .btn-gold:disabled { opacity: 0.45; box-shadow: none; }
@@ -166,7 +191,7 @@
     .auth-card {
       width: 100%; max-width: 400px;
       background: var(--surface-2);
-      border: 1px solid rgba(201, 168, 76, 0.12);
+      border: 1px solid rgba(79, 195, 247, 0.12);
       border-radius: var(--radius-md);
       padding: 26px 20px;
     }
@@ -178,7 +203,7 @@
     }
 
     .auth-title {
-      font-family: 'Syne', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
       font-size: 26px; font-weight: 800;
       line-height: 1.15; margin-bottom: 6px;
     }
@@ -245,14 +270,14 @@
     .twofa-input {
       width: 100%; height: 62px;
       text-align: center;
-      font-family: 'Syne', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
       font-size: 24px; font-weight: 800;
       border-radius: 12px;
       border: 1.5px solid var(--surface-4);
       background: var(--surface-3); color: var(--ink);
       outline: none; -webkit-appearance: none;
     }
-    .twofa-input:focus { border-color: var(--gold); background: rgba(201, 168, 76, 0.07); }
+    .twofa-input:focus { border-color: var(--gold); background: rgba(79, 195, 247, 0.07); }
     .twofa-input.filled { border-color: var(--gold-dark); }
   </style>
 

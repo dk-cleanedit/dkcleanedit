@@ -13,7 +13,6 @@
    radius, motion, and font tokens are shared across both themes.
 */
 
-@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 
@@ -29,9 +28,9 @@
   --surface-hover: #233550;
 
   /* accent */
-  --accent:        #c9a84c;
-  --accent-strong: #9a7a2e;
-  --accent-glow:   rgba(201, 168, 76, 0.30);
+  --accent:        #4fc3f7;
+  --accent-strong: #0288d1;
+  --accent-glow:   rgba(79, 195, 247, 0.30);
 
   /* text */
   --text:   #e6f2ff;
@@ -46,31 +45,31 @@
   --border:      var(--line);
 
   /* primary colour scale */
-  --primary:        #c9a84c;
-  --primary-700:    #9a7a2e;
-  --primary-600:    #b8943f;
-  --primary-500:    #d4b662;
-  --primary-400:    #e8c97a;
-  --primary-300:    #f0dba0;
-  --primary-100:    rgba(201, 168, 76, 0.18);
-  --primary-050:    rgba(201, 168, 76, 0.09);
+  --primary:        #4fc3f7;
+  --primary-700:    #0288d1;
+  --primary-600:    #29b6f6;
+  --primary-500:    #6fd0f9;
+  --primary-400:    #8ad9fb;
+  --primary-300:    #b3e5fc;
+  --primary-100:    rgba(79, 195, 247, 0.18);
+  --primary-050:    rgba(79, 195, 247, 0.09);
   --primary-bg:     var(--primary-050);
-  --primary-border: rgba(201, 168, 76, 0.30);
+  --primary-border: rgba(79, 195, 247, 0.30);
   --primary-d:      var(--primary-700);
 
   /* gold / loyalty */
-  --gold:           #f5ae3c;
-  --gold-bright:    #f5c842;
-  --gold-dim:       #b87d12;
-  --gold-bg:        rgba(245, 174, 60, 0.12);
-  --gold-bg-strong: rgba(245, 174, 60, 0.22);
-  --gold-border:    rgba(245, 174, 60, 0.38);
+  --gold:           #4fc3f7;
+  --gold-bright:    #8ad9fb;
+  --gold-dim:       #0288d1;
+  --gold-bg:        rgba(79, 195, 247, 0.12);
+  --gold-bg-strong: rgba(79, 195, 247, 0.22);
+  --gold-border:    rgba(79, 195, 247, 0.38);
 
   /* status colours */
   --success:     #34c47a;
   --success-100: rgba(52,  196, 122, 0.12);
-  --warning:     #f0b843;
-  --warning-100: rgba(240, 184, 67,  0.12);
+  --warning:     #94a3b8;
+  --warning-100: rgba(148, 163, 184, 0.12);
   --danger:      #e05555;
   --danger-100:  rgba(224, 85,  85,  0.12);
   --info:        #4a90e8;
@@ -106,8 +105,8 @@
   --s-10: 72px;
 
   /* typography */
-  --font:         'Satoshi', 'DM Sans', system-ui, -apple-system, sans-serif;
-  --font-display: 'Canela', 'Syne', Georgia, serif;
+  --font:         -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Helvetica Neue", Arial, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, "Helvetica Neue", Arial, sans-serif;
   --font-mono:    'IBM Plex Mono', 'DM Mono', ui-monospace, monospace;
 
   /* motion */
@@ -134,16 +133,16 @@
   /* booking page */
   --bk-navy:         #0a1120;
   --bk-navy-mid:     #e8f0fe;
-  --bk-blue:         #9a7a2e;
-  --bk-blue-light:   rgba(201, 168, 76, 0.10);
-  --bk-blue-border:  rgba(201, 168, 76, 0.25);
-  --bk-gold:         #f0b843;
-  --bk-gold-bg:      rgba(240, 184, 67,  0.10);
-  --bk-gold-border:  rgba(240, 184, 67,  0.25);
+  --bk-blue:         #0288d1;
+  --bk-blue-light:   rgba(79, 195, 247, 0.10);
+  --bk-blue-border:  rgba(79, 195, 247, 0.25);
+  --bk-gold:         #4fc3f7;
+  --bk-gold-bg:      rgba(79, 195, 247, 0.10);
+  --bk-gold-border:  rgba(79, 195, 247, 0.25);
   --bk-green:        #34c47a;
   --bk-green-bg:     rgba(52,  196, 122, 0.10);
   --bk-green-border: rgba(52,  196, 122, 0.25);
-  --bk-shadow-blue:  0 4px 16px rgba(201, 168, 76, 0.22);
+  --bk-shadow-blue:  0 4px 16px rgba(79, 195, 247, 0.22);
 
   /* admin panel */
   --adm-sidebar-bg:      #0c1422;
@@ -151,23 +150,23 @@
   --adm-sidebar-border:  rgba(255, 255, 255, 0.09);
   --adm-sidebar-text:    #e8f0fe;
   --adm-sidebar-muted:   rgba(168, 192, 222, 0.50);
-  --adm-sidebar-hover:   rgba(201, 168, 76, 0.10);
-  --adm-sidebar-active:  rgba(201, 168, 76, 0.18);
-  --adm-sidebar-accent:  #e8c97a;
-  --adm-blue:            #c9a84c;
+  --adm-sidebar-hover:   rgba(79, 195, 247, 0.10);
+  --adm-sidebar-active:  rgba(79, 195, 247, 0.18);
+  --adm-sidebar-accent:  #8ad9fb;
+  --adm-blue:            #4fc3f7;
   --adm-open:            #34c47a;
   --adm-open-bg:         rgba(52,  196, 122, 0.12);
   --adm-closed:          #e05555;
   --adm-closed-bg:       rgba(224, 85,  85,  0.10);
-  --adm-today-dot:       #e8c97a;
+  --adm-today-dot:       #8ad9fb;
 
   /* schedule */
   --sched-open:        #34c47a;
   --sched-open-bg:     rgba(52,  196, 122, 0.10);
   --sched-open-bdr:    rgba(52,  196, 122, 0.25);
-  --sched-partial:     #f0b843;
-  --sched-partial-bg:  rgba(240, 184, 67,  0.10);
-  --sched-partial-bdr: rgba(240, 184, 67,  0.25);
+  --sched-partial:     #94a3b8;
+  --sched-partial-bg:  rgba(148, 163, 184, 0.10);
+  --sched-partial-bdr: rgba(148, 163, 184, 0.25);
   --sched-full:        #e05555;
   --sched-full-bg:     rgba(224, 85,  85,  0.10);
   --sched-full-bdr:    rgba(224, 85,  85,  0.25);
@@ -211,12 +210,12 @@
   --border:      var(--line);
 
   /* primary — slightly deeper blue for sufficient contrast on white */
-  --primary:        #9a7a2e;
-  --primary-700:    #7a5f22;
-  --primary-600:    #9a7a2e;
-  --primary-500:    #b8943f;
-  --primary-400:    #9a7a2e;
-  --primary-300:    #d4b662;
+  --primary:        #0288d1;
+  --primary-700:    #01579b;
+  --primary-600:    #0288d1;
+  --primary-500:    #29b6f6;
+  --primary-400:    #0288d1;
+  --primary-300:    #6fd0f9;
   --primary-100:    rgba(154, 122, 46, 0.10);
   --primary-050:    rgba(154, 122, 46, 0.06);
   --primary-bg:     var(--primary-050);
@@ -224,12 +223,12 @@
   --primary-d:      var(--primary-700);
 
   /* gold — same hue, darker for light-bg contrast */
-  --gold:           #d97706;
-  --gold-bright:    #f59e0b;
-  --gold-dim:       #92400e;
-  --gold-bg:        rgba(217, 119,  6, 0.08);
-  --gold-bg-strong: rgba(217, 119,  6, 0.14);
-  --gold-border:    rgba(217, 119,  6, 0.30);
+  --gold:           #0288d1;
+  --gold-bright:    #29b6f6;
+  --gold-dim:       #01579b;
+  --gold-bg:        rgba(2, 136, 209, 0.08);
+  --gold-bg-strong: rgba(2, 136, 209, 0.14);
+  --gold-border:    rgba(2, 136, 209, 0.30);
 
   /* shadows — lighter, using slate not black */
   --shadow-1: 0 1px  3px  rgba(15, 23, 42, 0.06), 0 4px  12px rgba(15, 23, 42, 0.05);
@@ -238,4 +237,56 @@
 
   /* focus ring — same blue, slightly more visible on white */
   --focus: 0 0 0 3px rgba(37, 99, 235, 0.28);
+}
+
+/* ─── DARK MODE OVERRIDE ─────────────────────────────────────────────
+   Restores the dark :root palette on pages that default to the light
+   layer (data-theme="light" on <body>) when the user turns on Dark
+   Mode in Settings (html.dark-mode, toggled + persisted by app.js's
+   initTheme()/initSettings()). Admin/tracking pages already render in
+   the dark palette by default and are unaffected either way.
+──────────────────────────────────────────────────────────────────── */
+html.dark-mode body[data-theme="light"] {
+  --bg:   #0a1120;
+  --bg-2: #0d1726;
+
+  --surface:       #111b2c;
+  --surface-2:     #172334;
+  --surface-3:     #1d2e42;
+  --surface-hover: #233550;
+
+  --text:   #e6f2ff;
+  --text-2: #c0d8f0;
+  --text-3: #6485a6;
+  --text-4: #384f68;
+
+  --line:        rgba(255, 255, 255, 0.07);
+  --line-2:      rgba(255, 255, 255, 0.11);
+  --line-strong: rgba(255, 255, 255, 0.20);
+  --border:      var(--line);
+
+  --primary:        #4fc3f7;
+  --primary-700:    #0288d1;
+  --primary-600:    #29b6f6;
+  --primary-500:    #6fd0f9;
+  --primary-400:    #8ad9fb;
+  --primary-300:    #b3e5fc;
+  --primary-100:    rgba(79, 195, 247, 0.18);
+  --primary-050:    rgba(79, 195, 247, 0.09);
+  --primary-bg:     var(--primary-050);
+  --primary-border: rgba(79, 195, 247, 0.30);
+  --primary-d:      var(--primary-700);
+
+  --gold:           #4fc3f7;
+  --gold-bright:    #8ad9fb;
+  --gold-dim:       #0288d1;
+  --gold-bg:        rgba(79, 195, 247, 0.12);
+  --gold-bg-strong: rgba(79, 195, 247, 0.22);
+  --gold-border:    rgba(79, 195, 247, 0.38);
+
+  --shadow-1: 0 1px  4px  rgba(0, 0, 0, 0.30), 0 4px  14px rgba(0, 0, 0, 0.20);
+  --shadow-2: 0 2px  8px  rgba(0, 0, 0, 0.34), 0 12px 30px rgba(0, 0, 0, 0.24);
+  --shadow-3: 0 8px  24px rgba(0, 0, 0, 0.40), 0 20px 60px rgba(0, 0, 0, 0.34);
+
+  --focus: 0 0 0 3px rgba(74, 144, 232, 0.32);
 }

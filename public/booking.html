@@ -17,7 +17,7 @@
     tiers. The DK price list only fixes three points per service —
       ONE PAIR    Standard (3–5 days) £25 · Express (2–3 days) £30 · Next Day £35
       THREE PAIRS Standard £60 · Express £70 · Next Day £85
-      TEN PAIRS   Standard £130 · Express & Next Day quoted separately
+      TEN PAIRS   Standard £200 · Express & Next Day quoted separately
     — and priceForQuantity() in the PRICING script below straight-line
     interpolates/extrapolates between those anchor points for any other
     quantity (2, 4, 9, 15…), rounded to the nearest £1. Express and Next
@@ -59,9 +59,6 @@
     quoteRequired: true rather than blocking the button.
   -->
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
 
   <script>
     if (localStorage.getItem("theme") === "dark") {
@@ -103,9 +100,9 @@
       --surface-4:  #d7e1ef;
       --navy:       #0a1120;
       --navy-2:     #111b2c;
-      --gold:       #c9a84c;
-      --gold-light: #e8c97a;
-      --gold-dark:  #9a7a2e;
+      --gold:       #4fc3f7;
+      --gold-light: #8ad9fb;
+      --gold-dark:  #0288d1;
       --white:      #f5f5f5;
       --ink:        #000000;
       --ink-2:      #000000;
@@ -119,19 +116,35 @@
       --tap:        48px;   /* minimum touch target */
     }
 
+    /* Dark Mode override (Settings > Appearance) — html.dark-mode set
+       by app.js's initTheme()/initSettings(), persisted in localStorage. */
+    html.dark-mode {
+      --surface:    #0a1120;
+      --surface-2:  #111b2c;
+      --surface-3:  #172334;
+      --surface-4:  #1d2e42;
+      --white:      #0a1120;
+      --ink:        #f5f5f5;
+      --ink-2:      #e6f2ff;
+      --muted:      #9fb0c4;
+      --muted-2:    #7c93ab;
+      --hairline:   rgba(79, 195, 247, 0.14);
+      --hairline-2: rgba(79, 195, 247, 0.28);
+    }
+
     /* ── RESET ───────────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 
     body {
-      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
       font-size: 14px;
       line-height: 1.55;
       color: var(--ink);
       background: var(--surface);
       overflow-x: hidden;
-      padding-top: 60px;
+      padding-top: 96px;
       padding-bottom: calc(68px + env(safe-area-inset-bottom));
       -webkit-font-smoothing: antialiased;
     }
@@ -161,16 +174,25 @@
       gap: 14px !important;
       padding-top: 16px !important;
       padding-bottom: 20px !important;
+      animation: pageEnter 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
     }
 
-    /* ── TOP NAVBAR ──────────────────────────────────────────────── */
+        @keyframes logoSpin3D {
+      from { transform: perspective(400px) rotateY(0deg); }
+      to   { transform: perspective(400px) rotateY(360deg); }
+    }
+    @keyframes pageEnter {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: none; }
+    }
+/* ── TOP NAVBAR ──────────────────────────────────────────────── */
     .navbar {
       position: fixed; top: 0; left: 0; right: 0; z-index: 900;
-      height: 60px; padding: 0 14px;
+      height: 96px; padding: 0 14px;
       display: flex; align-items: center;
       background: rgba(10, 17, 32, 0.97);
       -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
-      border-bottom: 1px solid rgba(201, 168, 76, 0.18);
+      border-bottom: 1px solid rgba(79, 195, 247, 0.18);
     }
 
     /* Legacy desktop link list — kept in the DOM for app.js auth hooks */
@@ -179,7 +201,11 @@
     .nav-mobile-bar   { display: flex; align-items: center; width: 100%; }
     .nav-mobile-left  { flex: 0 0 72px; display: flex; align-items: center; gap: 4px; }
     .nav-mobile-center{ flex: 1; display: flex; justify-content: center; align-items: center; }
-    .nav-mobile-center img { height: 44px; width: auto; }
+    .nav-mobile-center img {
+      height: 84px; width: auto;
+      transform-style: preserve-3d;
+      animation: logoSpin3D 9s linear infinite;
+    }
     .nav-mobile-right { flex: 0 0 72px; display: flex; align-items: center; justify-content: flex-end; gap: 2px; }
 
     .nav-icon-btn {
@@ -189,7 +215,7 @@
       -webkit-tap-highlight-color: transparent;
       transition: background 0.12s;
     }
-    .nav-icon-btn:active { background: rgba(201, 168, 76, 0.12); }
+    .nav-icon-btn:active { background: rgba(79, 195, 247, 0.12); }
     .nav-icon-btn svg {
       width: 20px; height: 20px;
       stroke: currentColor; fill: none;
@@ -198,10 +224,19 @@
 
     .nav-points {
       font-size: 11px; font-weight: 700; color: var(--gold);
-      background: rgba(201, 168, 76, 0.12);
+      background: rgba(79, 195, 247, 0.12);
       border: 1px solid var(--hairline-2);
       border-radius: 20px; padding: 4px 9px;
       white-space: nowrap;
+    }
+    .nav-points[data-tier="Stone"] {
+      color: #cfd8e3; background: rgba(148, 163, 184, 0.18);
+      border-color: rgba(148, 163, 184, 0.4);
+    }
+    .nav-points[data-tier="Pearl"] {
+      color: #0a1120; font-weight: 800;
+      background: linear-gradient(135deg, #ffffff, #b3e5fc);
+      border-color: #ffffff;
     }
 
     /* ── SIDEBAR ─────────────────────────────────────────────────── */
@@ -218,7 +253,7 @@
       position: fixed; top: 0; left: -280px; bottom: 0; z-index: 960;
       width: 272px;
       background: var(--navy);
-      border-right: 1px solid rgba(201, 168, 76, 0.15);
+      border-right: 1px solid rgba(79, 195, 247, 0.15);
       display: flex; flex-direction: column;
       transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
       padding-bottom: env(safe-area-inset-bottom);
@@ -228,9 +263,13 @@
     .sidebar-header {
       display: flex; align-items: center; justify-content: space-between;
       padding: 18px 16px 16px;
-      border-bottom: 1px solid rgba(201, 168, 76, 0.12);
+      border-bottom: 1px solid rgba(79, 195, 247, 0.12);
     }
-    .sidebar-header img { height: 38px; width: auto; }
+    .sidebar-header img {
+      height: 72px; width: auto;
+      transform-style: preserve-3d;
+      animation: logoSpin3D 9s linear infinite;
+    }
 
     .sidebar-close {
       width: 34px; height: 34px; border-radius: 8px;
@@ -253,7 +292,7 @@
     }
     .sidebar-link:active, .sidebar-link.active {
       color: var(--gold);
-      background: rgba(201, 168, 76, 0.07);
+      background: rgba(79, 195, 247, 0.07);
       border-left-color: var(--gold);
     }
     .sidebar-link svg {
@@ -261,13 +300,13 @@
       stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;
     }
 
-    .sidebar-divider { height: 1px; background: rgba(201, 168, 76, 0.1); margin: 8px 20px; }
+    .sidebar-divider { height: 1px; background: rgba(79, 195, 247, 0.1); margin: 8px 20px; }
     .sidebar-label {
       font-size: 10px; font-weight: 700; text-transform: uppercase;
       letter-spacing: 1px; color: var(--gold); padding: 12px 20px 6px;
     }
 
-    .sidebar-footer { padding: 16px 20px; border-top: 1px solid rgba(201, 168, 76, 0.12); }
+    .sidebar-footer { padding: 16px 20px; border-top: 1px solid rgba(79, 195, 247, 0.12); }
     .sidebar-socials { display: flex; gap: 12px; }
     .sidebar-social {
       width: 36px; height: 36px; border-radius: 8px;
@@ -309,7 +348,7 @@
       padding-bottom: env(safe-area-inset-bottom);
       background: rgba(10, 17, 32, 0.97);
       -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
-      border-top: 1px solid rgba(201, 168, 76, 0.18);
+      border-top: 1px solid rgba(79, 195, 247, 0.18);
       display: flex; align-items: stretch;
     }
     .bottom-tab {
@@ -338,7 +377,7 @@
       border-radius: 14px;
       display: flex; align-items: center; justify-content: center;
       margin-top: -14px;
-      box-shadow: 0 4px 20px rgba(201, 168, 76, 0.4);
+      box-shadow: 0 4px 20px rgba(79, 195, 247, 0.4);
     }
     .book-pill svg { width: 20px; height: 20px; stroke: #000; fill: none; stroke-width: 2.2; stroke-linecap: round; }
 
@@ -346,10 +385,10 @@
     .sec { padding: 0 var(--side); }
     .sec-label {
       font-size: 10px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 1.2px; color: var(--gold-dark); margin-bottom: 6px;
+      letter-spacing: 1.2px; color: var(--ink); opacity: 0.72; margin-bottom: 6px;
     }
     .sec-title {
-      font-family: 'Syne', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
       font-size: 20px; font-weight: 800;
       color: var(--ink); line-height: 1.2; margin-bottom: 8px;
     }
@@ -364,7 +403,7 @@
     /* Padded card-style section */
     .dk-section {
       background: var(--surface-2);
-      border: 1px solid rgba(201, 168, 76, 0.1);
+      border: 1px solid rgba(79, 195, 247, 0.1);
       border-radius: var(--radius-md);
       padding: 16px;
     }
@@ -380,7 +419,7 @@
       color: #000; font-size: 14px; font-weight: 700;
       border-radius: var(--radius-sm);
       -webkit-tap-highlight-color: transparent;
-      box-shadow: 0 4px 18px rgba(201, 168, 76, 0.25);
+      box-shadow: 0 4px 18px rgba(79, 195, 247, 0.25);
     }
     .btn-gold:active { opacity: 0.88; }
     .btn-gold:disabled { opacity: 0.45; box-shadow: none; }
@@ -399,13 +438,13 @@
     .btn-ghost {
       display: inline-flex; align-items: center; justify-content: center;
       min-height: 40px; padding: 9px 16px;
-      background: rgba(201, 168, 76, 0.1);
-      border: 1px solid rgba(201, 168, 76, 0.3);
+      background: rgba(79, 195, 247, 0.1);
+      border: 1px solid rgba(79, 195, 247, 0.3);
       color: var(--gold-dark); font-size: 13px; font-weight: 600;
       border-radius: var(--radius-sm);
       -webkit-tap-highlight-color: transparent;
     }
-    .btn-ghost:active { background: rgba(201, 168, 76, 0.2); }
+    .btn-ghost:active { background: rgba(79, 195, 247, 0.2); }
 
     .cta-stack { display: flex; flex-direction: column; gap: 9px; }
 
@@ -454,14 +493,14 @@
       text-align: center;
     }
     .overlay .popup h2 {
-      font-family: 'Syne', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
       font-size: 20px; font-weight: 800; margin-bottom: 8px;
     }
     .overlay .popup p { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
     .popup-actions { display: flex; flex-direction: column; gap: 9px; }
 
     /* ── FOOTER ──────────────────────────────────────────────────── */
-    .m-footer { padding: 28px var(--side) 20px; background: var(--navy); border-top: 1px solid rgba(201, 168, 76, 0.25); }
+    .m-footer { padding: 28px var(--side) 20px; background: var(--navy); border-top: 1px solid rgba(79, 195, 247, 0.25); }
     .footer-logo { height: 26px; width: auto; margin-bottom: 10px; }
     .footer-tagline { font-size: 12px; color: rgba(245, 245, 245, 0.55); margin-bottom: 18px; }
     .footer-cols { display: flex; gap: 32px; margin-bottom: 20px; }
@@ -474,7 +513,7 @@
     .footer-socials { display: flex; gap: 10px; margin-bottom: 18px; }
     .footer-social {
       width: 36px; height: 36px; border-radius: 9px;
-      background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(201, 168, 76, 0.25);
+      background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(79, 195, 247, 0.25);
       display: flex; align-items: center; justify-content: center;
       color: var(--gold);
     }
@@ -511,7 +550,7 @@
       letter-spacing: 1.2px; color: var(--gold); margin-bottom: 6px;
     }
     .booking-hero h1 {
-      font-family: 'Syne', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
       font-size: 26px; font-weight: 800; line-height: 1.15; margin-bottom: 6px;
     }
     .booking-hero .sub { font-size: 13px; color: var(--muted); line-height: 1.55; }
@@ -646,7 +685,7 @@
       border-radius: 12px;
       border: 1.5px solid rgba(255,165,0,0.45);
       background: rgba(255,165,0,0.08);
-      font-size: 12px; line-height: 1.55; color: #e8c97a;
+      font-size: 12px; line-height: 1.55; color: #8ad9fb;
     }
     .enquire-note strong { color: #ffa500; }
 
@@ -790,7 +829,7 @@
     }
     .sum-row.total span { color: var(--ink); font-weight: 600; }
     .sum-row.total strong {
-      font-family: 'Syne', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
       font-size: 20px; font-weight: 800; color: var(--gold);
     }
     .addon-summary-row strong { color: var(--gold); }
@@ -823,7 +862,7 @@
     .book-bar-price { flex: 0 0 auto; line-height: 1.2; }
     .book-bar-price span { display: block; font-size: 10px; color: var(--muted-2); }
     .book-bar-price strong {
-      font-family: 'Syne', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
       font-size: 19px; font-weight: 800; color: var(--gold);
     }
     .book-bar .btn-gold { flex: 1; }
@@ -863,7 +902,7 @@
       <div class="nav-mobile-right">
         <span id="navPointsMirror" class="nav-points" hidden aria-live="polite"></span>
         <a href="settings.html" class="nav-icon-btn" aria-label="Settings">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <svg viewBox="0 0 24 24"><line x1="21" y1="4" x2="14" y2="4"/><line x1="10" y1="4" x2="3" y2="4"/><circle cx="12" cy="4" r="2"/><line x1="21" y1="12" x2="16" y2="12"/><line x1="12" y1="12" x2="3" y2="12"/><circle cx="14" cy="12" r="2"/><line x1="21" y1="20" x2="18" y2="20"/><line x1="14" y1="20" x2="3" y2="20"/><circle cx="16" cy="20" r="2"/></svg>
         </a>
       </div>
     </div>
@@ -914,7 +953,7 @@
         Logout
       </a>
       <a href="settings.html" class="sidebar-link">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <svg viewBox="0 0 24 24"><line x1="21" y1="4" x2="14" y2="4"/><line x1="10" y1="4" x2="3" y2="4"/><circle cx="12" cy="4" r="2"/><line x1="21" y1="12" x2="16" y2="12"/><line x1="12" y1="12" x2="3" y2="12"/><circle cx="14" cy="12" r="2"/><line x1="21" y1="20" x2="18" y2="20"/><line x1="14" y1="20" x2="3" y2="20"/><circle cx="16" cy="20" r="2"/></svg>
         Settings
       </a>
       <a href="admin.html" class="sidebar-link" id="sidebarAdmin" hidden>
@@ -1659,6 +1698,7 @@
           if (navPoints && !navPoints.hidden) {
             navPts.hidden = false;
             navPts.textContent = navPoints.textContent.trim();
+            navPts.dataset.tier = navPoints.dataset.tier || '';
           } else {
             navPts.hidden = true;
           }
@@ -1700,7 +1740,7 @@
       // extrapolates between these for any other quantity the stepper
       // allows. Keep app.js's PAIR_PRICE_ANCHORS in sync with this.
       var PAIR_PRICE_ANCHORS = {
-        standard_clean: [[1, 25], [3, 60], [10, 130]],
+        standard_clean: [[1, 25], [3, 60], [10, 200]],  // £20/pair flat after 3 pairs
         express:        [[1, 30], [3, 70]],   // 10+ pairs quoted separately
         next_day:       [[1, 35], [3, 85]]    // 10+ pairs quoted separately
       };

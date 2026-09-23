@@ -123,11 +123,11 @@
 .goldCard {
   background: linear-gradient(
     135deg,
-    rgba(240, 184, 67, 0.22),
-    rgba(240, 184, 67, 0.10)
+    rgba(255, 255, 255, 0.16),
+    rgba(255, 255, 255, 0.05)
   );
-  border-color: rgba(240, 184, 67, 0.28);
-  box-shadow: 0 8px 20px rgba(240, 184, 67, 0.12);
+  border-color: rgba(255, 255, 255, 0.26);
+  box-shadow: 0 8px 20px rgba(255, 255, 255, 0.08);
 }
 
 .purpleCard {
