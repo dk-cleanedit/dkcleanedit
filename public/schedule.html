@@ -244,7 +244,9 @@
 
   <script type="module" src="./app.js"></script>
   <script type="module" src="./theme.js"></script>
-  <script type="module" src="./tracking.js"></script>
+  <!-- (Previously also loaded a ./tracking.js file that doesn't exist in
+       this project — a 404'd, no-op reference. initSchedule() in app.js
+       already handles this page in full, so it's just removed.) -->
 
   <!-- Phone shell behaviour — sidebar drawer + logout mirror. Same
        pattern as admin.html / customer.html / home.html / track.html. -->

@@ -422,7 +422,56 @@
 
   <script type="module" src="./app.js"></script>
   <script type="module" src="./theme.js"></script>
-  <script src="./mobile-shell.js"></script>
+
+  <!-- Phone shell behaviour — sidebar drawer + mirroring app.js's auth
+       state onto the sidebar (logout, debug info). Same pattern as
+       admin.html / customer.html / home.html / schedule.html.
+       (Previously loaded a ./mobile-shell.js file that doesn't exist in
+       this project, so the hamburger menu silently did nothing — inlined
+       to match every other page instead.) -->
+  <script>
+    (function () {
+      'use strict';
+      var $ = function (id) { return document.getElementById(id); };
+
+      var sidebar = $('sidebar');
+      var overlay = $('sidebarOverlay');
+      var toggle  = $('sidebarToggle');
+      var closeEl = $('sidebarClose');
+
+      function openSidebar() {
+        if (!sidebar) return;
+        sidebar.classList.add('open');
+        if (overlay) overlay.classList.add('open');
+        document.body.classList.add('sidebar-open');
+        if (toggle) toggle.setAttribute('aria-expanded', 'true');
+      }
+      function closeSidebar() {
+        if (!sidebar) return;
+        sidebar.classList.remove('open');
+        if (overlay) overlay.classList.remove('open');
+        document.body.classList.remove('sidebar-open');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      }
+
+      if (toggle)  toggle.addEventListener('click', openSidebar);
+      if (closeEl) closeEl.addEventListener('click', closeSidebar);
+      if (overlay) overlay.addEventListener('click', closeSidebar);
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSidebar(); });
+
+      var links = document.querySelectorAll('.sidebar-link');
+      for (var i = 0; i < links.length; i++) links[i].addEventListener('click', closeSidebar);
+
+      var sidebarLogout = $('sidebarLogout');
+      if (sidebarLogout) {
+        sidebarLogout.addEventListener('click', function (e) {
+          e.preventDefault();
+          var navLogout = $('navLogout');
+          if (navLogout) navLogout.click();
+        });
+      }
+    })();
+  </script>
 
   <!-- Enter in the order field triggers Find order -->
   <script>

@@ -1,0 +1,33 @@
+rules_version = '2';
+
+// DKcleanedit — Storage security rules.
+// Paths in use (from public/app.js):
+//   avatars/{uid}          — profile photo, set from Settings/Account
+//   orders/{orderId}/{name} — booking photos the customer attaches
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    match /avatars/{uid} {
+      // Profile photos are shown around the app without an auth check
+      // on the <img> itself, so read is public; only the owner can
+      // replace their own.
+      allow read: if true;
+      allow write: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    match /orders/{orderId}/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

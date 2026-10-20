@@ -1,0 +1,147 @@
+rules_version = '2';
+
+// DKcleanedit — Firestore security rules.
+//
+// Schema (from public/app.js, public/customer.js, public/auth-guard.js):
+//   users/{uid}         — name, email, phone, points, tier, photoURL, createdAt, updatedAt
+//   orders/{orderId}    — uid, customerName/Email/Phone, service, pairCount, date, timeSlot,
+//                         status, paid, stripePaymentIntentId, points*, ...
+//   staff/{staffId}     — name, email, role, location, status, createdAt (admin-writable)
+//   shifts/{shiftId}    — staffId, staffName, role, location, date, start, end, createdAt (admin-writable)
+//   availability/{date} — slots: { "HH:MM": bool }
+//   bookingSlots/{id}   — count, date, location, timeSlot, updatedAt (capacity sentinels)
+//   mail/{id}           — written only by Cloud Functions (Trigger Email extension queue)
+//
+// Admin is identified the same way the client does it (app.js isAdmin()):
+// a single fixed email on the auth token, not a Firestore field — so
+// there's no "role" field a customer could tamper with to promote
+// themselves.
+//
+// paid / stripePaymentIntentId on an order are never client-writable,
+// admin included. Only the stripeWebhook Cloud Function (Admin SDK,
+// which bypasses these rules entirely) is allowed to set them, because
+// that's the one place payment is actually verified with Stripe.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && request.auth.token.email == 'dkcleaneditnotts@gmail.com';
+    }
+
+    function affectedKeys() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    // ── users/{uid} ────────────────────────────────────────────
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+
+      // Registration (public/app.js) always writes points:0, tier:'Carbon'.
+      allow create: if isOwner(uid)
+        && request.resource.data.points == 0
+        && request.resource.data.tier == 'Carbon';
+
+      // Customers may only touch their own profile fields (matches the
+      // Settings page, which only ever sends name/phone/updatedAt, and
+      // avatar upload, which only sends photoURL/updatedAt).
+      // points/tier are granted by admin action server-side only.
+      allow update: if isAdmin()
+        || (isOwner(uid) && affectedKeys().hasOnly(['name', 'phone', 'photoURL', 'updatedAt']));
+
+      allow delete: if false;
+    }
+
+    // ── orders/{orderId} ───────────────────────────────────────
+    match /orders/{orderId} {
+      allow read: if isSignedIn()
+        && (resource.data.uid == request.auth.uid || isAdmin());
+
+      // Matches the booking transaction in app.js: order is always
+      // created with status "Booked", never pre-marked paid, and with
+      // a fixed starting points-awarded value of 10 — pointsAwarded is
+      // shown pre-filled in the admin's "mark complete" form, so it
+      // must not be attacker-controlled at creation time.
+      allow create: if isSignedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.status == 'Booked'
+        && request.resource.data.paid != true
+        && !('stripePaymentIntentId' in request.resource.data)
+        && request.resource.data.pointsAwarded == 10
+        && request.resource.data.pointsGranted == false
+        && request.resource.data.grantedPointsAmount == 0;
+
+      allow update: if
+        ( isAdmin() && !affectedKeys().hasAny(['paid', 'stripePaymentIntentId']) )
+        || (
+          isSignedIn() && resource.data.uid == request.auth.uid
+          && resource.data.status in ['Booked', 'Received']
+          && (
+            // Cancel — public/app.js cancelOrder()
+            ( affectedKeys().hasOnly(['status', 'cancelledAt', 'updatedAt'])
+              && request.resource.data.status == 'Cancelled' )
+            ||
+            // Reschedule — public/app.js rescheduleOrder()
+            affectedKeys().hasOnly(['date', 'timeSlot', 'rescheduledAt', 'updatedAt'])
+          )
+        );
+
+      allow delete: if false;
+    }
+
+    // ── staff/{staffId} ──────────────────────────────────────────
+    // Staff directory, managed from admin_account.html (Staff tab).
+    // Everyone signed in can read it (it drives the assign-staff dropdown
+    // on orders and the isStaff() check in app.js); only the fixed admin
+    // account can add/edit/remove staff members.
+    match /staff/{staffId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // ── shifts/{shiftId} ─────────────────────────────────────────
+    // Shift assignments made from admin_account.html's "Assign shift"
+    // modal. Same access shape as staff/{staffId} — read for any signed
+    // in user, write restricted to the admin account.
+    match /shifts/{shiftId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // ── availability/{dateId} ───────────────────────────────────
+    // Slot open/closed calendar. No personal data — public read keeps
+    // the booking page's slot picker simple; only admin sets it.
+    match /availability/{dateId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── bookingSlots/{slotId} — capacity sentinels, no PII ──────
+    // Written inside the same client transaction that creates an
+    // order, to stop double-booking a slot.
+    match /bookingSlots/{slotId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // ── mail/{mailId} — Trigger Email extension queue ───────────
+    // Only Cloud Functions (Admin SDK) ever enqueue an email here.
+    match /mail/{mailId} {
+      allow read, write: if false;
+    }
+
+    // Deny anything not explicitly matched above.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

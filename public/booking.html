@@ -10,6 +10,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <meta name="description" content="Book a professional shoe cleaning service at DKcleanedit. Choose your service, location and time slot." />
 
+  <!-- Stripe.js — card / Apple Pay / Google Pay via the Payment Element.
+       TODO: replace with your real Stripe publishable key (from the
+       Stripe dashboard → Developers → API keys). This key is NOT
+       secret, it's safe to ship in client-side code. -->
+  <script src="https://js.stripe.com/v3/"></script>
+  <script>
+    window.STRIPE_PUBLISHABLE_KEY = "pk_test_REPLACE_WITH_YOUR_STRIPE_PUBLISHABLE_KEY";
+  </script>
+
   <!--
     booking.html — phone-first booking.
 
@@ -604,7 +613,7 @@
     /* ── BADGES ─────────────────────────────────────────────── */
     .badge {
       font-size: 11px; font-weight: 700;
-      padding: 3px 9px; border-radius: 20px;
+      padding: 3px 9px; border-radius: 8px;
       background: var(--surface-4); color: var(--ink);
       white-space: nowrap;
     }
@@ -991,6 +1000,24 @@
         <a class="btn-outline" href="register.html">Create account</a>
         <button id="closePopupBtn" class="btn-outline" type="button" aria-label="Close sign-in prompt">Close</button>
       </div>
+    </div>
+  </div>
+
+  <!-- ── PAYMENT OVERLAY — Stripe Payment Element (card / Apple Pay / Google Pay) ── -->
+  <div id="paymentOverlay" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="paymentHeading">
+    <div class="popup" style="max-width:440px;">
+      <h2 id="paymentHeading">Pay for your booking</h2>
+      <p id="paymentAmountLabel" class="sub" style="margin-bottom:14px;"></p>
+      <form id="paymentForm">
+        <div id="payment-element"></div>
+        <p id="paymentMsg" class="sub" role="alert" aria-live="polite" style="min-height:20px;margin-top:12px;"></p>
+        <div class="popup-actions" style="margin-top:10px;">
+          <button id="btnPaySubmit" class="btn primary full" type="submit">Pay now</button>
+          <button id="btnPaySkip" class="btn-outline" type="button">
+            Pay by bank transfer instead
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -1422,25 +1449,28 @@
 
               <label class="svc-opt active" data-payment-card="full">
                 <input type="radio" name="paymentOption" value="full" checked
-                       aria-label="Pay in full now" />
+                       aria-label="Book, full amount due" />
                 <div class="svc-opt-top">
-                  <strong>Pay in full now</strong>
+                  <strong>Full amount</strong>
                   <span class="badge info" id="paymentFullBadge">£25</span>
                 </div>
-                <p class="sub svc-opt-sub">Pay the full amount now to confirm your booking.</p>
+                <p class="sub svc-opt-sub">Book now — the bank details to pay the full amount will be on your order.</p>
               </label>
 
               <label class="svc-opt" data-payment-card="deposit">
                 <input type="radio" name="paymentOption" value="deposit"
-                       aria-label="Pay 10 pound deposit now, rest on collection" />
+                       aria-label="Book, 10 pound deposit due, rest on collection" />
                 <div class="svc-opt-top">
-                  <strong>Pay £10 deposit</strong>
+                  <strong>£10 deposit</strong>
                   <span class="badge warning">Rest on collection</span>
                 </div>
-                <p class="sub svc-opt-sub">Secure your booking with a £10 deposit now — pay the remaining balance when your shoes are ready.</p>
+                <p class="sub svc-opt-sub">Book now with just a £10 deposit — the bank details will be on your order, and the remaining balance is due when your shoes are ready.</p>
               </label>
 
             </div>
+            <p class="sub" id="paymentNotice" style="margin-top:10px;">
+              We don't take card payment online yet — once you book, our bank transfer details (sort code &amp; account number) will be on your order and in your confirmation email.
+            </p>
           </div>
 
           <!-- Hidden fields kept in sync for JS / booking payload -->
@@ -1451,7 +1481,7 @@
           <!-- Terms -->
           <div class="terms-block">
             <h3>Payment &amp; terms</h3>
-            <p>Online payment &amp; cash accepted (Bank Transfer, Monzo or PayPal).</p>
+            <p>Payment by bank transfer — details are sent after booking and shown on your order.</p>
             <p>
               Choosing the £10 deposit reserves your slot — the remaining balance is
               due when your shoes are ready for collection or return. Home pickup adds
@@ -1525,7 +1555,7 @@
             </div>
             <div class="sum-row">
               <span>Payment</span>
-              <strong id="summaryPayment">Full, now</strong>
+              <strong id="summaryPayment">Full amount</strong>
             </div>
             <div class="sum-row" id="summaryDueRow" hidden>
               <span>Due now</span>
@@ -1928,8 +1958,8 @@
 
         var label;
         if (needsQuote)              label = 'Request a quote';
-        else if (payment === 'deposit') label = 'Pay £' + DEPOSIT_AMOUNT + ' deposit';
-        else                          label = 'Confirm & pay in full';
+        else if (payment === 'deposit') label = 'Book — £' + DEPOSIT_AMOUNT + ' deposit';
+        else                          label = 'Confirm booking';
 
         var quoteEl      = $('quoteRequired');
         var noteEl       = $('enquireNote');
@@ -1956,7 +1986,7 @@
 
         if (sumCollect)  sumCollect.textContent  = isPickup ? 'Home pickup' : 'Drop off';
         if (sumLocation) sumLocation.textContent = isPickup ? 'Home pickup — see address below' : 'Canada Water, London';
-        if (sumPayment)  sumPayment.textContent  = payment === 'deposit' ? ('£' + DEPOSIT_AMOUNT + ' deposit') : 'Full, now';
+        if (sumPayment)  sumPayment.textContent  = payment === 'deposit' ? ('£' + DEPOSIT_AMOUNT + ' deposit') : 'Full amount';
         if (fullBadge)   fullBadge.textContent   = total;
 
         if (dueRow) dueRow.hidden = needsQuote || payment !== 'deposit';

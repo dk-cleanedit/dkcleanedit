@@ -99,7 +99,7 @@
 //  SECTION 1 — FIREBASE IMPORTS
 // ─────────────────────────────────────────────────────────────
 
-import { auth, db } from "./firebase.js";
+import { auth, db, functions } from "./firebase.js";
 
 import {
   onAuthStateChanged,
@@ -136,6 +136,10 @@ import {
   uploadBytes,
   getDownloadURL,
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
+
+import {
+  httpsCallable,
+} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-functions.js";
 
 
 // ─────────────────────────────────────────────────────────────
@@ -209,6 +213,135 @@ const LOCATIONS = { leicester: "Leicester", "canada-water": "Canada Water" };
 // other quantity, exactly mirroring booking.html's own PRICING <script>
 // (PAIR_PRICE_ANCHORS there). Keep the two in sync if the price list
 // changes — this copy is the authoritative one for the Firestore write.
+/**
+ * Bank transfer details for customer payment. Shown only on a
+ * customer's own order card (track.html), never on a public page —
+ * kept behind login so it isn't crawlable or copyable by bots.
+ */
+const BANK_DETAILS = {
+  name:          "Daniel Asouzu",
+  sortCode:      "23-01-63",
+  accountNumber: "38061258",
+};
+
+
+// ─────────────────────────────────────────────────────────────
+//  PAYMENTS — Stripe Payment Element (card / Apple Pay / Google Pay)
+// ─────────────────────────────────────────────────────────────
+
+let _stripe = null;
+let _stripeElements = null;
+
+function getStripeInstance() {
+  if (_stripe) return _stripe;
+  if (!window.Stripe) { console.warn("Stripe.js not loaded"); return null; }
+  if (!window.STRIPE_PUBLISHABLE_KEY || window.STRIPE_PUBLISHABLE_KEY.includes("REPLACE_WITH")) {
+    console.warn("Stripe publishable key not configured yet — set window.STRIPE_PUBLISHABLE_KEY.");
+    return null;
+  }
+  _stripe = window.Stripe(window.STRIPE_PUBLISHABLE_KEY);
+  return _stripe;
+}
+
+/**
+ * Opens the Stripe payment modal for a given order and lets the
+ * customer pay by card, Apple Pay or Google Pay (Stripe's Payment
+ * Element shows whichever of those the browser/device supports).
+ * Falls back to a toast pointing at bank transfer if Stripe isn't
+ * configured yet (no publishable key set).
+ */
+async function openPaymentModal(orderId, amountDueNow) {
+  const overlay = document.getElementById("paymentOverlay");
+  if (!overlay) { location.href = "track.html"; return; }
+
+  const stripe = getStripeInstance();
+  if (!stripe) {
+    toast("Card payment isn't set up yet — pay by bank transfer using the details on your order.", "error");
+    setTimeout(() => { location.href = "track.html"; }, 900);
+    return;
+  }
+
+  const amountLabel = document.getElementById("paymentAmountLabel");
+  const msgEl     = document.getElementById("paymentMsg");
+  const form      = document.getElementById("paymentForm");
+  const submitBtn = document.getElementById("btnPaySubmit");
+  const skipBtn   = document.getElementById("btnPaySkip");
+  const mountEl   = document.getElementById("payment-element");
+
+  if (amountLabel) amountLabel.textContent = `Amount due: £${amountDueNow} · Order ${orderId}`;
+  if (msgEl) msgEl.textContent = "";
+  overlay.hidden = false;
+
+  let clientSecret;
+  try {
+    const createPaymentIntent = httpsCallable(functions, "createPaymentIntent");
+    const result = await createPaymentIntent({ orderId });
+    clientSecret = result.data?.clientSecret;
+  } catch (err) {
+    console.error("createPaymentIntent failed:", err);
+    if (msgEl) msgEl.textContent = err?.message || "Couldn't start payment. Please try again, or pay by bank transfer.";
+    return;
+  }
+  if (!clientSecret) {
+    if (msgEl) msgEl.textContent = "Couldn't start payment. Please try again, or pay by bank transfer.";
+    return;
+  }
+
+  _stripeElements = stripe.elements({
+    clientSecret,
+    appearance: {
+      theme: "flat",
+      variables: {
+        colorPrimary:    "#4fc3f7",
+        colorBackground: "#ffffff",
+        colorText:       "#0f172a",
+        borderRadius:    "10px",
+        fontFamily:      "'Manrope', -apple-system, BlinkMacSystemFont, sans-serif",
+      },
+    },
+  });
+  _stripeElements.create("payment").mount("#payment-element");
+
+  const closeOverlay = () => {
+    overlay.hidden = true;
+    _stripeElements = null;
+    if (mountEl) mountEl.innerHTML = "";
+  };
+
+  if (skipBtn) {
+    skipBtn.onclick = () => {
+      closeOverlay();
+      toast("No problem — pay by bank transfer using the details on your order.", "success");
+      setTimeout(() => { location.href = "track.html"; }, 400);
+    };
+  }
+
+  if (form) {
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Processing…"; }
+      const { error, paymentIntent } = await stripe.confirmPayment({
+        elements: _stripeElements,
+        redirect: "if_required",
+      });
+      if (error) {
+        if (msgEl) msgEl.textContent = error.message || "Payment failed. Please try again.";
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Pay now"; }
+        return;
+      }
+      if (paymentIntent && (paymentIntent.status === "succeeded" || paymentIntent.status === "processing")) {
+        closeOverlay();
+        toast("Payment received ✅", "success");
+        setTimeout(() => { location.href = "track.html"; }, 600);
+      } else {
+        if (msgEl) msgEl.textContent = "Payment did not complete. Please try again.";
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Pay now"; }
+      }
+    };
+  }
+}
+window.openPaymentModal = openPaymentModal;
+
 /**
  * Loyalty tier name for a given points total. Mirrors customer.js's
  * TIERS breakpoints (Carbon 0-99, Stone 100-499, Pearl 500+) so the
@@ -644,6 +777,18 @@ function sendBookingEmail({
     pickup_address:    pickupAddress    || "",
     payment_method:    paymentMethod    || "",
     amount_due_now:    amountDueNow     || "",
+    // Bank transfer details — add matching placeholders
+    // ({{bank_name}}, {{bank_sort_code}}, {{bank_account_number}},
+    // {{bank_reference}}, or the combined {{payment_details}}) to the
+    // EmailJS template if you want these in the confirmation email.
+    bank_name:            BANK_DETAILS.name,
+    bank_sort_code:       BANK_DETAILS.sortCode,
+    bank_account_number:  BANK_DETAILS.accountNumber,
+    bank_reference:       orderId || "",
+    payment_details:      `Pay by bank transfer — Name: ${BANK_DETAILS.name} · `
+                         + `Sort code: ${BANK_DETAILS.sortCode} · `
+                         + `Account: ${BANK_DETAILS.accountNumber} · `
+                         + `Reference: ${orderId || ""} (please include this reference)`,
   }).catch((err) => console.warn("Booking email failed:", err));
 }
 
@@ -739,6 +884,45 @@ async function sendCancellationEmail({
     booking_time:  bookingTime  || "",
     location:      location     || "",
   }).catch((err) => console.warn("Cancellation email failed:", err));
+}
+
+async function sendAdminBookingNotification({
+  customerName, customerEmail, customerPhone, orderId, service, pairCount,
+  location, bookingDate, bookingTime, paymentMethod, amountDueNow, shoeNotes,
+}) {
+  if (!window.emailjs) return;
+  // Needs a template in the EmailJS dashboard named exactly
+  // "template_admin_new_booking", with its "To Email" field set to
+  // {{to_email}} (see the merge fields below) — same setup as the
+  // bank-detail placeholders on template_qca25sq.
+  return window.emailjs.send(EMAILJS_SERVICE, "template_admin_new_booking", {
+    to_email:       ADMIN_EMAIL,
+    customer_name:  customerName  || "Customer",
+    customer_email: customerEmail || "",
+    customer_phone: customerPhone || "",
+    order_id:       orderId       || "",
+    service:        service       || "",
+    pair_count:     pairCount     || 1,
+    location:       location      || "",
+    booking_date:   bookingDate   || "",
+    booking_time:   bookingTime   || "",
+    payment_method: paymentMethod || "",
+    amount_due_now: amountDueNow  || "",
+    shoe_notes:     shoeNotes     || "",
+  }).catch((err) => console.warn("Admin booking notification failed:", err));
+}
+
+async function sendAdminNewCustomerNotification({ customerName, customerEmail, customerPhone }) {
+  if (!window.emailjs) return;
+  // Needs a template in the EmailJS dashboard named exactly
+  // "template_admin_new_customer", with its "To Email" field set to
+  // {{to_email}} — same setup as template_admin_new_booking.
+  return window.emailjs.send(EMAILJS_SERVICE, "template_admin_new_customer", {
+    to_email:       ADMIN_EMAIL,
+    customer_name:  customerName  || "Customer",
+    customer_email: customerEmail || "",
+    customer_phone: customerPhone || "",
+  }).catch((err) => console.warn("Admin new-customer notification failed:", err));
 }
 
 async function sendWelcomeEmail({ customerEmail, customerName }) {
@@ -865,6 +1049,27 @@ function renderOrderCard(order) {
          ⚠ Changes are no longer possible within 24 hours of your appointment.
        </div>` : "";
 
+  // Payment — shown on the customer's own order card only (never a
+  // public page), so it's behind login and not crawlable. Hidden once
+  // an order is cancelled or already paid.
+  const needsPayment = status !== "Cancelled" && order.paid !== true
+    && order.amountDueNow != null && !order.quoteRequired;
+  // Card / Apple Pay checkout isn't live yet — bank transfer only for now.
+  const paymentHtml = needsPayment
+    ? `<div class="pay-box" style="margin-top:10px;padding:12px 14px;border-radius:10px;
+              background:var(--surface-3,#f1f5f9);border:1px solid var(--hairline-2,#e2e8f0);">
+         <div class="sub" style="font-weight:700;color:var(--text,var(--ink,#0f172a));margin-bottom:4px;">
+           £${esc(String(order.amountDueNow))} due — please pay by bank transfer:
+         </div>
+         <div class="sub">Name: <strong>${esc(BANK_DETAILS.name)}</strong></div>
+         <div class="sub">Sort code: <code>${esc(BANK_DETAILS.sortCode)}</code> &bull; Account: <code>${esc(BANK_DETAILS.accountNumber)}</code></div>
+         <div class="sub">Reference: <code>${esc(order.id)}</code> — please include this so we can match your payment.</div>
+         <div class="sub" style="margin-top:4px;opacity:0.75;">
+           We'll only ever show these details here or in your booking confirmation email — never ask you by message to pay a different account.
+         </div>
+       </div>`
+    : "";
+
   // Add-ons shown on the customer order card so customers can verify their extras.
   const addonsHtml = order.addons?.length
     ? `<div class="sub" style="margin-top:4px;">
@@ -891,6 +1096,7 @@ function renderOrderCard(order) {
     ${renderProgress(status)}
     ${renderPickupBanner(order)}
     ${windowNotice}
+    ${paymentHtml}
     <div class="order-meta">
       <span class="sub">Order ID: <code>${esc(order.id)}</code></span>
       <span class="sub" aria-label="${pct}% complete">${pct}%</span>
@@ -1268,7 +1474,7 @@ function openCustomerRescheduleModal(orderId, data) {
     </select>
     <div style="display:flex;gap:10px;">
       <button id="crModalCancel"  type="button" style="flex:1;min-height:46px;border-radius:10px;border:1px solid #d8e0ea;background:#f6f8fb;color:#3a4a63;font:inherit;font-weight:700;cursor:pointer;">Cancel</button>
-      <button id="crModalConfirm" type="button" style="flex:1;min-height:46px;border-radius:10px;border:none;background:linear-gradient(135deg,#e8c97a,#c9a84c);color:#0a1120;font:inherit;font-weight:700;cursor:pointer;">Confirm</button>
+      <button id="crModalConfirm" type="button" style="flex:1;min-height:46px;border-radius:10px;border:none;background:linear-gradient(135deg,#8ad9fb,#4fc3f7);color:#0a1120;font:inherit;font-weight:700;cursor:pointer;">Confirm</button>
     </div>
     <p id="crModalMsg" style="margin:10px 0 0;font-size:0.82rem;color:#c93c3c;min-height:18px;" role="alert"></p>`;
   modal.appendChild(box); document.body.appendChild(modal);
@@ -1319,6 +1525,7 @@ function wireOrderActions(containerEl) {
   containerEl.addEventListener("click", async (e) => {
     const btn = e.target.closest("[data-action]");
     if (!btn || !auth.currentUser) return;
+
     btn.disabled = true;
     try {
       if (btn.dataset.action === "cancel")     await cancelOrder(btn.dataset.id);
@@ -1665,6 +1872,7 @@ function initRegister() {
         }),
       ]);
       sendWelcomeEmail({ customerEmail: email, customerName: name });
+      sendAdminNewCustomerNotification({ customerName: name, customerEmail: email, customerPhone: phone });
       // send to login so they complete 2FA before accessing the app
       location.replace("login.html?registered=1");
     } catch (err) {
@@ -2134,6 +2342,10 @@ function initBooking() {
         }
       }
 
+      const bookingPaymentMethod = needsQuote
+        ? "Arranged after quote"
+        : (paymentOption === "deposit" ? `£${DEPOSIT_AMOUNT} deposit now (bank transfer), balance on collection` : "Full amount now (bank transfer)");
+
       sendBookingEmail({
         customerName, customerEmail,
         orderId:     newOrderId,
@@ -2147,8 +2359,21 @@ function initBooking() {
         pairCount:        pairs,
         collectionMethod: isPickup ? "Home pickup (+£10)" : "Drop off at branch",
         pickupAddress,
-        paymentMethod:    needsQuote ? "Arranged after quote" : (paymentOption === "deposit" ? `£${DEPOSIT_AMOUNT} deposit now, balance on collection` : "Paid in full now"),
+        paymentMethod:    bookingPaymentMethod,
         amountDueNow:     needsQuote ? "" : `£${amountDueNow}`,
+      });
+
+      sendAdminBookingNotification({
+        customerName, customerEmail, customerPhone,
+        orderId:     newOrderId,
+        service:     serviceLabel(service),
+        pairCount:   pairs,
+        location:    isPickup ? `Home pickup — ${pickupAddress || "address on order"}` : loc,
+        bookingDate: date,
+        bookingTime: timeSlot,
+        paymentMethod: bookingPaymentMethod,
+        amountDueNow:  needsQuote ? "Quote required" : `£${amountDueNow}`,
+        shoeNotes,
       });
 
       if (isPickup) {
@@ -2168,6 +2393,10 @@ function initBooking() {
       setMsg(needsQuote
         ? `Quote request sent! We'll be in touch about pricing. Order ID: ${newOrderId}`
         : `Booking confirmed! Order ID: ${newOrderId}`);
+
+      // Card / Apple Pay checkout isn't live yet — customers pay by bank
+      // transfer using the details shown on their order (track.html).
+      // Re-enable the openPaymentModal(...) call here once Stripe is set up.
       setTimeout(() => { location.href = "track.html"; }, 900);
 
     } catch (err) {
@@ -2296,8 +2525,6 @@ function initCustomer() {
     if ($("#custName"))   $("#custName").textContent   = userData.name   || user.displayName || "—";
     if ($("#custEmail"))  $("#custEmail").textContent  = userData.email  || user.email       || "—";
     if ($("#custPoints")) $("#custPoints").textContent = String(points);
-    if ($("#statSince"))  $("#statSince").textContent  =
-      userData.createdAt?.toDate?.().toLocaleDateString("en-GB") ?? "—";
 
     // avatar — load saved photo
     const avatarImg = document.getElementById("custAvatar");
@@ -2366,9 +2593,11 @@ function initCustomer() {
       );
       onSnapshot(q, (snap2) => {
         const orders = snap2.docs.map((d) => ({ id: d.id, ...d.data() }));
-        if ($("#statTotal"))     $("#statTotal").textContent     = orders.length;
-        if ($("#statCompleted")) $("#statCompleted").textContent =
-          orders.filter((o) => o.status === "Completed").length;
+        // custTotalOrders/custCompleted/custSince (the real stat elements on
+        // this page) are populated by customer.js, which is also loaded on
+        // customer.html — this block used to duplicate that with the wrong
+        // ids (statTotal/statCompleted/statSince, which don't exist in the
+        // HTML) and silently did nothing; removed as dead code.
         orderList.innerHTML = orders.length
           ? orders.map(renderOrderCard).join("")
           : `<p class="acct-empty">No orders yet. <a href="booking.html">Book your first clean</a>.</p>`;
@@ -3179,7 +3408,7 @@ function initSchedule() {
       </select>
       <div style="display:flex;gap:10px;">
         <button id="rModalCancel"  type="button" style="flex:1;min-height:44px;border-radius:10px;border:1px solid #c7d3e3;background:#f5f9ff;color:#44506a;font:inherit;font-weight:700;cursor:pointer;">Cancel</button>
-        <button id="rModalConfirm" type="button" style="flex:1;min-height:44px;border-radius:10px;border:none;background:linear-gradient(135deg,#e8c97a,#c9a84c);color:#0a1120;font:inherit;font-weight:700;cursor:pointer;">Confirm reschedule</button>
+        <button id="rModalConfirm" type="button" style="flex:1;min-height:44px;border-radius:10px;border:none;background:linear-gradient(135deg,#8ad9fb,#4fc3f7);color:#0a1120;font:inherit;font-weight:700;cursor:pointer;">Confirm reschedule</button>
       </div>
       <p id="rModalMsg" style="margin:10px 0 0;font-size:0.82rem;color:#c93c3c;min-height:18px;" role="alert"></p>`;
     modal.appendChild(box); document.body.appendChild(modal);
