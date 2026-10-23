@@ -679,23 +679,6 @@
     }
     .carousel-dots button.active { background: var(--gold); width: 16px; border-radius: 3px; }
 
-    /* ── TRUST ──────────────────────────────────────────────── */
-    .trust-grid { display: flex; flex-direction: column; gap: 8px; }
-    .trust-card {
-      background: var(--surface-2);
-      border: 1px solid rgba(79, 195, 247, 0.14);
-      border-radius: var(--radius-md);
-      padding: 12px 14px; display: flex; gap: 12px; align-items: center;
-    }
-    .trust-icon {
-      width: 34px; height: 34px; border-radius: 9px;
-      background: rgba(79, 195, 247, 0.1);
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    }
-    .trust-icon svg { width: 17px; height: 17px; stroke: var(--gold); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-    .trust-title { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
-    .trust-text { font-size: 11.5px; color: var(--muted); line-height: 1.45; }
-
     /* ── LOYALTY TIERS ──────────────────────────────────────── */
     .tier-list { display: flex; flex-direction: column; gap: 8px; }
     .tier-row {
@@ -984,34 +967,13 @@
           </div>
         </div>
         <div class="service-slide-body">
-          <div class="service-name">UX Treatment</div>
-          <div class="service-desc">Unyellowing and crease reduction to restore shape and clarity.</div>
+          <div class="service-name">UX &amp; Paint Treatment</div>
+          <div class="service-desc">Unyellowing, crease reduction, and precision paint restoration for sole edges and midsole coins.</div>
           <ul class="service-features">
-            <li>Sole unyellowing</li>
-            <li>Crease reduction</li>
-            <li>Add to any clean</li>
-          </ul>
-        </div>
-        <div class="service-slide-cta">
-          <a class="service-cta-btn" href="booking.html" data-requires-auth="true">Add On</a>
-        </div>
-      </div>
-
-      <div class="service-slide" role="listitem">
-        <div class="service-slide-header">
-          <span class="service-badge badge-addon">Add-On</span>
-          <div class="service-price-wrap">
-            <div class="service-price-from">from</div>
-            <div class="service-price">£15</div>
-          </div>
-        </div>
-        <div class="service-slide-body">
-          <div class="service-name">Painting</div>
-          <div class="service-desc">Precision paint restoration on midsole coins and sole edges.</div>
-          <ul class="service-features">
-            <li>Midsole coin restoration</li>
-            <li>Sole edge detailing</li>
+            <li>Sole unyellowing &amp; crease reduction</li>
+            <li>Midsole coin &amp; sole edge restoration</li>
             <li>Factory-fresh finish</li>
+            <li>Add to any clean</li>
           </ul>
         </div>
         <div class="service-slide-cta">
@@ -1037,9 +999,9 @@
       </div>
       <div class="steps-list">
         <div class="step-row"><div class="step-badge">01</div><div><div class="step-title">Choose Your Service</div><div class="step-text">Pick the package that matches your pair, and any add-ons.</div></div></div>
-        <div class="step-row"><div class="step-badge">02</div><div><div class="step-title">Book Your Slot</div><div class="step-text">Select a date and time, or have our driver collect from you the same day.</div></div></div>
+        <div class="step-row"><div class="step-badge">02</div><div><div class="step-title">Book Your Slot</div><div class="step-text">Select a date and time, or have our driver collect from you the same day. You'll get an instant email confirmation the moment it's booked.</div></div></div>
         <div class="step-row"><div class="step-badge">03</div><div><div class="step-title">Track Progress</div><div class="step-text">Live updates through every cleaning stage.</div></div></div>
-        <div class="step-row"><div class="step-badge">04</div><div><div class="step-title">Collect &amp; Earn</div><div class="step-text">Get your pair back fresh and collect loyalty points.</div></div></div>
+        <div class="step-row"><div class="step-badge">04</div><div><div class="step-title">Collect &amp; Earn</div><div class="step-text">Get your pair back fresh and collect loyalty points — Express and Next Day slots are always honoured on time.</div></div></div>
       </div>
       <a class="btn-gold" href="booking.html" data-requires-auth="true" style="margin-top:14px;">Book Now</a>
     </div>
@@ -1063,39 +1025,6 @@
         <button class="carousel-btn next" id="nextBtn" type="button" aria-label="next">&#8250;</button>
       </div>
       <div class="carousel-dots" id="carouselDots" role="tablist" style="margin-top:10px;"></div>
-    </div>
-
-    <hr class="gold-rule" />
-
-    <!-- 5. TRUST — reasons to book -->
-    <div class="dk-section" aria-labelledby="trustHeading">
-      <div class="dk-section-header">
-        <div class="sec-label">Why Book With Us</div>
-        <div class="sec-title" id="trustHeading">What You Get</div>
-      </div>
-      <div class="trust-grid">
-        <div class="trust-card">
-          <div class="trust-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
-          <div>
-            <div class="trust-title">Live Order Tracking</div>
-            <div class="trust-text">Follow your pair through every cleaning stage in real time — no need to call or chase.</div>
-          </div>
-        </div>
-        <div class="trust-card">
-          <div class="trust-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-          <div>
-            <div class="trust-title">Instant Confirmation</div>
-            <div class="trust-text">Every booking triggers an immediate email confirmation so you always have a record.</div>
-          </div>
-        </div>
-        <div class="trust-card">
-          <div class="trust-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-          <div>
-            <div class="trust-title">On-Time Every Time</div>
-            <div class="trust-text">We respect your turnaround times. Express and next-day slots are honoured guaranteed.</div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <hr class="gold-rule" />
