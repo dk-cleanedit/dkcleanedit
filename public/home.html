@@ -730,10 +730,38 @@
     .step-title { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
     .step-text { font-size: 12px; color: var(--muted); line-height: 1.5; }
 
-    /* ── RESULTS CAROUSEL ───────────────────────────────────── */
-    .carousel-viewport { position: relative; overflow: hidden; background: var(--surface-2); }
-    .carousel-track { display: flex; transition: transform 0.3s ease; }
-    .carousel-track img { width: 100%; flex: 0 0 100%; height: 220px; object-fit: cover; display: block; }
+    /* ── RESULTS CAROUSEL (swipeable stack) ───────────────────── */
+    .carousel-viewport {
+      position: relative;
+      height: 240px;
+      touch-action: pan-y;
+    }
+    .result-card {
+      position: absolute; inset: 0;
+      border-radius: 10px; overflow: hidden;
+      background: var(--surface-2);
+      border: 1px solid rgba(79, 195, 247, 0.22);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 10px 28px rgba(0,0,0,0.25), 0 0 0 1px rgba(79,195,247,0.06);
+      transition: transform 0.38s cubic-bezier(.22,.8,.3,1), opacity 0.3s ease;
+      cursor: pointer;
+    }
+    .result-card img { width: 100%; height: 220px; object-fit: cover; display: block; position: relative; z-index: 2; }
+    .result-card::before {
+      content: '';
+      position: absolute; inset: 0; z-index: 3;
+      background: linear-gradient(115deg, transparent 20%, rgba(143,224,255,0.14) 45%, rgba(143,224,255,0.24) 50%, rgba(143,224,255,0.14) 55%, transparent 80%);
+      transform: translateX(-120%);
+      pointer-events: none;
+    }
+    .result-card.stack-front {
+      animation: cardGlow 3.5s ease-in-out infinite;
+      cursor: default;
+    }
+    .result-card.stack-front::before { animation: cardShine 5s ease-in-out infinite; }
+    .result-card.stack-front { transform: translateY(0) scale(1); z-index: 4; }
+    .result-card.stack-1 { transform: translateY(20px) scale(0.95); z-index: 3; }
+    .result-card.stack-2 { transform: translateY(36px) scale(0.90); z-index: 2; opacity: 0.9; }
+    .result-card.stack-back { transform: translateY(48px) scale(0.86); z-index: 1; opacity: 0; pointer-events: none; }
     .carousel-btn {
       position: absolute; top: 50%; transform: translateY(-50%);
       width: 36px; height: 36px; border-radius: 50%;
@@ -743,6 +771,7 @@
       display: flex; align-items: center; justify-content: center;
       color: #eaf7ff; font-size: 20px;
       -webkit-tap-highlight-color: transparent;
+      z-index: 5;
     }
     .carousel-btn.prev { left: 10px; }
     .carousel-btn.next { right: 10px; }
@@ -1114,13 +1143,11 @@
         <div class="sec-label">Our Work</div>
         <div class="sec-title" id="galleryHeading">Results</div>
       </div>
-      <div class="carousel-viewport" style="border-radius:10px; overflow:hidden;">
-        <div class="carousel-track" id="carouselTrack" aria-live="polite">
-          <img src="videos/IMG_2317.JPG" alt="restoration example 1" loading="lazy" />
-          <img src="videos/IMG_2399.JPG" alt="restoration example 2" loading="lazy" />
-          <img src="videos/IMG_1456.JPG" alt="restoration example 3" loading="lazy" />
-          <img src="videos/IMG_C8345467AB89-1.jpeg" alt="restoration example 4" loading="lazy" />
-        </div>
+      <div class="carousel-viewport" id="carouselViewport" aria-live="polite">
+        <div class="result-card"><img src="videos/IMG_2317.JPG" alt="restoration example 1" loading="lazy" /></div>
+        <div class="result-card"><img src="videos/IMG_2399.JPG" alt="restoration example 2" loading="lazy" /></div>
+        <div class="result-card"><img src="videos/IMG_1456.JPG" alt="restoration example 3" loading="lazy" /></div>
+        <div class="result-card"><img src="videos/IMG_C8345467AB89-1.jpeg" alt="restoration example 4" loading="lazy" /></div>
         <button class="carousel-btn prev" id="prevBtn" type="button" aria-label="previous">&#8249;</button>
         <button class="carousel-btn next" id="nextBtn" type="button" aria-label="next">&#8250;</button>
       </div>
@@ -1456,23 +1483,38 @@
     /* Shell behaviour is inlined above. Only this page's
        carousel and slider live here. */
 
-    /* ── RESULTS CAROUSEL ── */
+    /* ── RESULTS CAROUSEL (swipeable stack) ──
+       Same stacked-card interaction as the service cards: swipe the
+       front photo, tap a peeking one, or tap a dot. */
     (function () {
-      var track  = document.getElementById('carouselTrack');
-      var dotsEl = document.getElementById('carouselDots');
-      if (!track || !dotsEl) return;
+      var viewport = document.getElementById('carouselViewport');
+      var dotsEl   = document.getElementById('carouselDots');
+      if (!viewport || !dotsEl) return;
 
-      var imgs = track.querySelectorAll('img');
-      var dots = [];
-      var cur  = 0;
+      var cards = Array.prototype.slice.call(viewport.querySelectorAll('.result-card'));
+      var dots  = [];
+      var cur   = 0;
 
-      function goTo(n) {
-        cur = n;
-        track.style.transform = 'translateX(-' + (cur * 100) + '%)';
+      function layout() {
+        var n = cards.length;
+        cards.forEach(function (card, i) {
+          var offset = (i - cur + n) % n;
+          card.classList.remove('stack-front', 'stack-1', 'stack-2', 'stack-back');
+          if (offset === 0) card.classList.add('stack-front');
+          else if (offset === 1) card.classList.add('stack-1');
+          else if (offset === 2) card.classList.add('stack-2');
+          else card.classList.add('stack-back');
+        });
         dots.forEach(function (d, i) { d.classList.toggle('active', i === cur); });
       }
 
-      imgs.forEach(function (_, i) {
+      function goTo(n) {
+        var len = cards.length;
+        cur = ((n % len) + len) % len;
+        layout();
+      }
+
+      cards.forEach(function (_, i) {
         var b = document.createElement('button');
         b.type = 'button';
         b.setAttribute('role', 'tab');
@@ -1483,20 +1525,36 @@
         dots.push(b);
       });
 
+      /* Tap a peeking photo to bring it forward */
+      cards.forEach(function (card, i) {
+        card.addEventListener('click', function (e) {
+          if (card.classList.contains('stack-front')) return;
+          e.preventDefault();
+          goTo(i);
+        });
+      });
+
       var prev = document.getElementById('prevBtn');
       var next = document.getElementById('nextBtn');
-      if (prev) prev.addEventListener('click', function () { goTo((cur - 1 + imgs.length) % imgs.length); });
-      if (next) next.addEventListener('click', function () { goTo((cur + 1) % imgs.length); });
+      if (prev) prev.addEventListener('click', function () { goTo(cur - 1); });
+      if (next) next.addEventListener('click', function () { goTo(cur + 1); });
 
-      /* Swipe between results on touch */
-      var x0 = null;
-      track.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
-      track.addEventListener('touchend', function (e) {
+      /* Swipe the front photo left/right to cycle */
+      var x0 = null, y0 = null;
+      viewport.addEventListener('touchstart', function (e) {
+        x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
+      }, { passive: true });
+      viewport.addEventListener('touchend', function (e) {
         if (x0 === null) return;
         var dx = e.changedTouches[0].clientX - x0;
-        if (Math.abs(dx) > 45) goTo(dx < 0 ? (cur + 1) % imgs.length : (cur - 1 + imgs.length) % imgs.length);
-        x0 = null;
+        var dy = e.changedTouches[0].clientY - y0;
+        if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+          goTo(dx < 0 ? cur + 1 : cur - 1);
+        }
+        x0 = null; y0 = null;
       }, { passive: true });
+
+      layout();
     })();
 
     /* ── SERVICES CARD STACK ──
