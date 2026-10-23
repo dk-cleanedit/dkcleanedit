@@ -860,7 +860,7 @@ async function sendRescheduleEmail({
 }) {
   if (!window.emailjs) return;
   if (!customerEmail) return;
-  return window.emailjs.send(EMAILJS_SERVICE, "template_reschedule_confirmed", {
+  return window.emailjs.send(EMAILJS_SERVICE, "template_r6i8k0r", {
     to_email:      customerEmail,
     customer_name: customerName || "Customer",
     order_id:      orderId      || "",
@@ -876,7 +876,7 @@ async function sendCancellationEmail({
 }) {
   if (!window.emailjs) return;
   if (!customerEmail) return;
-  return window.emailjs.send(EMAILJS_SERVICE, "template_booking_cancelled", {
+  return window.emailjs.send(EMAILJS_SERVICE, "template_dvta9mo", {
     to_email:      customerEmail,
     customer_name: customerName || "Customer",
     order_id:      orderId      || "",
@@ -891,11 +891,10 @@ async function sendAdminBookingNotification({
   location, bookingDate, bookingTime, paymentMethod, amountDueNow, shoeNotes,
 }) {
   if (!window.emailjs) return;
-  // Needs a template in the EmailJS dashboard named exactly
-  // "template_admin_new_booking", with its "To Email" field set to
-  // {{to_email}} (see the merge fields below) — same setup as the
-  // bank-detail placeholders on template_qca25sq.
-  return window.emailjs.send(EMAILJS_SERVICE, "template_admin_new_booking", {
+  // EmailJS caps Template IDs at 25 characters, so "template_admin_new_booking"
+  // (27 chars) got silently truncated to "template_admin_new_booki" when the
+  // template was created in the dashboard — this is that template's real ID.
+  return window.emailjs.send(EMAILJS_SERVICE, "template_admin_new_booki", {
     to_email:       ADMIN_EMAIL,
     customer_name:  customerName  || "Customer",
     customer_email: customerEmail || "",
@@ -914,10 +913,10 @@ async function sendAdminBookingNotification({
 
 async function sendAdminNewCustomerNotification({ customerName, customerEmail, customerPhone }) {
   if (!window.emailjs) return;
-  // Needs a template in the EmailJS dashboard named exactly
-  // "template_admin_new_customer", with its "To Email" field set to
-  // {{to_email}} — same setup as template_admin_new_booking.
-  return window.emailjs.send(EMAILJS_SERVICE, "template_admin_new_customer", {
+  // Template "Admin New Customer" (ID template_r727u7v) in the EmailJS
+  // dashboard, To Email field set to {{to_email}} — same setup as the
+  // admin booking notification template.
+  return window.emailjs.send(EMAILJS_SERVICE, "template_r727u7v", {
     to_email:       ADMIN_EMAIL,
     customer_name:  customerName  || "Customer",
     customer_email: customerEmail || "",
