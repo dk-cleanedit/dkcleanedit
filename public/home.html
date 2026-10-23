@@ -384,6 +384,16 @@
     }
     .btn-outline:active { background: var(--surface-3); }
 
+    /* The hero's video background is always dark regardless of light/dark
+       mode, so its outline button must stay light-on-dark instead of
+       following the theme-driven --ink variable (which is black in light
+       mode and was making "Create Account" invisible). */
+    .hero-video-content .btn-outline {
+      color: var(--white);
+      border-color: rgba(255, 255, 255, 0.35);
+    }
+    .hero-video-content .btn-outline:active { background: rgba(255, 255, 255, 0.12); }
+
     .btn-ghost {
       display: inline-flex; align-items: center; justify-content: center;
       min-height: 40px; padding: 9px 16px;
