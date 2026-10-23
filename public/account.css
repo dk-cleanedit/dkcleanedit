@@ -147,8 +147,17 @@
 .stat-col { display: grid; gap: 12px; }
 .stat-box { padding: 16px 20px; }
 .stat-lbl { font-size: 0.74rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); margin-bottom: 5px; }
-.stat-val { font-size: 1.55rem; font-weight: 800; color: var(--text); letter-spacing: -0.02em; }
-.stat-val.sm { font-size: 0.95rem; font-weight: 600; letter-spacing: 0; }
+.stat-val {
+  font-family: 'Russo One', var(--font-ui, sans-serif);
+  font-size: 1.4rem; font-weight: 400; color: #8fe0ff;
+  letter-spacing: 0;
+  text-shadow: 0 1px 10px rgba(79, 195, 247, 0.35);
+}
+.stat-val.sm {
+  font-family: var(--font-ui, sans-serif);
+  font-size: 0.95rem; font-weight: 600; letter-spacing: 0;
+  color: var(--text); text-shadow: none;
+}
 
 .acct-orders { padding: 24px; }
 .acct-orders-hd { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
