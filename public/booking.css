@@ -178,6 +178,13 @@
 .svc-opt-top strong { font-weight: 700; color: var(--text); font-size: 0.97rem; }
 .svc-opt-sub { margin: 0; color: var(--text-3); font-size: 0.87rem; line-height: 1.55; }
 
+/* Active cards show a round checkmark badge (top:14px; right:16px; 20x20px)
+   via .svc-opt.active::after. On wide layouts .svc-opt-sub can sit beside
+   the title column and its text wraps right under that badge (seen on the
+   payment-method step, e.g. "...the full amount will be on your order.").
+   Reserve space so wrapped text never runs under the icon. */
+.svc-opt.active .svc-opt-sub { padding-right: 34px; }
+
 
 /* 27. BOOKING PAGE — Calendar
    [REF-2]: Calendar uses dark tonal surface — no white cells. */
