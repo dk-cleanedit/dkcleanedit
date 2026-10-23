@@ -73,9 +73,17 @@
   margin: 0 auto;
   border: 2px solid var(--line-2);
   box-shadow: 0 0 0 4px var(--surface-2);
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
 
-.step.active .circle    { background: var(--primary); border-color: var(--primary); }
+.step.active .circle {
+  background: radial-gradient(circle at 32% 28%, #8fe0ff 0%, #3fa9f5 38%, #1565c0 72%, #0d3d7a 100%);
+  border-color: #0a2d5e;
+  box-shadow:
+    0 0 0 4px var(--surface-2),
+    inset 0 1px 1px rgba(255,255,255,0.5),
+    0 0 10px rgba(21,101,192,0.5);
+}
 .step.cancelled .circle { background: var(--danger);  border-color: var(--danger); }
 
 .label {
@@ -120,7 +128,16 @@
   text-transform: uppercase;
 }
 .pickup-tag--done    { background: rgba(61,201,138,0.12); color: var(--success); }
-.pickup-tag--waiting { background: var(--primary-050);    color: var(--primary-400); }
+.pickup-tag--waiting {
+  font-family: 'Russo One', var(--font-ui, sans-serif);
+  background: radial-gradient(circle at 32% 28%, #8fe0ff 0%, #3fa9f5 38%, #1565c0 72%, #0d3d7a 100%);
+  border: 1px solid #0a2d5e;
+  color: #eaf7ff;
+  text-shadow: 0 1px 1px rgba(5,20,45,0.5);
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,0.5),
+    inset 0 -1px 2px rgba(5,25,55,0.4);
+}
 
 .conflict-badge {
   display: inline-flex;
