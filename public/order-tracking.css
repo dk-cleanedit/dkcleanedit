@@ -141,9 +141,15 @@
 /* RESPONSIVE */
 
 @media (max-width: 700px) {
-  .order-tracker { grid-template-columns: repeat(7, 90px); gap: 8px; }
-  .order-tracker::before { left: 32px; right: 32px; }
-  .label { font-size: 10px; }
+  /* Was `repeat(7, 90px)` — a fixed 90px per column (630px+ total) that
+     never fit a phone screen, so columns 3-7 (Cleaning onward) sat off
+     the right edge with no scroll hint: the progress line looked like
+     it just stopped after Cleaning. Switched to flexible columns that
+     actually fit the viewport, with smaller circles/labels to match. */
+  .order-tracker { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; overflow-x: visible; }
+  .order-tracker::before { left: 14px; right: 14px; }
+  .circle { width: 14px; height: 14px; border-width: 1.5px; box-shadow: 0 0 0 3px var(--surface-2); }
+  .label { font-size: 8.5px; max-width: 100%; white-space: normal; line-height: 1.25; margin-top: 6px; }
 }
 
 @media (max-width: 760px) {
