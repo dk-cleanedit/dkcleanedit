@@ -42,6 +42,27 @@
       --tap:        48px;   /* minimum touch target */
     }
 
+    /* Dark Mode override (Settings > Appearance) — html.dark-mode set by
+       app.js's initTheme()/initSettings(), persisted in localStorage.
+       Mirrors home.html's own dark-mode block so track.html (the only
+       page that loads this shared shell) matches the rest of the site
+       instead of staying stuck on light-mode text colours — this was
+       missing, which is why body text like .tracking-hero .sub stayed
+       black-on-dark and unreadable when dark mode was on. */
+    html.dark-mode {
+      --surface:    #0a1120;
+      --surface-2:  #111b2c;
+      --surface-3:  #172334;
+      --surface-4:  #1d2e42;
+      --white:      #0a1120;
+      --ink:        #f5f5f5;
+      --ink-2:      #e6f2ff;
+      --muted:      #9fb0c4;
+      --muted-2:    #7c93ab;
+      --hairline:   rgba(79, 195, 247, 0.14);
+      --hairline-2: rgba(79, 195, 247, 0.28);
+    }
+
     /* ── RESET ───────────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
