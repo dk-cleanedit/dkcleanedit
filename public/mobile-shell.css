@@ -134,8 +134,6 @@
     }
 .nav-mobile-center img {
       height: 84px; width: auto;
-      transform-style: preserve-3d;
-      animation: logoSpin3D 9s linear infinite;
     }
     .nav-mobile-right { flex: 0 0 72px; display: flex; align-items: center; justify-content: flex-end; gap: 2px; }
 
@@ -195,8 +193,6 @@
     }
     .sidebar-header img {
       height: 72px; width: auto;
-      transform-style: preserve-3d;
-      animation: logoSpin3D 9s linear infinite;
     }
 
     .sidebar-close {
