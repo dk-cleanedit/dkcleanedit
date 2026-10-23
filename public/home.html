@@ -735,6 +735,13 @@
       position: relative;
       height: 240px;
       touch-action: pan-y;
+      /* home.css (legacy desktop stylesheet, still loaded) defines its
+         own .carousel-viewport/.carousel-dots with overflow:hidden and
+         a light background — reset them explicitly so they can't clip
+         the peeking stack or paint a stray white box behind the dots */
+      overflow: visible;
+      background: transparent;
+      flex: none;
     }
     .result-card {
       position: absolute; inset: 0;
@@ -775,7 +782,7 @@
     }
     .carousel-btn.prev { left: 10px; }
     .carousel-btn.next { right: 10px; }
-    .carousel-dots { display: flex; justify-content: center; gap: 5px; padding: 10px 0 4px; }
+    .carousel-dots { display: flex; justify-content: center; gap: 5px; padding: 10px 0 4px; background: transparent; border-top: none; }
     .carousel-dots button {
       width: 5px; height: 5px; border-radius: 50%;
       border: none; background: var(--surface-4); padding: 0;
