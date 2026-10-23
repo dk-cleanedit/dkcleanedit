@@ -314,38 +314,53 @@
       padding-bottom: env(safe-area-inset-bottom);
       background: rgba(10, 17, 32, 0.97);
       -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
-      border-top: 1px solid rgba(79, 195, 247, 0.18);
+      border-top: 1px solid rgba(79, 195, 247, 0.22);
+      border-radius: 20px 20px 0 0;
+      box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.35), 0 -2px 10px rgba(79, 195, 247, 0.08);
       display: flex; align-items: stretch;
     }
     .bottom-tab {
       flex: 1; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 3px;
-      color: rgba(230,242,255,0.55); font-size: 10px; font-weight: 500;
+      align-items: center; justify-content: center; gap: 4px;
+      color: rgba(230,242,255,0.5); font-size: 10px; font-weight: 600;
+      letter-spacing: 0.1px;
       -webkit-tap-highlight-color: transparent;
       padding-top: 6px;
-      transition: color 0.14s;
+      position: relative;
+      transition: color 0.16s;
     }
-    .bottom-tab.active { color: var(--gold); }
+    .bottom-tab .tab-icon-wrap {
+      width: 34px; height: 26px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 10px;
+      transition: background 0.16s;
+    }
+    .bottom-tab.active .tab-icon-wrap { background: rgba(79, 195, 247, 0.16); }
+    .bottom-tab.active { color: #8fe0ff; }
     .bottom-tab svg {
-      width: 22px; height: 22px; stroke: currentColor; fill: none;
-      stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
+      width: 21px; height: 21px; stroke: currentColor; fill: none;
+      stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
     }
 
     .bottom-tab-book {
       flex: 1; display: flex; flex-direction: column;
       align-items: center; justify-content: center; gap: 4px;
-      color: #000; font-size: 10px; font-weight: 700;
+      color: #fff; font-size: 10px; font-weight: 700;
       -webkit-tap-highlight-color: transparent;
     }
     .book-pill {
-      width: 46px; height: 46px;
-      background: linear-gradient(135deg, var(--gold-light), var(--gold));
-      border-radius: 14px;
+      width: 48px; height: 48px;
+      background: radial-gradient(circle at 32% 28%, #8fe0ff 0%, #3fa9f5 38%, #1565c0 72%, #0d3d7a 100%);
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.25);
       display: flex; align-items: center; justify-content: center;
-      margin-top: -14px;
-      box-shadow: 0 4px 20px rgba(79, 195, 247, 0.4);
+      margin-top: -16px;
+      box-shadow:
+        inset 0 1px 1px rgba(255,255,255,0.45),
+        inset 0 -2px 3px rgba(5,25,55,0.4),
+        0 6px 20px rgba(21, 101, 192, 0.5);
     }
-    .book-pill svg { width: 20px; height: 20px; stroke: #000; fill: none; stroke-width: 2.2; stroke-linecap: round; }
+    .book-pill svg { width: 21px; height: 21px; stroke: #fff; fill: none; stroke-width: 2.2; stroke-linecap: round; }
 
     /* ── SECTION HELPERS ─────────────────────────────────────────── */
     .sec { padding: 0 var(--side); }
@@ -381,11 +396,15 @@
     .btn-gold {
       display: flex; align-items: center; justify-content: center;
       width: 100%; min-height: var(--tap); padding: 14px;
-      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      background: radial-gradient(circle at 50% 0%, #a8e8ff 0%, #8fe0ff 22%, #3fa9f5 55%, #1565c0 100%);
+      border: 1px solid rgba(255,255,255,0.3);
       color: #000; font-size: 14px; font-weight: 700;
       border-radius: var(--radius-sm);
       -webkit-tap-highlight-color: transparent;
-      box-shadow: 0 4px 18px rgba(79, 195, 247, 0.25);
+      box-shadow:
+        inset 0 1px 1px rgba(255,255,255,0.6),
+        inset 0 -2px 4px rgba(5,25,55,0.25),
+        0 4px 18px rgba(79, 195, 247, 0.35);
     }
     .btn-gold:active { opacity: 0.88; }
     .btn-gold:disabled { opacity: 0.45; box-shadow: none; }
@@ -892,11 +911,11 @@
   <!-- ── BOTTOM TAB BAR ── -->
   <nav class="bottom-nav" aria-label="Main navigation">
     <a href="home.html" class="bottom-tab" aria-label="Home">
-      <svg viewBox="0 0 24 24"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg>
+      <span class="tab-icon-wrap"><svg viewBox="0 0 24 24"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg></span>
       <span>Home</span>
     </a>
     <a href="track.html" class="bottom-tab" aria-label="Track" data-requires-auth="true">
-      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span class="tab-icon-wrap"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
       <span>Track</span>
     </a>
     <a href="booking.html" class="bottom-tab-book" aria-label="Book" data-requires-auth="true">
@@ -906,11 +925,11 @@
       <span>Book</span>
     </a>
     <a href="customer.html" class="bottom-tab active" aria-current="page" aria-label="Account" data-requires-auth="true">
-      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span class="tab-icon-wrap"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
       <span>Account</span>
     </a>
     <a href="login.html" class="bottom-tab" id="bottomNavLogin" aria-label="Login">
-      <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      <span class="tab-icon-wrap"><svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg></span>
       <span>Login</span>
     </a>
   </nav>
