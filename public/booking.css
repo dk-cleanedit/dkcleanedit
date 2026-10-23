@@ -219,10 +219,14 @@
   background: var(--surface-2);
 }
 .cal-head .btn     { min-height: 34px; min-width: 34px; padding: 4px 10px; font-size: 1.1rem; line-height: 1; border-radius: 8px; }
-#calMonthLabel     { font-size: 0.92rem; font-weight: 700; color: var(--text); }
+#calMonthLabel     {
+  font-family: 'Russo One', var(--font-ui, sans-serif);
+  font-size: 1rem; font-weight: 400; letter-spacing: 0.3px;
+  color: #8fe0ff; text-shadow: 0 0 10px rgba(79,195,247,0.35);
+}
 
 .cal-days-header { display: grid; grid-template-columns: repeat(7, 1fr); padding: 10px 12px 3px; }
-.cal-days-header span { text-align: center; font-size: 0.7rem; font-weight: 700; color: var(--text-4); text-transform: uppercase; letter-spacing: 0.07em; }
+.cal-days-header span { text-align: center; font-size: 0.7rem; font-weight: 700; color: #5f84ac; text-transform: uppercase; letter-spacing: 0.07em; }
 
 .cal-body { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; padding: 6px 12px 14px; }
 
@@ -243,7 +247,7 @@
 .cal-cell:active:not(.cal-cell--other):not(.cal-cell--past) { transform: scale(0.95); }
 .cal-cell--other    { color: var(--text-4); opacity: 0.28; pointer-events: none; }
 .cal-cell--past     { color: var(--text-4); opacity: 0.36; pointer-events: none; cursor: not-allowed; }
-.cal-cell--today    { border-color: var(--bk-blue); color: var(--primary-400); font-weight: 800; }
+.cal-cell--today    { background: rgba(79, 195, 247, 0.08); border-color: var(--bk-blue); color: var(--primary-400); font-weight: 800; }
 .cal-cell--selected {
   background: radial-gradient(circle at 32% 28%, #8fe0ff 0%, #3fa9f5 38%, #1565c0 72%, #0d3d7a 100%) !important;
   color: #eaf7ff !important;
@@ -258,7 +262,7 @@
   z-index: 3;
 }
 .cal-cell--booked   { background: var(--gold-bg); color: var(--gold); border-color: var(--gold-border); cursor: not-allowed; pointer-events: none; }
-.cal-cell--full     { background: var(--danger-100); color: #f08888; border-color: rgba(224,92,92,0.25); cursor: not-allowed; pointer-events: none; }
+.cal-cell--full     { background: rgba(255, 165, 0, 0.12); color: #ffb648; border-color: rgba(255, 165, 0, 0.3); cursor: not-allowed; pointer-events: none; }
 
 .selected-date-label { padding: 8px 16px 12px; font-size: 0.86rem; font-weight: 500; min-height: 36px; margin: 0; color: var(--text-3); display: flex; align-items: center; gap: 6px; background: var(--surface-2); }
 .selected-date-label:not(:empty)::before { content: "📅"; font-size: 0.9rem; }
@@ -317,8 +321,8 @@
 #shoePreviewWrap { margin-top: 10px; padding: 12px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--surface-2); display: flex; align-items: flex-start; gap: 12px; }
 #shoePreview     { max-width: 200px; max-height: 160px; border-radius: 10px; border: 1px solid var(--line); display: block; object-fit: cover; }
 
-.preview-remove { background: var(--danger-100); border: 1px solid rgba(224,92,92,0.25); color: #f08888; border-radius: 6px; padding: 4px 10px; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: background var(--ease); }
-.preview-remove:hover { background: rgba(224,92,92,0.20); }
+.preview-remove { background: rgba(255, 165, 0, 0.12); border: 1px solid rgba(255, 165, 0, 0.3); color: #ffb648; border-radius: 6px; padding: 4px 10px; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: background var(--ease); }
+.preview-remove:hover { background: rgba(255, 165, 0, 0.2); }
 
 .btn-book-wrap { display: flex; flex-direction: column; gap: 8px; }
 
