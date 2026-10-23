@@ -687,12 +687,32 @@
     .slider-dot.active { background: var(--gold); width: 16px; border-radius: 3px; }
 
     /* ── HOW IT WORKS ───────────────────────────────────────── */
-    .steps-list { display: flex; flex-direction: column; }
+    .steps-list { display: flex; flex-direction: column; gap: 10px; }
     .step-row {
       display: flex; align-items: flex-start; gap: 14px;
-      padding: 14px 0; border-bottom: 1px solid var(--surface-3);
+      position: relative; overflow: hidden;
+      padding: 14px;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(160deg, rgba(79,195,247,0.07), rgba(10,17,32,0.5)), var(--surface-2);
+      border: 1px solid rgba(79, 195, 247, 0.22);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 6px 18px rgba(0,0,0,0.2), 0 0 0 1px rgba(79,195,247,0.06);
+      animation: cardGlow 3.5s ease-in-out infinite;
     }
-    .step-row:last-child { border-bottom: none; }
+    .step-row::before {
+      content: '';
+      position: absolute; inset: 0; z-index: 1;
+      background: linear-gradient(115deg, transparent 20%, rgba(143,224,255,0.1) 45%, rgba(143,224,255,0.2) 50%, rgba(143,224,255,0.1) 55%, transparent 80%);
+      transform: translateX(-120%);
+      animation: cardShine 5s ease-in-out infinite;
+      pointer-events: none;
+    }
+    .step-row > div { position: relative; z-index: 2; }
+    .step-row:nth-child(2) { animation-delay: 0.3s; }
+    .step-row:nth-child(3) { animation-delay: 0.6s; }
+    .step-row:nth-child(4) { animation-delay: 0.9s; }
+    .step-row:nth-child(2)::before { animation-delay: 0.6s; }
+    .step-row:nth-child(3)::before { animation-delay: 1.2s; }
+    .step-row:nth-child(4)::before { animation-delay: 1.8s; }
     .step-badge {
       width: 28px; height: 28px; border-radius: 50%;
       background: radial-gradient(circle at 32% 28%, #8fe0ff 0%, #3fa9f5 38%, #1565c0 72%, #0d3d7a 100%);
@@ -734,38 +754,82 @@
     .carousel-dots button.active { background: var(--gold); width: 16px; border-radius: 3px; }
 
     /* ── LOYALTY TIERS ──────────────────────────────────────── */
-    .tier-list { display: flex; flex-direction: column; gap: 8px; }
+    .tier-list { display: flex; flex-direction: column; gap: 10px; }
     .tier-row {
       display: flex; align-items: center; gap: 12px;
       min-height: var(--tap);
+      position: relative; overflow: hidden;
       padding: 13px 14px; border-radius: var(--radius-sm);
-      background: var(--surface-2);
-      border: 1px solid rgba(79, 195, 247, 0.14);
+      background: linear-gradient(160deg, rgba(79,195,247,0.07), rgba(10,17,32,0.5)), var(--surface-2);
+      border: 1px solid rgba(79, 195, 247, 0.22);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 6px 18px rgba(0,0,0,0.2), 0 0 0 1px rgba(79,195,247,0.06);
+      animation: cardGlow 3.5s ease-in-out infinite;
+      text-decoration: none;
     }
+    .tier-row::before {
+      content: '';
+      position: absolute; inset: 0; z-index: 1;
+      background: linear-gradient(115deg, transparent 20%, rgba(143,224,255,0.1) 45%, rgba(143,224,255,0.2) 50%, rgba(143,224,255,0.1) 55%, transparent 80%);
+      transform: translateX(-120%);
+      animation: cardShine 5s ease-in-out infinite;
+      pointer-events: none;
+    }
+    .tier-row > div { position: relative; z-index: 2; }
+    .tier-row:nth-child(2) { animation-delay: 0.3s; }
+    .tier-row:nth-child(3) { animation-delay: 0.6s; }
+    .tier-row:nth-child(2)::before { animation-delay: 0.6s; }
+    .tier-row:nth-child(3)::before { animation-delay: 1.2s; }
     .tier-row:active { background: var(--surface-3); }
     .tier-icon {
       width: 36px; height: 36px; border-radius: 10px;
-      background: rgba(79, 195, 247, 0.1); color: var(--gold);
+      background: radial-gradient(circle at 32% 28%, #8fe0ff 0%, #3fa9f5 38%, #1565c0 72%, #0d3d7a 100%);
+      border: 1px solid #0a2d5e;
+      color: #eaf7ff;
       display: flex; align-items: center; justify-content: center;
       font-size: 18px; flex-shrink: 0;
+      box-shadow:
+        inset 0 1px 1px rgba(255,255,255,0.5),
+        inset 0 -2px 3px rgba(5,25,55,0.4),
+        0 1px 4px rgba(21,101,192,0.4);
+      text-shadow: 0 1px 1px rgba(5,20,45,0.5);
     }
     .tier-info { flex: 1; }
     .tier-name { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 1px; }
     .tier-range { font-size: 11px; color: var(--muted-2); margin-bottom: 2px; }
     .tier-perk { font-size: 12px; color: var(--gold-dark); }
-    .tier-chevron { color: #000000; font-size: 16px; }
+    .tier-chevron { color: #8fe0ff; font-size: 16px; }
     .tier-tag {
-      font-size: 9px; font-weight: 700; background: var(--gold); color: #000;
-      padding: 2px 5px; border-radius: 4px; margin-left: 5px; vertical-align: middle;
+      font-family: 'Russo One', var(--font-ui, sans-serif);
+      font-size: 8px; font-weight: 400; letter-spacing: 0.4px;
+      background: linear-gradient(135deg, #8fe0ff, #3fa9f5); color: #0a1120;
+      padding: 2px 7px; border-radius: 999px; margin-left: 5px; vertical-align: middle;
+      border: 1px solid rgba(255,255,255,0.3);
     }
 
     /* ── REVIEWS ────────────────────────────────────────────── */
-    .review-list { display: flex; flex-direction: column; gap: 8px; }
+    .review-list { display: flex; flex-direction: column; gap: 10px; }
     .review-card {
-      background: var(--surface-2); border-radius: var(--radius-sm);
-      border: 1px solid rgba(79, 195, 247, 0.14); padding: 12px 14px;
+      position: relative; overflow: hidden;
+      background: linear-gradient(160deg, rgba(79,195,247,0.07), rgba(10,17,32,0.5)), var(--surface-2);
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(79, 195, 247, 0.22); padding: 12px 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 6px 18px rgba(0,0,0,0.2), 0 0 0 1px rgba(79,195,247,0.06);
+      animation: cardGlow 3.5s ease-in-out infinite;
     }
-    .review-stars { color: var(--gold-dark); font-size: 11px; letter-spacing: 2px; margin-bottom: 5px; }
+    .review-card::before {
+      content: '';
+      position: absolute; inset: 0; z-index: 1;
+      background: linear-gradient(115deg, transparent 20%, rgba(143,224,255,0.1) 45%, rgba(143,224,255,0.2) 50%, rgba(143,224,255,0.1) 55%, transparent 80%);
+      transform: translateX(-120%);
+      animation: cardShine 5s ease-in-out infinite;
+      pointer-events: none;
+    }
+    .review-card > * { position: relative; z-index: 2; }
+    .review-card:nth-child(2) { animation-delay: 0.3s; }
+    .review-card:nth-child(3) { animation-delay: 0.6s; }
+    .review-card:nth-child(2)::before { animation-delay: 0.6s; }
+    .review-card:nth-child(3)::before { animation-delay: 1.2s; }
+    .review-stars { color: #8fe0ff; font-size: 11px; letter-spacing: 2px; margin-bottom: 5px; }
     .review-quote { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin-bottom: 7px; font-style: italic; }
     .review-author { font-size: 12.5px; font-weight: 700; color: var(--ink); display: inline; }
     .review-meta { font-size: 11px; color: var(--muted-2); display: inline; }
@@ -1031,7 +1095,6 @@
     <!-- 3. HOW IT WORKS — the booking flow -->
     <div class="dk-section" aria-labelledby="howHeading">
       <div class="dk-section-header">
-        <div class="sec-label">Process</div>
         <div class="sec-title" id="howHeading">How It Works</div>
       </div>
       <div class="steps-list">
@@ -1069,7 +1132,6 @@
     <!-- 6. LOYALTY — reason to come back -->
     <div class="dk-section" aria-labelledby="tiersHeading">
       <div class="dk-section-header">
-        <div class="sec-label">Rewards</div>
         <div class="sec-title" id="tiersHeading">Loyalty Tiers</div>
       </div>
       <div class="tier-list">
@@ -1109,7 +1171,6 @@
     <!-- 7. REVIEWS -->
     <div class="dk-section" aria-labelledby="reviewsHeading">
       <div class="dk-section-header">
-        <div class="sec-label">Reviews</div>
         <div class="sec-title" id="reviewsHeading">Client Feedback</div>
       </div>
       <div class="review-list">
