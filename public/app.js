@@ -243,6 +243,47 @@ function getStripeInstance() {
   return _stripe;
 }
 
+// ─────────────────────────────────────────────────────────────
+//  Stripe Payment Links — simple fixed-price checkout, no backend.
+//
+//  Created manually in the Stripe Dashboard (Payment Links), one per
+//  service tier. These only support a single fixed price, so they're
+//  only used when the order is a plain, full-price, no-extras booking
+//  for one of the three tiers below. Anything else (add-ons, home
+//  pickup fee, a loyalty discount, or paying a deposit) still goes
+//  through the existing bank-transfer flow, same as before.
+//
+//  NOTE: there's no webhook wired up for these links, so orders paid
+//  this way won't automatically flip to "paid" in Firestore — they
+//  need the same manual reconciliation as bank-transfer orders.
+// ─────────────────────────────────────────────────────────────
+const STRIPE_PAYMENT_LINKS = {
+  standard_clean: "https://buy.stripe.com/3cI8wR7dqaw26Yo4ESaVa00",
+  express:        "https://buy.stripe.com/dRm14p1T6gUqaaA3AOaVa01",
+  next_day:       "https://buy.stripe.com/5kQfZjeFS33A6Yoc7kaVa02",
+};
+
+/**
+ * Returns a Stripe Payment Link URL for this order if it's eligible
+ * (full payment, no add-ons, no home pickup, no loyalty discount, and
+ * the service matches one of the fixed-price tiers above) — otherwise
+ * null, meaning "fall back to bank transfer" as before.
+ */
+function getStripePaymentLink({ service, paymentOption, selectedAddons, isPickup, discountApplied, customerEmail, orderId }) {
+  const base = STRIPE_PAYMENT_LINKS[service];
+  if (!base) return null;
+  if (paymentOption !== "full") return null;
+  if (selectedAddons && selectedAddons.length) return null;
+  if (isPickup) return null;
+  if (discountApplied) return null;
+
+  const params = new URLSearchParams();
+  if (orderId) params.set("client_reference_id", orderId);
+  if (customerEmail) params.set("prefilled_email", customerEmail);
+  const qs = params.toString();
+  return qs ? `${base}?${qs}` : base;
+}
+
 /**
  * Opens the Stripe payment modal for a given order and lets the
  * customer pay by card, Apple Pay or Google Pay (Stripe's Payment
@@ -2429,10 +2470,20 @@ function initBooking() {
         // Nothing to charge yet — the price is confirmed after we quote it.
         setTimeout(() => { location.href = "track.html"; }, 900);
       } else {
-        // Offer to pay now by card / Apple Pay / Google Pay (Stripe Payment
-        // Element). openPaymentModal() falls back to a bank-transfer toast
-        // and redirect on its own if Stripe isn't configured yet.
-        openPaymentModal(newOrderId, amountDueNow);
+        // Pay now: a plain full-price booking for one of the three fixed
+        // tiers goes straight to its Stripe Payment Link (card / Apple
+        // Pay / Google Pay, hosted by Stripe). Anything with add-ons, a
+        // deposit, home pickup, or a loyalty discount isn't covered by a
+        // fixed-price link, so it falls back to bank transfer like before.
+        const paymentLink = getStripePaymentLink({
+          service, paymentOption, selectedAddons, isPickup, discountApplied,
+          customerEmail, orderId: newOrderId,
+        });
+        if (paymentLink) {
+          setTimeout(() => { location.href = paymentLink; }, 900);
+        } else {
+          setTimeout(() => { location.href = "track.html"; }, 900);
+        }
       }
 
     } catch (err) {
