@@ -2572,12 +2572,18 @@ function initBooking() {
         // no eligibility branching, no bank transfer: confirm the
         // booking, land straight on Stripe's page, pay by card, Apple
         // Pay or Google Pay (Stripe decides which it can show).
-        const checkoutUrl = await getStripeCheckoutUrl({
-          orderId: newOrderId,
-          amountDueNow,
-          customerEmail,
-          description: serviceLabel(service),
-        });
+        // Fixed-price orders (plain full-price tier, or the flat deposit) go
+        // straight to their Stripe Payment Link \u2014 no backend or secret key
+        // involved, so this works on its own. Anything else (add-ons, pickup
+        // fee, discount) needs the Checkout Session backend for its exact total.
+        const checkoutUrl =
+          getStripePaymentLink({ service, paymentOption, selectedAddons, isPickup, discountApplied, customerEmail, orderId: newOrderId })
+          || await getStripeCheckoutUrl({
+            orderId: newOrderId,
+            amountDueNow,
+            customerEmail,
+            description: serviceLabel(service),
+          });
         if (checkoutUrl) {
           setMsg(`Booking confirmed! Order ID: ${newOrderId}. Taking you to secure payment…`);
           location.href = checkoutUrl;
