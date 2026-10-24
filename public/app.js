@@ -2552,12 +2552,17 @@ function initBooking() {
       }
 
       if (_slotWatcherUnsub) { _slotWatcherUnsub(); _slotWatcherUnsub = null; }
-      toast(needsQuote ? "Quote request sent ✅" : "Booking confirmed ✅", "success");
-      setMsg(needsQuote
-        ? `Quote request sent! We'll be in touch about pricing. Order ID: ${newOrderId}`
-        : `Booking confirmed! Order ID: ${newOrderId}`);
+
+      // The booking succeeded — lock the button so it can't be clicked
+      // again (that would create a duplicate order) and so it doesn't sit
+      // there looking clickable right next to the Buy Button / next-step
+      // message below, which was confusing.
+      btnBook.disabled = true;
+      btnBook.textContent = "Booking confirmed ✓";
 
       if (needsQuote) {
+        toast("Quote request sent ✅", "success");
+        setMsg(`Quote request sent! We'll be in touch about pricing. Order ID: ${newOrderId}`);
         // Nothing to charge yet — the price is confirmed after we quote it.
         setTimeout(() => { location.href = "track.html"; }, 900);
       } else {
@@ -2568,8 +2573,13 @@ function initBooking() {
         // or a discount isn't a fixed price, so it falls back to bank
         // transfer, same as it always has.
         const shown = showStripeBuyButton({ service, paymentOption, selectedAddons, isPickup, discountApplied });
-        if (!shown) {
-          setTimeout(() => { location.href = "track.html"; }, 900);
+        if (shown) {
+          toast("Booking confirmed ✅", "success");
+          setMsg(`Booking confirmed! Order ID: ${newOrderId}. Pay securely below, or use the bank details in your confirmation email.`);
+        } else {
+          toast("Booking confirmed ✅ — pay by bank transfer", "success");
+          setMsg(`Booking confirmed! Order ID: ${newOrderId}. This order isn't eligible for card/Apple Pay checkout (add-ons, home pickup, or a discount applied) — pay by bank transfer using the details in your confirmation email and on your order.`);
+          setTimeout(() => { location.href = "track.html"; }, 1500);
         }
       }
 
@@ -2586,7 +2596,10 @@ function initBooking() {
         msg = "Booking failed. Please try again.";
       }
       setMsg(msg); toast(msg, "error");
-    } finally { btnBook.disabled = false; btnBook.textContent = "Confirm booking"; }
+      // Only re-enable for retry on an actual failure — a successful
+      // booking leaves the button locked (set above).
+      btnBook.disabled = false; btnBook.textContent = "Confirm booking";
+    }
   });
 }
 
