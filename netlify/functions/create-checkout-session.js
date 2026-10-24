@@ -15,7 +15,7 @@
 //
 // Required Netlify environment variable (Site settings → Environment
 // variables — no CLI needed):
-//   STRIPE_SECRET_KEY — live secret key (starts sk_live_), from
+//   STRIPE_SECRET_KEY — your Stripe secret key, from
 //                       Stripe Dashboard → Developers → API keys
 //
 // If STRIPE_SECRET_KEY isn't set yet, this returns a clear 500 and the
