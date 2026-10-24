@@ -297,6 +297,35 @@ function getStripePaymentLink({ service, paymentOption, selectedAddons, isPickup
 }
 
 /**
+ * Asks the Netlify backend to create a Stripe-hosted Checkout Session for
+ * this order and returns its URL, or null if the backend isn't configured
+ * (no STRIPE_SECRET_KEY yet) or the request fails for any reason. This
+ * covers ANY order total — add-ons, pickup fee, discount, deposit, all of
+ * it — unlike the fixed-price Payment Links above, which only cover a
+ * plain full-price tier booking or the flat deposit. Callers should fall
+ * back to getStripePaymentLink()/bank transfer when this returns null.
+ */
+async function getStripeCheckoutUrl(orderId) {
+  try {
+    const idToken = await auth.currentUser.getIdToken();
+    const resp = await fetch("/.netlify/functions/create-checkout-session", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({ orderId }),
+    });
+    if (!resp.ok) return null;
+    const data = await resp.json().catch(() => ({}));
+    return data?.url || null;
+  } catch (err) {
+    console.warn("Stripe Checkout Session unavailable, falling back:", err);
+    return null;
+  }
+}
+
+/**
  * Opens the Stripe payment modal for a given order and lets the
  * customer pay by card, Apple Pay or Google Pay (Stripe's Payment
  * Element shows whichever of those the browser/device supports).
@@ -2482,20 +2511,24 @@ function initBooking() {
         // Nothing to charge yet — the price is confirmed after we quote it.
         setTimeout(() => { location.href = "track.html"; }, 900);
       } else {
-        // Pay now: a plain full-price booking for one of the three fixed
-        // tiers goes straight to its Stripe Payment Link (card / Apple
-        // Pay / Google Pay, hosted by Stripe). Anything with add-ons, a
-        // deposit, home pickup, or a loyalty discount isn't covered by a
-        // fixed-price link, so it falls back to bank transfer like before.
-        const paymentLink = getStripePaymentLink({
-          service, paymentOption, selectedAddons, isPickup, discountApplied,
-          customerEmail, orderId: newOrderId,
-        });
-        if (paymentLink) {
-          setTimeout(() => { location.href = paymentLink; }, 900);
-        } else {
-          setTimeout(() => { location.href = "track.html"; }, 900);
-        }
+        // Pay now. Three ways to pay, tried in order, each falling back to
+        // the next if it's not available:
+        //  1. Stripe-hosted Checkout Session (netlify/functions) — covers
+        //     any total, including add-ons/pickup/discount/deposit, with
+        //     Apple Pay / card. Needs STRIPE_SECRET_KEY configured.
+        //  2. A fixed-price Stripe Payment Link — only for a plain
+        //     full-price tier booking, or the flat £10 deposit.
+        //  3. Bank transfer (the existing track.html flow), same as always.
+        setTimeout(async () => {
+          const checkoutUrl = await getStripeCheckoutUrl(newOrderId);
+          if (checkoutUrl) { location.href = checkoutUrl; return; }
+
+          const paymentLink = getStripePaymentLink({
+            service, paymentOption, selectedAddons, isPickup, discountApplied,
+            customerEmail, orderId: newOrderId,
+          });
+          location.href = paymentLink || "track.html";
+        }, 900);
       }
 
     } catch (err) {
