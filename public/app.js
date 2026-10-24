@@ -263,6 +263,10 @@ const STRIPE_PAYMENT_LINKS = {
   next_day:       "https://buy.stripe.com/5kQfZjeFS33A6Yoc7kaVa02",
 };
 
+// Fixed £10 deposit link — deposit is always exactly £10 regardless of
+// service, add-ons, or discount, so one link covers every deposit booking.
+const STRIPE_DEPOSIT_LINK = "https://buy.stripe.com/6oUdRbapC0VsfuU6N0aVa03";
+
 /**
  * Returns a Stripe Payment Link URL for this order if it's eligible
  * (full payment, no add-ons, no home pickup, no loyalty discount, and
@@ -270,12 +274,20 @@ const STRIPE_PAYMENT_LINKS = {
  * null, meaning "fall back to bank transfer" as before.
  */
 function getStripePaymentLink({ service, paymentOption, selectedAddons, isPickup, discountApplied, customerEmail, orderId }) {
-  const base = STRIPE_PAYMENT_LINKS[service];
+  let base = null;
+
+  if (paymentOption === "deposit") {
+    // Deposit is always exactly £10, no matter the service/add-ons/discount.
+    base = STRIPE_DEPOSIT_LINK;
+  } else if (paymentOption === "full") {
+    // Only the plain, no-extras tiers have a fixed-price link right now.
+    if (selectedAddons && selectedAddons.length) return null;
+    if (isPickup) return null;
+    if (discountApplied) return null;
+    base = STRIPE_PAYMENT_LINKS[service] || null;
+  }
+
   if (!base) return null;
-  if (paymentOption !== "full") return null;
-  if (selectedAddons && selectedAddons.length) return null;
-  if (isPickup) return null;
-  if (discountApplied) return null;
 
   const params = new URLSearchParams();
   if (orderId) params.set("client_reference_id", orderId);
