@@ -2566,20 +2566,25 @@ function initBooking() {
         // Nothing to charge yet — the price is confirmed after we quote it.
         setTimeout(() => { location.href = "track.html"; }, 900);
       } else {
-        // Pay now, no backend involved: a plain full-price booking for one
-        // of the three tiers, or a deposit, gets an inline Stripe Buy
-        // Button right here on the page (card / Apple Pay / Google Pay,
-        // hosted entirely by Stripe). Anything with add-ons, home pickup,
-        // or a discount isn't a fixed price, so it falls back to bank
-        // transfer, same as it always has.
-        const shown = showStripeBuyButton({ service, paymentOption, selectedAddons, isPickup, discountApplied });
-        if (shown) {
-          toast("Booking confirmed ✅", "success");
-          setMsg(`Booking confirmed! Order ID: ${newOrderId}. Pay securely below, or use the bank details in your confirmation email.`);
+        // Pay now: every order (any total — add-ons, pickup fee,
+        // discount, full price or deposit) goes through Stripe's own
+        // hosted Checkout page via the Netlify backend. One single path,
+        // no eligibility branching, no bank transfer: confirm the
+        // booking, land straight on Stripe's page, pay by card, Apple
+        // Pay or Google Pay (Stripe decides which it can show).
+        const checkoutUrl = await getStripeCheckoutUrl({
+          orderId: newOrderId,
+          amountDueNow,
+          customerEmail,
+          description: serviceLabel(service),
+        });
+        if (checkoutUrl) {
+          setMsg(`Booking confirmed! Order ID: ${newOrderId}. Taking you to secure payment…`);
+          location.href = checkoutUrl;
         } else {
-          toast("Booking confirmed ✅ — pay by bank transfer", "success");
-          setMsg(`Booking confirmed! Order ID: ${newOrderId}. This order isn't eligible for card/Apple Pay checkout (add-ons, home pickup, or a discount applied) — pay by bank transfer using the details in your confirmation email and on your order.`);
-          setTimeout(() => { location.href = "track.html"; }, 1500);
+          toast("Booking confirmed — payment step failed", "error");
+          setMsg(`Booking confirmed! Order ID: ${newOrderId}. We couldn't open the payment page just now — go to the Track page and use Order ID ${newOrderId} to pay, or contact us.`);
+          setTimeout(() => { location.href = "track.html"; }, 1800);
         }
       }
 
