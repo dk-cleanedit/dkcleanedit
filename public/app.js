@@ -274,9 +274,24 @@ async function openPaymentModal(orderId, amountDueNow) {
 
   let clientSecret;
   try {
-    const createPaymentIntent = httpsCallable(functions, "createPaymentIntent");
-    const result = await createPaymentIntent({ orderId });
-    clientSecret = result.data?.clientSecret;
+    // Calls a Netlify serverless function (netlify/functions/create-payment-intent.js)
+    // rather than a Firebase callable function, so this deploys automatically
+    // with the rest of the site via Netlify's existing git-push pipeline --
+    // no separate Firebase CLI deploy needed.
+    const idToken = await auth.currentUser.getIdToken();
+    const resp = await fetch("/.netlify/functions/create-payment-intent", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({ orderId }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      throw new Error(data?.error || `Couldn't start payment (${resp.status}).`);
+    }
+    clientSecret = data?.clientSecret;
   } catch (err) {
     console.error("createPaymentIntent failed:", err);
     if (msgEl) msgEl.textContent = err?.message || "Couldn't start payment. Please try again, or pay by bank transfer.";
