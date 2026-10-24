@@ -304,17 +304,17 @@ function getStripePaymentLink({ service, paymentOption, selectedAddons, isPickup
  * it — unlike the fixed-price Payment Links above, which only cover a
  * plain full-price tier booking or the flat deposit. Callers should fall
  * back to getStripePaymentLink()/bank transfer when this returns null.
+ *
+ * No Firebase/auth token involved on purpose — the browser already wrote
+ * amountDueNow to Firestore for this order, so it just hands that same
+ * number to the backend, which only needs a Stripe secret key to work.
  */
-async function getStripeCheckoutUrl(orderId) {
+async function getStripeCheckoutUrl({ orderId, amountDueNow, customerEmail, description }) {
   try {
-    const idToken = await auth.currentUser.getIdToken();
     const resp = await fetch("/.netlify/functions/create-checkout-session", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`,
-      },
-      body: JSON.stringify({ orderId }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId, amountDueNow, customerEmail, description }),
     });
     if (!resp.ok) return null;
     const data = await resp.json().catch(() => ({}));
@@ -2520,7 +2520,12 @@ function initBooking() {
         //     full-price tier booking, or the flat £10 deposit.
         //  3. Bank transfer (the existing track.html flow), same as always.
         setTimeout(async () => {
-          const checkoutUrl = await getStripeCheckoutUrl(newOrderId);
+          const checkoutUrl = await getStripeCheckoutUrl({
+            orderId: newOrderId,
+            amountDueNow,
+            customerEmail,
+            description: `${serviceLabel(service)}${paymentOption === "deposit" ? " — deposit" : ""}`,
+          });
           if (checkoutUrl) { location.href = checkoutUrl; return; }
 
           const paymentLink = getStripePaymentLink({
