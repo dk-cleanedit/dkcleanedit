@@ -67,3 +67,8 @@ node_modules/
 
 # dataconnect generated files
 .dataconnect
+
+# Stray archives / test files that must never be published
+public/*.zip
+public/testfile.txt
+public/zi*
