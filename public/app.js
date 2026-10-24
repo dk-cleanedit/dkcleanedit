@@ -296,6 +296,56 @@ function getStripePaymentLink({ service, paymentOption, selectedAddons, isPickup
   return qs ? `${base}?${qs}` : base;
 }
 
+// ─────────────────────────────────────────────────────────────
+//  Stripe Buy Button — official embeddable widget (<stripe-buy-button>),
+//  loaded via https://js.stripe.com/v3/buy-button.js in booking.html.
+//  No backend, no Firebase, no database: Stripe hosts the whole payment
+//  flow and shows Apple Pay / Google Pay / card automatically. Each
+//  button is tied to one fixed-price Payment Link created in the Stripe
+//  Dashboard, so — same as STRIPE_PAYMENT_LINKS/STRIPE_DEPOSIT_LINK above
+//  — this only covers a plain full-price tier booking or the flat £10
+//  deposit; anything with add-ons, pickup, or a discount still falls
+//  back to bank transfer, since those need a non-fixed total.
+// ─────────────────────────────────────────────────────────────
+const STRIPE_BUY_BUTTONS = {
+  standard_clean: "buy_btn_1UUBF8RTw1NvMTlyWuLrmZCQ",
+  express:        "buy_btn_1UUBFORTw1NvMTlydV2CWkfE",
+  next_day:       "buy_btn_1UUBFpRTw1NvMTlyy8Pydpmy",
+};
+const STRIPE_DEPOSIT_BUY_BUTTON = "buy_btn_1UUBENRTw1NvMTlygZvD2njX";
+
+/**
+ * Shows an inline Stripe Buy Button for this order if it's eligible
+ * (same eligibility as getStripePaymentLink()), and returns true. If not
+ * eligible, leaves the box hidden and returns false — the caller should
+ * fall back to bank transfer in that case.
+ */
+function showStripeBuyButton({ service, paymentOption, selectedAddons, isPickup, discountApplied }) {
+  const box  = document.getElementById("stripeBuyButtonBox");
+  const slot = document.getElementById("stripeBuyButtonSlot");
+  if (!box || !slot || !window.STRIPE_PUBLISHABLE_KEY) return false;
+
+  let buyButtonId = null;
+  if (paymentOption === "deposit") {
+    buyButtonId = STRIPE_DEPOSIT_BUY_BUTTON;
+  } else if (paymentOption === "full") {
+    if (selectedAddons && selectedAddons.length) return false;
+    if (isPickup) return false;
+    if (discountApplied) return false;
+    buyButtonId = STRIPE_BUY_BUTTONS[service] || null;
+  }
+  if (!buyButtonId) return false;
+
+  slot.innerHTML = "";
+  const btn = document.createElement("stripe-buy-button");
+  btn.setAttribute("buy-button-id", buyButtonId);
+  btn.setAttribute("publishable-key", window.STRIPE_PUBLISHABLE_KEY);
+  slot.appendChild(btn);
+  box.style.display = "";
+  box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  return true;
+}
+
 /**
  * Asks the Netlify backend to create a Stripe-hosted Checkout Session for
  * this order and returns its URL, or null if the backend isn't configured
@@ -2511,29 +2561,16 @@ function initBooking() {
         // Nothing to charge yet — the price is confirmed after we quote it.
         setTimeout(() => { location.href = "track.html"; }, 900);
       } else {
-        // Pay now. Three ways to pay, tried in order, each falling back to
-        // the next if it's not available:
-        //  1. Stripe-hosted Checkout Session (netlify/functions) — covers
-        //     any total, including add-ons/pickup/discount/deposit, with
-        //     Apple Pay / card. Needs STRIPE_SECRET_KEY configured.
-        //  2. A fixed-price Stripe Payment Link — only for a plain
-        //     full-price tier booking, or the flat £10 deposit.
-        //  3. Bank transfer (the existing track.html flow), same as always.
-        setTimeout(async () => {
-          const checkoutUrl = await getStripeCheckoutUrl({
-            orderId: newOrderId,
-            amountDueNow,
-            customerEmail,
-            description: `${serviceLabel(service)}${paymentOption === "deposit" ? " — deposit" : ""}`,
-          });
-          if (checkoutUrl) { location.href = checkoutUrl; return; }
-
-          const paymentLink = getStripePaymentLink({
-            service, paymentOption, selectedAddons, isPickup, discountApplied,
-            customerEmail, orderId: newOrderId,
-          });
-          location.href = paymentLink || "track.html";
-        }, 900);
+        // Pay now, no backend involved: a plain full-price booking for one
+        // of the three tiers, or a deposit, gets an inline Stripe Buy
+        // Button right here on the page (card / Apple Pay / Google Pay,
+        // hosted entirely by Stripe). Anything with add-ons, home pickup,
+        // or a discount isn't a fixed price, so it falls back to bank
+        // transfer, same as it always has.
+        const shown = showStripeBuyButton({ service, paymentOption, selectedAddons, isPickup, discountApplied });
+        if (!shown) {
+          setTimeout(() => { location.href = "track.html"; }, 900);
+        }
       }
 
     } catch (err) {

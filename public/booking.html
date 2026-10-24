@@ -10,14 +10,21 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Manrope:wght@400;500;600;700;800&family=Russo+One&display=swap" rel="stylesheet" />
   <meta name="description" content="Book a professional shoe cleaning service at DKcleanedit. Choose your service, location and time slot." />
 
-  <!-- Stripe.js — card / Apple Pay / Google Pay via the Payment Element.
-       TODO: replace with your real Stripe publishable key (from the
-       Stripe dashboard → Developers → API keys). This key is NOT
-       secret, it's safe to ship in client-side code. -->
+  <!-- Stripe — card / Apple Pay / Google Pay.
+       This publishable key is NOT secret, it's safe to ship in client-side code. -->
   <script src="https://js.stripe.com/v3/"></script>
   <script>
     window.STRIPE_PUBLISHABLE_KEY = "pk_live_51UU2wERTw1NvMTlyZRMz8Tnau4RG2eOyWpnqzrBNGafad3bkqYmaWZgI3Qf0TofX7gY4yToGifPpYpCkifA0wQSK00SA9ZAlbN";
   </script>
+
+  <!-- Stripe Buy Button — a self-contained hosted checkout widget for a
+       single fixed price. No backend, no Firebase, no database: Stripe
+       hosts the payment flow entirely and shows Apple Pay / Google Pay /
+       card automatically based on the browser and account settings. Used
+       for the three service tiers and the deposit (see STRIPE_BUY_BUTTONS
+       in app.js); anything else (add-ons, pickup, discount) still goes to
+       bank transfer, same as before. -->
+  <script async src="https://js.stripe.com/v3/buy-button.js"></script>
 
   <!--
     booking.html — phone-first booking.
@@ -1631,6 +1638,13 @@
           </div>
 
           <p id="msg" class="auth-msg" role="alert" aria-live="assertive"></p>
+
+          <!-- Stripe Buy Button renders here for eligible bookings (see
+               showStripeBuyButton() in app.js) — empty/hidden otherwise. -->
+          <div id="stripeBuyButtonBox" style="display:none; margin-top:14px;">
+            <p class="sub" style="margin-bottom:8px;">Pay securely now:</p>
+            <div id="stripeBuyButtonSlot"></div>
+          </div>
 
         </section>
       </div>
