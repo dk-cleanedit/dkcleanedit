@@ -290,13 +290,30 @@ async function openPaymentModal(orderId, amountDueNow) {
   _stripeElements = stripe.elements({
     clientSecret,
     appearance: {
-      theme: "flat",
+      theme: "night",
       variables: {
-        colorPrimary:    "#4fc3f7",
-        colorBackground: "#ffffff",
-        colorText:       "#0f172a",
-        borderRadius:    "10px",
-        fontFamily:      "'Manrope', -apple-system, BlinkMacSystemFont, sans-serif",
+        colorPrimary:       "#4fc3f7",
+        colorBackground:    "#172334",
+        colorText:          "#e6f2ff",
+        colorTextSecondary: "#9fb0c4",
+        colorDanger:        "#ffb648",
+        borderRadius:       "10px",
+        fontFamily:         "'Manrope', -apple-system, BlinkMacSystemFont, sans-serif",
+      },
+      rules: {
+        ".Input": {
+          border: "1.5px solid rgba(79, 195, 247, 0.25)",
+          backgroundColor: "#1d2e42",
+        },
+        ".Input:focus": {
+          border: "1.5px solid #4fc3f7",
+          boxShadow: "0 0 0 1px rgba(79, 195, 247, 0.4)",
+        },
+        ".Tab": {
+          border: "1.5px solid rgba(79, 195, 247, 0.2)",
+          backgroundColor: "#1d2e42",
+        },
+        ".Tab:hover": { backgroundColor: "#243349" },
       },
     },
   });
@@ -2393,10 +2410,15 @@ function initBooking() {
         ? `Quote request sent! We'll be in touch about pricing. Order ID: ${newOrderId}`
         : `Booking confirmed! Order ID: ${newOrderId}`);
 
-      // Card / Apple Pay checkout isn't live yet — customers pay by bank
-      // transfer using the details shown on their order (track.html).
-      // Re-enable the openPaymentModal(...) call here once Stripe is set up.
-      setTimeout(() => { location.href = "track.html"; }, 900);
+      if (needsQuote) {
+        // Nothing to charge yet — the price is confirmed after we quote it.
+        setTimeout(() => { location.href = "track.html"; }, 900);
+      } else {
+        // Offer to pay now by card / Apple Pay / Google Pay (Stripe Payment
+        // Element). openPaymentModal() falls back to a bank-transfer toast
+        // and redirect on its own if Stripe isn't configured yet.
+        openPaymentModal(newOrderId, amountDueNow);
+      }
 
     } catch (err) {
       console.error("Booking failed:", err);
