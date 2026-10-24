@@ -296,56 +296,6 @@ function getStripePaymentLink({ service, paymentOption, selectedAddons, isPickup
   return qs ? `${base}?${qs}` : base;
 }
 
-// ─────────────────────────────────────────────────────────────
-//  Stripe Buy Button — official embeddable widget (<stripe-buy-button>),
-//  loaded via https://js.stripe.com/v3/buy-button.js in booking.html.
-//  No backend, no Firebase, no database: Stripe hosts the whole payment
-//  flow and shows Apple Pay / Google Pay / card automatically. Each
-//  button is tied to one fixed-price Payment Link created in the Stripe
-//  Dashboard, so — same as STRIPE_PAYMENT_LINKS/STRIPE_DEPOSIT_LINK above
-//  — this only covers a plain full-price tier booking or the flat £10
-//  deposit; anything with add-ons, pickup, or a discount still falls
-//  back to bank transfer, since those need a non-fixed total.
-// ─────────────────────────────────────────────────────────────
-const STRIPE_BUY_BUTTONS = {
-  standard_clean: "buy_btn_1UUBF8RTw1NvMTlyWuLrmZCQ",
-  express:        "buy_btn_1UUBFORTw1NvMTlydV2CWkfE",
-  next_day:       "buy_btn_1UUBFpRTw1NvMTlyy8Pydpmy",
-};
-const STRIPE_DEPOSIT_BUY_BUTTON = "buy_btn_1UUBENRTw1NvMTlygZvD2njX";
-
-/**
- * Shows an inline Stripe Buy Button for this order if it's eligible
- * (same eligibility as getStripePaymentLink()), and returns true. If not
- * eligible, leaves the box hidden and returns false — the caller should
- * fall back to bank transfer in that case.
- */
-function showStripeBuyButton({ service, paymentOption, selectedAddons, isPickup, discountApplied }) {
-  const box  = document.getElementById("stripeBuyButtonBox");
-  const slot = document.getElementById("stripeBuyButtonSlot");
-  if (!box || !slot || !window.STRIPE_PUBLISHABLE_KEY) return false;
-
-  let buyButtonId = null;
-  if (paymentOption === "deposit") {
-    buyButtonId = STRIPE_DEPOSIT_BUY_BUTTON;
-  } else if (paymentOption === "full") {
-    if (selectedAddons && selectedAddons.length) return false;
-    if (isPickup) return false;
-    if (discountApplied) return false;
-    buyButtonId = STRIPE_BUY_BUTTONS[service] || null;
-  }
-  if (!buyButtonId) return false;
-
-  slot.innerHTML = "";
-  const btn = document.createElement("stripe-buy-button");
-  btn.setAttribute("buy-button-id", buyButtonId);
-  btn.setAttribute("publishable-key", window.STRIPE_PUBLISHABLE_KEY);
-  slot.appendChild(btn);
-  box.style.display = "";
-  box.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  return true;
-}
-
 /**
  * Asks the Netlify backend to create a Stripe-hosted Checkout Session for
  * this order and returns its URL, or null if the backend isn't configured
@@ -380,135 +330,29 @@ async function getStripeCheckoutUrl({ orderId, amountDueNow, customerEmail, desc
 }
 
 /**
- * Opens the Stripe payment modal for a given order and lets the
- * customer pay by card, Apple Pay or Google Pay (Stripe's Payment
- * Element shows whichever of those the browser/device supports).
- * Falls back to a toast pointing at bank transfer if Stripe isn't
- * configured yet (no publishable key set).
+ * Resolves where to send the customer to pay for an existing order: its
+ * fixed-price Payment Link when it has one, else a Checkout Session for the
+ * exact total. Returns a URL or null (reason left in window._lastCheckoutError).
  */
-async function openPaymentModal(orderId, amountDueNow) {
-  const overlay = document.getElementById("paymentOverlay");
-  if (!overlay) { location.href = "track.html"; return; }
-
-  const stripe = getStripeInstance();
-  if (!stripe) {
-    toast("Card payment isn't set up yet — pay by bank transfer using the details on your order.", "error");
-    setTimeout(() => { location.href = "track.html"; }, 900);
-    return;
-  }
-
-  const amountLabel = document.getElementById("paymentAmountLabel");
-  const msgEl     = document.getElementById("paymentMsg");
-  const form      = document.getElementById("paymentForm");
-  const submitBtn = document.getElementById("btnPaySubmit");
-  const skipBtn   = document.getElementById("btnPaySkip");
-  const mountEl   = document.getElementById("payment-element");
-
-  if (amountLabel) amountLabel.textContent = `Amount due: £${amountDueNow} · Order ${orderId}`;
-  if (msgEl) msgEl.textContent = "";
-  overlay.hidden = false;
-
-  let clientSecret;
-  try {
-    // Calls a Netlify serverless function (netlify/functions/create-payment-intent.js)
-    // rather than a Firebase callable function, so this deploys automatically
-    // with the rest of the site via Netlify's existing git-push pipeline --
-    // no separate Firebase CLI deploy needed.
-    const idToken = await auth.currentUser.getIdToken();
-    const resp = await fetch("/.netlify/functions/create-payment-intent", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`,
-      },
-      body: JSON.stringify({ orderId }),
-    });
-    const data = await resp.json().catch(() => ({}));
-    if (!resp.ok) {
-      throw new Error(data?.error || `Couldn't start payment (${resp.status}).`);
-    }
-    clientSecret = data?.clientSecret;
-  } catch (err) {
-    console.error("createPaymentIntent failed:", err);
-    if (msgEl) msgEl.textContent = err?.message || "Couldn't start payment. Please try again, or pay by bank transfer.";
-    return;
-  }
-  if (!clientSecret) {
-    if (msgEl) msgEl.textContent = "Couldn't start payment. Please try again, or pay by bank transfer.";
-    return;
-  }
-
-  _stripeElements = stripe.elements({
-    clientSecret,
-    appearance: {
-      theme: "night",
-      variables: {
-        colorPrimary:       "#4fc3f7",
-        colorBackground:    "#172334",
-        colorText:          "#e6f2ff",
-        colorTextSecondary: "#9fb0c4",
-        colorDanger:        "#ffb648",
-        borderRadius:       "10px",
-        fontFamily:         "'Manrope', -apple-system, BlinkMacSystemFont, sans-serif",
-      },
-      rules: {
-        ".Input": {
-          border: "1.5px solid rgba(79, 195, 247, 0.25)",
-          backgroundColor: "#1d2e42",
-        },
-        ".Input:focus": {
-          border: "1.5px solid #4fc3f7",
-          boxShadow: "0 0 0 1px rgba(79, 195, 247, 0.4)",
-        },
-        ".Tab": {
-          border: "1.5px solid rgba(79, 195, 247, 0.2)",
-          backgroundColor: "#1d2e42",
-        },
-        ".Tab:hover": { backgroundColor: "#243349" },
-      },
-    },
+async function getPaymentUrlForOrder(order) {
+  const link = getStripePaymentLink({
+    service: order.service,
+    paymentOption: order.paymentOption === "deposit" ? "deposit" : "full",
+    selectedAddons: order.addons || [],
+    isPickup: order.collectionOption === "homepickup",
+    discountApplied: !!order.discountApplied,
+    customerEmail: order.customerEmail,
+    orderId: order.id,
   });
-  _stripeElements.create("payment").mount("#payment-element");
-
-  const closeOverlay = () => {
-    overlay.hidden = true;
-    _stripeElements = null;
-    if (mountEl) mountEl.innerHTML = "";
-  };
-
-  if (skipBtn) {
-    skipBtn.onclick = () => {
-      closeOverlay();
-      toast("No problem — pay by bank transfer using the details on your order.", "success");
-      setTimeout(() => { location.href = "track.html"; }, 400);
-    };
-  }
-
-  if (form) {
-    form.onsubmit = async (e) => {
-      e.preventDefault();
-      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Processing…"; }
-      const { error, paymentIntent } = await stripe.confirmPayment({
-        elements: _stripeElements,
-        redirect: "if_required",
-      });
-      if (error) {
-        if (msgEl) msgEl.textContent = error.message || "Payment failed. Please try again.";
-        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Pay now"; }
-        return;
-      }
-      if (paymentIntent && (paymentIntent.status === "succeeded" || paymentIntent.status === "processing")) {
-        closeOverlay();
-        toast("Payment received ✅", "success");
-        setTimeout(() => { location.href = "track.html"; }, 600);
-      } else {
-        if (msgEl) msgEl.textContent = "Payment did not complete. Please try again.";
-        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Pay now"; }
-      }
-    };
-  }
+  if (link) return link;
+  return getStripeCheckoutUrl({
+    orderId: order.id,
+    amountDueNow: order.amountDueNow,
+    customerEmail: order.customerEmail,
+    description: serviceLabel(order.service),
+  });
 }
-window.openPaymentModal = openPaymentModal;
+
 
 /**
  * Loyalty tier name for a given points total. Mirrors customer.js's
@@ -1221,19 +1065,23 @@ function renderOrderCard(order) {
   // an order is cancelled or already paid.
   const needsPayment = status !== "Cancelled" && order.paid !== true
     && order.amountDueNow != null && !order.quoteRequired;
-  // Card / Apple Pay checkout isn't live yet — bank transfer only for now.
+  // Pay now (card / Apple Pay / Google Pay via Stripe). Bank details stay
+  // tucked away as a last-resort fallback only.
   const paymentHtml = needsPayment
     ? `<div class="pay-box" style="margin-top:10px;padding:12px 14px;border-radius:10px;
               background:var(--surface-3,#f1f5f9);border:1px solid var(--hairline-2,#e2e8f0);">
-         <div class="sub" style="font-weight:700;color:var(--text,var(--ink,#0f172a));margin-bottom:4px;">
-           £${esc(String(order.amountDueNow))} due — please pay by bank transfer:
+         <div class="sub" style="font-weight:700;color:var(--text,var(--ink,#0f172a));margin-bottom:8px;">
+           £${esc(String(order.amountDueNow))} due${order.paymentOption === "deposit" ? " (deposit)" : ""}
          </div>
-         <div class="sub">Name: <strong>${esc(BANK_DETAILS.name)}</strong></div>
-         <div class="sub">Sort code: <code>${esc(BANK_DETAILS.sortCode)}</code> &bull; Account: <code>${esc(BANK_DETAILS.accountNumber)}</code></div>
-         <div class="sub">Reference: <code>${esc(order.id)}</code> — please include this so we can match your payment.</div>
-         <div class="sub" style="margin-top:4px;opacity:0.75;">
-           We'll only ever show these details here or in your booking confirmation email — never ask you by message to pay a different account.
-         </div>
+         <button class="btn primary" type="button" data-action="pay" data-id="${esc(order.id)}">
+           Pay now — card, Apple Pay or Google Pay
+         </button>
+         <details style="margin-top:8px;">
+           <summary class="sub" style="cursor:pointer;">Problem paying? Use bank transfer instead</summary>
+           <div class="sub" style="margin-top:6px;">Name: <strong>${esc(BANK_DETAILS.name)}</strong></div>
+           <div class="sub">Sort code: <code>${esc(BANK_DETAILS.sortCode)}</code> &bull; Account: <code>${esc(BANK_DETAILS.accountNumber)}</code></div>
+           <div class="sub">Reference: <code>${esc(order.id)}</code> — include this so we can match your payment.</div>
+         </details>
        </div>`
     : "";
 
@@ -1697,6 +1545,15 @@ function wireOrderActions(containerEl) {
     try {
       if (btn.dataset.action === "cancel")     await cancelOrder(btn.dataset.id);
       if (btn.dataset.action === "reschedule") await rescheduleOrder(btn.dataset.id);
+      if (btn.dataset.action === "pay") {
+        btn.textContent = "Opening secure payment…";
+        const snap = await getDoc(doc(db, "orders", btn.dataset.id));
+        if (!snap.exists()) throw new Error("Order not found");
+        const url = await getPaymentUrlForOrder({ id: snap.id, ...snap.data() });
+        if (url) { location.href = url; return; }
+        toast(`Couldn't open payment (${window._lastCheckoutError || "unknown error"}). Please try again.`, "error");
+        btn.textContent = "Pay now — card, Apple Pay or Google Pay";
+      }
     } catch (err) {
       console.error("Order action failed:", err);
       toast("Action failed. Please try again.", "error");
@@ -2511,7 +2368,7 @@ function initBooking() {
 
       const bookingPaymentMethod = needsQuote
         ? "Arranged after quote"
-        : (paymentOption === "deposit" ? `£${DEPOSIT_AMOUNT} deposit now (bank transfer), balance on collection` : "Full amount now (bank transfer)");
+        : (paymentOption === "deposit" ? `£${DEPOSIT_AMOUNT} deposit now (card / Apple Pay / Google Pay), balance on collection` : "Full amount now (card / Apple Pay / Google Pay)");
 
       sendBookingEmail({
         customerName, customerEmail,
@@ -2635,6 +2492,14 @@ function initTracking() {
   wireOverlay();
   wireOrderActions(ordersEl);
   ordersEl.innerHTML = renderSkeletonOrders(2);
+
+  // Returned from Stripe Checkout / Payment Link.
+  if (new URLSearchParams(location.search).get("paid") === "1") {
+    ordersEl.insertAdjacentHTML("beforebegin",
+      `<div role="status" style="margin:10px 0;padding:12px 14px;border-radius:10px;background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;font-size:0.92rem;">
+         ✓ Payment received — thank you! We'll confirm it against your order shortly.
+       </div>`);
+  }
 
   onAuthStateChanged(auth, (user) => {
     if (!user) {

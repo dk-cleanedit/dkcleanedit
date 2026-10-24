@@ -17,14 +17,7 @@
     window.STRIPE_PUBLISHABLE_KEY = "pk_live_51UU2wERTw1NvMTlyZRMz8Tnau4RG2eOyWpnqzrBNGafad3bkqYmaWZgI3Qf0TofX7gY4yToGifPpYpCkifA0wQSK00SA9ZAlbN";
   </script>
 
-  <!-- Stripe Buy Button — a self-contained hosted checkout widget for a
-       single fixed price. No backend, no Firebase, no database: Stripe
-       hosts the payment flow entirely and shows Apple Pay / Google Pay /
-       card automatically based on the browser and account settings. Used
-       for the three service tiers and the deposit (see STRIPE_BUY_BUTTONS
-       in app.js); anything else (add-ons, pickup, discount) still goes to
-       bank transfer, same as before. -->
-  <script async src="https://js.stripe.com/v3/buy-button.js"></script>
+  
 
   <!--
     booking.html — phone-first booking.
@@ -1145,25 +1138,6 @@
     </div>
   </div>
 
-  <!-- ── PAYMENT OVERLAY — Stripe Payment Element (card / Apple Pay / Google Pay) ── -->
-  <div id="paymentOverlay" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="paymentHeading">
-    <div class="popup" style="max-width:440px;">
-      <h2 id="paymentHeading">Pay for your booking</h2>
-      <p id="paymentAmountLabel" class="sub" style="margin-bottom:14px;"></p>
-      <form id="paymentForm">
-        <div id="payment-element"></div>
-        <p id="paymentMsg" class="sub" role="alert" aria-live="polite" style="min-height:20px;margin-top:12px;"></p>
-        <div class="trust-row" style="margin-top:10px;"><span class="trust-icon" aria-hidden="true"></span>Secure payment, powered by Stripe</div>
-        <div class="popup-actions" style="margin-top:10px;">
-          <button id="btnPaySubmit" class="btn primary full" type="submit">Pay now</button>
-          <button id="btnPaySkip" class="btn-outline" type="button">
-            Pay by bank transfer instead
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
   <!-- ── MAIN ── -->
   <main class="container page-shell booking-page" id="main" aria-label="Booking page" tabindex="-1">
 
@@ -1609,12 +1583,12 @@
                   <strong>£10 deposit</strong>
                   <span class="badge warning">Rest on collection</span>
                 </div>
-                <p class="sub svc-opt-sub">Book now with just a £10 deposit — the bank details will be on your order, and the remaining balance is due when your shoes are ready.</p>
+                <p class="sub svc-opt-sub">Book now with just a £10 deposit, paid securely by card, Apple Pay or Google Pay — the remaining balance is due when your shoes are ready.</p>
               </label>
 
             </div>
             <p class="sub" id="paymentNotice" style="margin-top:10px;">
-              After you book, you can pay securely by card, Apple Pay or Google Pay — or choose bank transfer instead; the details will be on your order and in your confirmation email.
+              After you confirm your booking you'll go straight to Stripe's secure page to pay by card, Apple Pay or Google Pay.
             </p>
           </div>
 
@@ -1626,7 +1600,7 @@
           <!-- Terms -->
           <div class="terms-block">
             <h3>Payment &amp; terms</h3>
-            <p>Pay securely by card, Apple Pay or Google Pay right after booking, or choose bank transfer — details are sent after booking and shown on your order.</p>
+            <p>Pay securely by card, Apple Pay or Google Pay right after booking — you'll be taken straight to Stripe's secure payment page.</p>
             <p>
               Choosing the £10 deposit reserves your slot — the remaining balance is
               due when your shoes are ready for collection or return. Home pickup adds
@@ -1641,13 +1615,6 @@
           </div>
 
           <p id="msg" class="auth-msg" role="alert" aria-live="assertive"></p>
-
-          <!-- Stripe Buy Button renders here for eligible bookings (see
-               showStripeBuyButton() in app.js) — empty/hidden otherwise. -->
-          <div id="stripeBuyButtonBox" style="display:none; margin-top:14px;">
-            <p class="sub" style="margin-bottom:8px;">Pay securely now:</p>
-            <div id="stripeBuyButtonSlot"></div>
-          </div>
 
         </section>
       </div>
