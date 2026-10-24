@@ -65,7 +65,9 @@ exports.handler = async (event) => {
   }
 
   const amountPence = Math.round(amount * 100);
-  const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+  // Strip stray spaces/newlines/quotes picked up when pasting the key into
+  // Netlify — any of those makes Stripe see a broken Authorization header.
+  const stripe = Stripe(String(process.env.STRIPE_SECRET_KEY).replace(/[\s"']/g, ""));
   const origin = event.headers.origin || "https://dkcleanedit.com";
 
   const session = await stripe.checkout.sessions.create({
