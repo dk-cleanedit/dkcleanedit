@@ -545,6 +545,15 @@
       font-size: 20px; font-weight: 800; margin-bottom: 8px;
     }
     .overlay .popup p { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
+    #payment-element { margin: 4px 0 2px; }
+    #paymentMsg:not(:empty) {
+      background: rgba(255, 165, 0, 0.1);
+      border: 1px solid rgba(255, 165, 0, 0.25);
+      border-radius: 8px;
+      padding: 8px 10px;
+      color: #ffb648;
+      text-align: left;
+    }
     .popup-actions { display: flex; flex-direction: column; gap: 9px; }
 
     /* ── FOOTER ──────────────────────────────────────────────────── */
@@ -1137,6 +1146,7 @@
       <form id="paymentForm">
         <div id="payment-element"></div>
         <p id="paymentMsg" class="sub" role="alert" aria-live="polite" style="min-height:20px;margin-top:12px;"></p>
+        <div class="trust-row" style="margin-top:10px;"><span class="trust-icon" aria-hidden="true"></span>Secure payment, powered by Stripe</div>
         <div class="popup-actions" style="margin-top:10px;">
           <button id="btnPaySubmit" class="btn primary full" type="submit">Pay now</button>
           <button id="btnPaySkip" class="btn-outline" type="button">
