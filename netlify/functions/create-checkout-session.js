@@ -87,6 +87,12 @@ exports.handler = async (event) => {
     customer_email: customerEmail || undefined,
     client_reference_id: orderId,
     metadata: { orderId },
+    // Shows the order ID + description on the payment itself in the Stripe
+    // Dashboard, so each payment can be matched to its booking.
+    payment_intent_data: {
+      description: `${description || "DKcleanedit"} — order ${orderId}`,
+      metadata: { orderId },
+    },
     success_url: `${origin}/track.html?orderId=${encodeURIComponent(orderId)}&paid=1`,
     cancel_url: `${origin}/track.html?orderId=${encodeURIComponent(orderId)}`,
   });

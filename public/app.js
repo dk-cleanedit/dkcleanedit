@@ -2243,6 +2243,10 @@ function initBooking() {
     } catch { /* non-critical */ }
   });
 
+  // Back-button from Stripe can restore this page frozen in its "confirmed"
+  // state — reload so the form is fresh instead of a dead locked button.
+  window.addEventListener("pageshow", (ev) => { if (ev.persisted) location.reload(); });
+
   btnBook.addEventListener("click", async (e) => {
     e.preventDefault();
     const user = auth.currentUser;
@@ -2426,6 +2430,12 @@ function initBooking() {
         setMsg(`Quote request sent! We'll be in touch about pricing. Order ID: ${newOrderId}`);
         // Nothing to charge yet — the price is confirmed after we quote it.
         setTimeout(() => { location.href = "track.html"; }, 900);
+      } else if (!(Number(amountDueNow) > 0)) {
+        // Nothing to pay (e.g. a free clean from the Pearl tier) — skip
+        // Stripe entirely instead of failing on a £0 checkout.
+        toast("Booking confirmed ✅", "success");
+        setMsg(`Booking confirmed! Order ID: ${newOrderId}. Nothing to pay now.`);
+        setTimeout(() => { location.href = "track.html"; }, 1200);
       } else {
         // Pay now: every order (any total — add-ons, pickup fee,
         // discount, full price or deposit) goes through Stripe's own
