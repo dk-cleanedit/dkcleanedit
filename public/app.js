@@ -366,9 +366,13 @@ async function getStripeCheckoutUrl({ orderId, amountDueNow, customerEmail, desc
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ orderId, amountDueNow, customerEmail, description }),
     });
-    if (!resp.ok) return null;
     const data = await resp.json().catch(() => ({}));
-    return data?.url || null;
+    if (!resp.ok || !data?.url) {
+      window._lastCheckoutError = data?.error || data?.errorMessage || ("HTTP " + resp.status);
+      console.warn("Checkout session failed:", window._lastCheckoutError, "amount:", amountDueNow);
+      return null;
+    }
+    return data.url;
   } catch (err) {
     console.warn("Stripe Checkout Session unavailable, falling back:", err);
     return null;
@@ -2589,7 +2593,7 @@ function initBooking() {
           location.href = checkoutUrl;
         } else {
           toast("Booking confirmed — payment step failed", "error");
-          setMsg(`Booking confirmed! Order ID: ${newOrderId}. We couldn't open the payment page just now — go to the Track page and use Order ID ${newOrderId} to pay, or contact us.`);
+          setMsg(`Booking confirmed! Order ID: ${newOrderId}. We couldn't open the payment page just now (${window._lastCheckoutError || "unknown error"}) — go to the Track page and use Order ID ${newOrderId} to pay, or contact us.`);
           setTimeout(() => { location.href = "track.html"; }, 1800);
         }
       }

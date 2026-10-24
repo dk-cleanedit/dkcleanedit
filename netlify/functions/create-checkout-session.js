@@ -70,7 +70,9 @@ exports.handler = async (event) => {
   const stripe = Stripe(String(process.env.STRIPE_SECRET_KEY).replace(/[\s"']/g, ""));
   const origin = event.headers.origin || "https://dkcleanedit.com";
 
-  const session = await stripe.checkout.sessions.create({
+  let session;
+  try {
+  session = await stripe.checkout.sessions.create({
     mode: "payment",
     line_items: [
       {
@@ -88,6 +90,10 @@ exports.handler = async (event) => {
     success_url: `${origin}/track.html?orderId=${encodeURIComponent(orderId)}&paid=1`,
     cancel_url: `${origin}/track.html?orderId=${encodeURIComponent(orderId)}`,
   });
+  } catch (err) {
+    console.error("Checkout session failed:", err && err.message);
+    return json(502, { error: (err && err.message) || "Stripe error", amount });
+  }
 
   return json(200, { url: session.url });
 };
