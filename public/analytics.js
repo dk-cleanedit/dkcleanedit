@@ -111,6 +111,16 @@ function analyticsBuildData(allOrders) {
     topCustomersData[customerNames[key] || key] = count;
   });
 
+  // Leaderboard — top 10 customers by booking count. Kept as an array
+  // (not a name-keyed object like topCustomersData above) so two
+  // customers who happen to share a name never get merged together.
+  const leaderboardData = analyticsSortEntries(customerData)
+    .slice(0, 10)
+    .map(([key, count]) => ({
+      name: customerNames[key] || "Customer",
+      count,
+    }));
+
   return {
     summaryData: {
       totalOrders,
@@ -134,6 +144,7 @@ function analyticsBuildData(allOrders) {
       timeSlotData,
       revenueData,
       topCustomersData,
+      leaderboardData,
     },
   };
 }
@@ -230,6 +241,30 @@ function analyticsRenderCharts(chartData, summaryData) {
   });
 }
 
+function analyticsRenderLeaderboard(leaderboardData) {
+  const list = document.getElementById("leaderboardList");
+  if (!list) return;
+
+  if (!leaderboardData.length) {
+    list.innerHTML = '<li class="leaderboard-empty">No bookings yet.</li>';
+    return;
+  }
+
+  const medals = ["\u{1F947}", "\u{1F948}", "\u{1F949}"]; // gold, silver, bronze
+  list.innerHTML = leaderboardData
+    .map((entry, i) => {
+      const rank = i + 1;
+      const medal = medals[i] || rank;
+      return `
+        <li class="leaderboard-row${rank <= 3 ? " leaderboard-row--top" : ""}">
+          <span class="leaderboard-rank">${medal}</span>
+          <span class="leaderboard-name">${entry.name}</span>
+          <span class="leaderboard-count">${entry.count} booking${entry.count === 1 ? "" : "s"}</span>
+        </li>`;
+    })
+    .join("");
+}
+
 async function analyticsLoadPage() {
   try {
     const snap = await getDocs(collection(db, "orders"));
@@ -248,6 +283,7 @@ async function analyticsLoadPage() {
     const analyticsData = analyticsBuildData(allOrders);
     analyticsRenderSummary(analyticsData.summaryData);
     analyticsRenderCharts(analyticsData.chartData, analyticsData.summaryData);
+    analyticsRenderLeaderboard(analyticsData.chartData.leaderboardData);
   } catch (error) {
     console.error("Analytics load failed:", error);
   }

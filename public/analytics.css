@@ -248,3 +248,76 @@
     max-height: 250px !important;
   }
 }
+/* Leaderboard — "most bookings" ranked list on the analytics page.
+   Reuses the same customer-order-count data as the Top Customers chart,
+   as a readable ranked list instead of (or alongside) a bar chart. */
+.leaderboardBox {
+  grid-column: 1 / -1;
+  height: auto;
+}
+
+.leaderboard-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.leaderboard-row {
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--line-2);
+  background: var(--surface-2);
+}
+
+.leaderboard-row--top {
+  background: linear-gradient(135deg, rgba(255, 196, 0, 0.14), rgba(255, 196, 0, 0.04));
+  border-color: rgba(255, 196, 0, 0.28);
+}
+
+.leaderboard-rank {
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-align: center;
+  color: var(--text-3);
+}
+
+.leaderboard-row--top .leaderboard-rank { font-size: 1.3rem; }
+
+.leaderboard-name {
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.leaderboard-count {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+.leaderboard-row--top .leaderboard-count { color: var(--text-2); }
+
+.leaderboard-empty {
+  list-style: none;
+  padding: 16px;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 0.88rem;
+}
+
+@media (max-width: 640px) {
+  .leaderboard-row { grid-template-columns: 26px 1fr auto; padding: 9px 12px; gap: 10px; }
+  .leaderboard-name { font-size: 0.92rem; }
+  .leaderboard-count { font-size: 0.76rem; }
+}
