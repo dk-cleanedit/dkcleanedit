@@ -72,3 +72,6 @@ node_modules/
 public/*.zip
 public/testfile.txt
 public/zi*
+
+# Local Netlify folder
+.netlify
