@@ -145,6 +145,13 @@
 .legend-dot--closed { background: var(--adm-closed); }
 .legend-dot--today  { background: var(--adm-today-dot); }
 
+/* Calendar grid wrapper — was only defined in the legacy staff.css
+   (now unlinked from admin.html); moved here since admin.css is the
+   real home for the availability calendar. */
+.cal-days-header { display: grid; grid-template-columns: repeat(7, 1fr); padding: 10px 12px 3px; }
+.cal-days-header span { text-align: center; font-size: 0.7rem; font-weight: 700; color: var(--adm-sidebar-muted); text-transform: uppercase; letter-spacing: 0.07em; }
+.cal-body { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; padding: 6px 12px 14px; }
+
 
 /* =============================================================================
    MAIN PANEL, HEADER, TABS, ORDER CARDS
