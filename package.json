@@ -1,34 +1,13 @@
 {
-  "name": "functions",
-  "description": "Cloud Functions for Firebase",
+  "name": "dkcleanedit",
+  "description": "DKcleanedit website and Netlify Functions backend",
+  "private": true,
+  "version": "1.0.0",
   "engines": {
     "node": "18"
   },
-  "main": "index.js",
   "dependencies": {
-    "firebase-admin": "^11.11.1",
-    "firebase-functions": "^4.4.1",
-    "resend": "^6.10.0",
-    "stripe": "^23.0.1",
-    "twilio": "^5.13.1"
+    "stripe": "^23.0.1"
   },
-  "private": true,
-  "version": "1.0.0",
-  "devDependencies": {
-    "@babel/core": "^7.29.0",
-    "@babel/preset-env": "^7.29.2",
-    "babel-jest": "^30.3.0",
-    "jest": "^30.3.0"
-  },
-  "scripts": {
-    "test": "jest"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://campus.cs.le.ac.uk/gitlab/ug_project/25-26/da324.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs"
+  "license": "ISC"
 }

@@ -99,7 +99,7 @@
 //  SECTION 1 — FIREBASE IMPORTS
 // ─────────────────────────────────────────────────────────────
 
-import { auth, db, functions } from "./firebase.js";
+import { auth, db } from "./firebase.js";
 
 import {
   onAuthStateChanged,
@@ -136,11 +136,6 @@ import {
   uploadBytes,
   getDownloadURL,
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
-
-import {
-  httpsCallable,
-} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-functions.js";
-
 
 // ─────────────────────────────────────────────────────────────
 //  SECTION 2 — CONSTANTS
