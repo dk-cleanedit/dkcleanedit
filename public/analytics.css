@@ -321,3 +321,26 @@
   .leaderboard-name { font-size: 0.92rem; }
   .leaderboard-count { font-size: 0.76rem; }
 }
+
+/* Overview / Leaderboard tabs — .admin-tabs / .admin-tab-panel come from
+   admin.css (shared component, reused here rather than redefined — see
+   the staff.css cleanup for why duplicating these is exactly what NOT
+   to do). They're designed to sit flush in admin.html's zero-padding
+   .admin-main card; .analyticsSection already has its own 28px padding,
+   so undo admin.css's page-chrome padding here and restore the grid
+   spacing the tab panel's children (summary/extra/charts) relied on
+   when they were direct children of .analyticsSection itself. */
+.analyticsSection .admin-tabs { padding: 0; margin: 0 0 4px; }
+.analyticsSection .admin-tab-panel { padding: 0; }
+.analyticsSection .admin-tab-panel.active { display: grid; gap: var(--s-7); }
+
+.leaderboardBox--standalone {
+  height: auto;
+  max-width: 640px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .analyticsSection .admin-tabs { padding: 0; }
+}

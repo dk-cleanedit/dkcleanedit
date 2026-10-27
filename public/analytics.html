@@ -25,6 +25,7 @@
   </script>
   <link rel="stylesheet" href="token.css" />
   <link rel="stylesheet" href="global.css" />
+  <link rel="stylesheet" href="admin.css" />
   <link rel="stylesheet" href="analytics.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -112,6 +113,15 @@
           <p class="sub">Business performance, customer activity, and booking trends.</p>
         </div>
       </header>
+
+      <!-- Section tabs — Overview (KPIs + charts) vs. the booking leaderboard,
+           its own tab so it reads as a destination, not a buried chart. -->
+      <div class="admin-tabs" role="tablist">
+        <button class="admin-tab active" data-tab="overview" role="tab" aria-selected="true">Overview</button>
+        <button class="admin-tab" data-tab="leaderboard" role="tab" aria-selected="false">🏆 Leaderboard</button>
+      </div>
+
+      <div class="admin-tab-panel active" id="tabOverview">
 
       <!-- KPI summary cards — layout adapted from Ref [1] (Bootdey order-user-card) -->
       <section class="analyticsSummary">
@@ -202,9 +212,14 @@
           <h3>Top customers</h3>
           <canvas id="customersChart" height="260"></canvas>
         </div>
+      </div>
 
-        <div class="analyticsChartBox leaderboardBox">
-          <h3>🏆 Leaderboard — most bookings</h3>
+      </div>
+
+      <div class="admin-tab-panel" id="tabLeaderboard">
+        <div class="analyticsChartBox leaderboardBox leaderboardBox--standalone">
+          <h3>🏆 Most bookings</h3>
+          <p class="sub" style="margin:0 0 16px;">Customers ranked by total number of bookings placed, all time.</p>
           <ol id="leaderboardList" class="leaderboard-list">
             <li class="leaderboard-empty">Loading…</li>
           </ol>
@@ -285,6 +300,33 @@
 
       var links = document.querySelectorAll('.sidebar-link');
       for (var i = 0; i < links.length; i++) links[i].addEventListener('click', closeSidebar);
+
+      /* Overview / Leaderboard section tabs — same markup convention as
+         admin.html's order tabs (.admin-tab / .admin-tab-panel), small
+         standalone handler since this page doesn't load app.js. */
+      var tabs = document.querySelectorAll('.admin-tab');
+      function activateTab(tab) {
+        var tabEls = document.querySelectorAll('.admin-tab');
+        var panels = document.querySelectorAll('.admin-tab-panel');
+        for (var i = 0; i < tabEls.length; i++) {
+          tabEls[i].classList.remove('active');
+          tabEls[i].setAttribute('aria-selected', 'false');
+        }
+        for (var j = 0; j < panels.length; j++) panels[j].classList.remove('active');
+        tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
+        var key = tab.dataset.tab; // "overview" | "leaderboard"
+        var panel = document.getElementById('tab' + key.charAt(0).toUpperCase() + key.slice(1));
+        if (panel) panel.classList.add('active');
+      }
+      for (var k = 0; k < tabs.length; k++) {
+        (function (tab) {
+          tab.addEventListener('click', function () { activateTab(tab); });
+          tab.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activateTab(tab); }
+          });
+        })(tabs[k]);
+      }
     })();
   </script>
 </body>
