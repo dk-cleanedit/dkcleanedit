@@ -95,7 +95,6 @@
   <link rel="stylesheet" href="token.css" />
   <link rel="stylesheet" href="global.css" />
   <link rel="stylesheet" href="booking.css" />
-  <link rel="stylesheet" href="timeslot.css" />
   <!-- ════════════════════════════════════════════════════════════
        PHONE SHELL — self-contained, nothing to paste elsewhere.
        Tokens, reset, top navbar, sidebar drawer, bottom tab bar,
@@ -916,6 +915,34 @@
       -webkit-tap-highlight-color: transparent;
     }
     .time-slot.active { border-color: var(--gold); background: rgba(79, 195, 247, 0.12); color: var(--gold); }
+
+    /* Taken slot — was previously only styled by the now-removed
+       timeslot.css (hardcoded white/light colours that clashed with
+       this page's actual dark/token-based theme) and a second,
+       unstyled "Booked" label app.js appends via JS. One consistent
+       treatment now: muted + line-through on the button itself, and
+       a small uppercase tag under the time for the "Booked" /
+       "Unavailable" text app.js sets. */
+    .time-slot[disabled],
+    .time-slot.slot-unavailable {
+      opacity: 0.45;
+      cursor: not-allowed;
+      text-decoration: line-through;
+      color: var(--muted-2);
+      background: var(--surface-3);
+      border-color: var(--surface-4);
+    }
+    .slot-booked-label {
+      display: block;
+      width: 100%;
+      margin-top: 2px;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--muted-2);
+    }
 
     /* ── MAP ────────────────────────────────────────────────── */
     .map-card {
