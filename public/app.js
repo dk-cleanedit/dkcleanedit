@@ -1688,14 +1688,19 @@ async function setupNav(user) {
   const badge = $("#navPointsBadge");
   if (badge && user && role === "customer") {
     try {
-      const snap = await getDoc(doc(db, "users", user.uid));
+      // A plain one-shot getDoc right after auth resolves can hit a
+      // transient permission/network error before the ID token has
+      // fully propagated — withRetry (already used elsewhere, e.g.
+      // saveOrder) gives it a couple of retries instead of silently
+      // hiding the badge for the rest of the page load.
+      const snap = await withRetry(() => getDoc(doc(db, "users", user.uid)));
       const pts  = snap.exists() ? Number(snap.data().points || 0) : 0;
       const tierName = tierNameForPoints(pts);
       badge.textContent = String(pts);
       badge.dataset.tier = tierName;
       badge.hidden = false;
       badge.setAttribute("aria-label", `${tierDisplayName(tierName)} tier — ${pts} loyalty points`);
-    } catch { badge.hidden = true; }
+    } catch (err) { console.error("Points badge: couldn't load points", err); badge.hidden = true; }
   } else if (badge) {
     badge.hidden = true;
   }
