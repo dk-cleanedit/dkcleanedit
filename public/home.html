@@ -763,6 +763,20 @@
       cursor: pointer;
     }
     .result-card img { width: 100%; height: 220px; object-fit: cover; display: block; position: relative; z-index: 2; }
+    /* Before/after split card — two halves in one result-card, same
+       220px slot the single-photo cards use, so it drops into the
+       existing swipeable stack with no layout changes. */
+    .result-card--ba { display: flex; }
+    .result-card--ba .ba-half { position: relative; width: 50%; height: 220px; overflow: hidden; }
+    .result-card--ba .ba-half img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .result-card--ba .ba-half:first-child { border-right: 2px solid var(--gold); }
+    .ba-tag {
+      position: absolute; bottom: 8px; left: 8px; z-index: 3;
+      font-size: 10px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;
+      padding: 3px 9px; border-radius: 99px; color: #fff;
+    }
+    .ba-tag--before { background: rgba(0,0,0,0.65); }
+    .ba-tag--after  { background: var(--gold); color: #0a1120; }
     .result-card::before {
       content: '';
       position: absolute; inset: 0; z-index: 3;
@@ -1175,10 +1189,30 @@
         <div class="sec-title" id="galleryHeading">Results</div>
       </div>
       <div class="carousel-viewport" id="carouselViewport" aria-live="polite">
-        <div class="result-card"><img src="videos/IMG_2317.JPG" alt="Restored sneakers — DKcleanEdit example 1" loading="lazy" decoding="async" /></div>
-        <div class="result-card"><img src="videos/IMG_2399.JPG" alt="Restored sneakers — DKcleanEdit example 2" loading="lazy" decoding="async" /></div>
-        <div class="result-card"><img src="videos/IMG_1456.JPG" alt="Restored sneakers — DKcleanEdit example 3" loading="lazy" decoding="async" /></div>
-        <div class="result-card"><img src="videos/IMG_C8345467AB89-1.jpeg" alt="Restored sneakers — DKcleanEdit example 4" loading="lazy" decoding="async" /></div>
+        <div class="result-card result-card--ba">
+          <div class="ba-half">
+            <img src="videos/work-canvas-before.jpg" alt="Canvas platform sneaker before cleaning" loading="lazy" decoding="async" />
+            <span class="ba-tag ba-tag--before">Before</span>
+          </div>
+          <div class="ba-half">
+            <img src="videos/work-canvas-after.jpg" alt="Canvas platform sneaker after cleaning" loading="lazy" decoding="async" />
+            <span class="ba-tag ba-tag--after">After</span>
+          </div>
+        </div>
+        <div class="result-card result-card--ba">
+          <div class="ba-half">
+            <img src="videos/work-dunk-before.jpg" alt="Olive and white sneaker before cleaning" loading="lazy" decoding="async" />
+            <span class="ba-tag ba-tag--before">Before</span>
+          </div>
+          <div class="ba-half">
+            <img src="videos/work-dunk-after.jpg" alt="Olive and white sneaker after cleaning" loading="lazy" decoding="async" />
+            <span class="ba-tag ba-tag--after">After</span>
+          </div>
+        </div>
+        <div class="result-card"><img src="videos/work-platform.jpg" alt="Restored platform sneakers — DKcleanEdit example" loading="lazy" decoding="async" /></div>
+        <div class="result-card"><img src="videos/work-nb9060.jpg" alt="Restored grey sneaker — DKcleanEdit example" loading="lazy" decoding="async" /></div>
+        <div class="result-card"><img src="videos/work-nb530.jpg" alt="Restored white sneaker — DKcleanEdit example" loading="lazy" decoding="async" /></div>
+        <div class="result-card"><img src="videos/work-blue.jpg" alt="Restored blue sneaker — DKcleanEdit example" loading="lazy" decoding="async" /></div>
         <button class="carousel-btn prev" id="prevBtn" type="button" aria-label="previous">&#8249;</button>
         <button class="carousel-btn next" id="nextBtn" type="button" aria-label="next">&#8250;</button>
       </div>
