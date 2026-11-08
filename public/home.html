@@ -559,11 +559,6 @@
       height: 420px; overflow: hidden; background: #000;
     }
     .hero-video-wrap video { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .hero-video-wrap::after {
-      content: ''; position: absolute; inset: 0;
-      background: linear-gradient(to bottom,
-        rgba(10,17,32,0.2) 0%, rgba(10,17,32,0.1) 40%, rgba(10,17,32,0.9) 100%);
-    }
     .hero-video-content {
       position: absolute; bottom: 0; left: 0; right: 0;
       padding: 24px var(--side) 20px; z-index: 2;
@@ -1067,20 +1062,6 @@
       <video autoplay muted loop playsinline preload="metadata" poster="videos/hero-poster.jpg">
         <source src="videos/v24044gl0000d6bh49fog65j901okegg 2.MP4" type="video/mp4" />
       </video>
-      <div class="hero-video-content">
-        <div class="pill-row" role="list">
-          <div class="stat-pill" role="listitem"><strong>★ 5.0</strong><span>rated by clients</span></div>
-          <div class="stat-pill" role="listitem"><strong>Next day</strong><span>service available</span></div>
-          <div class="stat-pill" role="listitem"><strong>Live</strong><span>order tracking</span></div>
-          <div class="stat-pill" role="listitem"><strong>Canada Water</strong><span>London</span></div>
-        </div>
-        <h1 class="hero-headline">Fresh kicks,<br /><span>guaranteed</span>.</h1>
-        <p class="hero-sub">Professional sneaker cleaning &amp; restoration in London. Book in minutes, track every stage live, pay securely by card or Apple Pay.</p>
-        <div class="cta-stack" style="flex-direction:row;flex-wrap:wrap;">
-          <a class="btn-gold" href="booking.html" data-requires-auth="true">Book Now</a>
-          <a class="btn-outline" href="#howHeading">How it works</a>
-        </div>
-      </div>
     </section>
 
     <hr class="gold-rule" />
