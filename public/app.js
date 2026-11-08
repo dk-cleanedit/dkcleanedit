@@ -370,7 +370,7 @@ function tierDisplayName(key) { return TIER_DISPLAY_NAMES[key] || key; }
 
 const PAIR_PRICE_ANCHORS = {
   standard_clean: [[1, 25], [2, 50], [3, 60], [10, 200]],  // £20/pair flat after 3 pairs
-  express:        [[1, 30], [3, 70]],   // 10+ pairs quoted separately
+  express:        [[1, 55], [3, 130]],  // 10+ pairs quoted separately
   next_day:       [[1, 35], [3, 85]],   // 10+ pairs quoted separately
 };
 const PAIR_QUOTE_AT = { standard_clean: null, express: 10, next_day: 10 };
@@ -681,27 +681,29 @@ function priceNeedsQuote() {
  *   Carbon tier (0–29 pts)  — no discount.
  */
 function getTierDiscount(tier) {
-  if (tier === "Pearl") return { pct: 100, label: "100 Club tier — free clean!" };
-  if (tier === "Stone") return { pct: 10,  label: "The Grind tier — 10% off" };
-  return { pct: 0, label: "" };
+  if (tier === "Pearl") return { pct: 100, label: "100 Club tier — free clean!", freeDelivery: false };
+  if (tier === "Stone") return { pct: 10,  label: "The Grind tier — 10% off",    freeDelivery: true  };
+  return { pct: 0, label: "", freeDelivery: false };
 }
 
 /**
  * Full numeric total including add-ons, home-pickup fee and tier
  * discount, or null when the combination needs a manual quote.
+ * `waiveDelivery` zeroes the home-pickup fee — The Grind tier and up
+ * get free delivery, Ref [13] (tier discount spec).
  */
-function getTotalPriceNumeric(tierDiscount = 0) {
+function getTotalPriceNumeric(tierDiscount = 0, waiveDelivery = false) {
   const base = getBasePrice();
   if (base === null) return null;
   const addons   = getAddonsTotal();
-  const pickup   = currentCollectionOption() === "homepickup" ? PICKUP_FEE : 0;
+  const pickup   = currentCollectionOption() === "homepickup" ? (waiveDelivery ? 0 : PICKUP_FEE) : 0;
   const discount = Math.round(base * (tierDiscount / 100));
   return Math.max(0, base - discount + addons + pickup);
 }
 
 /** Full price string, e.g. "£36" or "Enquire" when a quote is needed. */
-function getTotalPriceStr(tierDiscount = 0) {
-  const total = getTotalPriceNumeric(tierDiscount);
+function getTotalPriceStr(tierDiscount = 0, waiveDelivery = false) {
+  const total = getTotalPriceNumeric(tierDiscount, waiveDelivery);
   return total === null ? "Enquire" : "£" + total;
 }
 
@@ -710,8 +712,8 @@ function getTotalPriceStr(tierDiscount = 0) {
  * the tier discount. Null when a quote is required (nothing is charged
  * until DKcleanedit follows up with a price).
  */
-function getAmountDueNowNumeric(tierDiscount = 0) {
-  const total = getTotalPriceNumeric(tierDiscount);
+function getAmountDueNowNumeric(tierDiscount = 0, waiveDelivery = false) {
+  const total = getTotalPriceNumeric(tierDiscount, waiveDelivery);
   if (total === null) return null;
   return currentPaymentOption() === "deposit" ? Math.min(DEPOSIT_AMOUNT, total) : total;
 }
@@ -1953,9 +1955,10 @@ function initBooking() {
 
   let _slotWatcherUnsub = null;
   // User's tier discount loaded once auth resolves — Ref [13] (tier discount spec).
-  let _userTierDiscount = 0;
-  let _userTierLabel    = "";
-  let _userTier         = "Carbon";
+  let _userTierDiscount   = 0;
+  let _userTierLabel      = "";
+  let _userTier            = "Carbon";
+  let _userTierFreeDelivery = false;
 
   // Date/time labels only. #summaryService and #summaryLocation are NOT
   // touched here — booking.html's own recalc() owns those two (it needs
@@ -1983,8 +1986,9 @@ function initBooking() {
    * correct and this leaves them alone.
    */
   function applyTierDiscountedPricing() {
-    const svc  = $("#service")?.value || "";
-    const base = getBasePrice();
+    const svc      = $("#service")?.value || "";
+    const base     = getBasePrice();
+    const isPickup = currentCollectionOption() === "homepickup";
 
     const discountRow = document.getElementById("summaryDiscount");
     if (discountRow) {
@@ -1997,10 +2001,18 @@ function initBooking() {
       }
     }
 
-    if (_userTierDiscount <= 0 || base === null) return;
+    // Free delivery (The Grind tier and up) — show it on the pickup-fee
+    // row whether or not there's also a percentage discount, so a
+    // free-delivery-only state still renders correctly.
+    const pickupFeeAmountEl = document.querySelector("#summaryPickupFee strong");
+    if (pickupFeeAmountEl) {
+      pickupFeeAmountEl.textContent = (isPickup && _userTierFreeDelivery) ? "FREE" : "+£10";
+    }
 
-    const total      = getTotalPriceNumeric(_userTierDiscount);
-    const dueNow     = getAmountDueNowNumeric(_userTierDiscount);
+    if ((_userTierDiscount <= 0 && !_userTierFreeDelivery) || base === null) return;
+
+    const total      = getTotalPriceNumeric(_userTierDiscount, _userTierFreeDelivery);
+    const dueNow     = getAmountDueNowNumeric(_userTierDiscount, _userTierFreeDelivery);
     const isDeposit  = currentPaymentOption() === "deposit";
 
     const priceEl   = document.getElementById("selectedPriceText");
@@ -2217,11 +2229,12 @@ function initBooking() {
       const pts      = Number(userData.points || 0);
       _userTier      = userData.tier || (pts >= 100 ? "Pearl" : pts >= 30 ? "Stone" : "Carbon");
       const disc     = getTierDiscount(_userTier);
-      _userTierDiscount = disc.pct;
-      _userTierLabel    = disc.label;
+      _userTierDiscount    = disc.pct;
+      _userTierLabel       = disc.label;
+      _userTierFreeDelivery = !!disc.freeDelivery;
 
       // Show tier discount banner on the booking page — Ref [13].
-      if (_userTierDiscount > 0) {
+      if (_userTierDiscount > 0 || _userTierFreeDelivery) {
         let banner = document.getElementById("tierDiscountBanner");
         if (!banner) {
           banner = document.createElement("div");
@@ -2272,19 +2285,19 @@ function initBooking() {
     const paymentOption    = currentPaymentOption();          // "full" | "deposit"
     const pickupAddress    = $("#pickupAddress")?.value.trim() || "";
     const isPickup         = collectionOption === "homepickup";
-    const pickupFee        = isPickup ? PICKUP_FEE : 0;
+    const pickupFee        = isPickup ? (_userTierFreeDelivery ? 0 : PICKUP_FEE) : 0;
 
     // Capture add-ons and total price at submission time.
     // Tier discount applied here — Ref [13] (DKcleanedit loyalty tier spec).
     const needsQuote       = priceNeedsQuote();
     const selectedAddons   = getSelectedAddons();
-    const totalPriceNumeric = needsQuote ? null : getTotalPriceNumeric(_userTierDiscount);
+    const totalPriceNumeric = needsQuote ? null : getTotalPriceNumeric(_userTierDiscount, _userTierFreeDelivery);
     const totalPrice        = needsQuote ? "Enquire" : "£" + totalPriceNumeric;
     const basePrice         = getBasePrice(); // null when needsQuote
     const discountSaving    = (!needsQuote && _userTierDiscount > 0)
       ? Math.round(basePrice * (_userTierDiscount / 100)) : 0;
     const discountApplied   = !needsQuote && _userTierDiscount > 0;
-    const amountDueNow      = needsQuote ? null : getAmountDueNowNumeric(_userTierDiscount);
+    const amountDueNow      = needsQuote ? null : getAmountDueNowNumeric(_userTierDiscount, _userTierFreeDelivery);
 
     // Field validation — Ref [8] (100 JS Projects, form validation pattern).
     if (!service)  { setMsg("Please select a service.");  return; }
@@ -2340,10 +2353,11 @@ function initBooking() {
           depositAmount:  (!needsQuote && paymentOption === "deposit") ? DEPOSIT_AMOUNT : 0,
           amountDueNow,                                   // null when quoteRequired is true.
           // Tier discount fields — Ref [13] (DKcleanedit loyalty tier spec).
-          tierApplied:     _userTier,
-          discountPct:     _userTierDiscount,
-          discountSaving:  discountSaving,
-          discountApplied: discountApplied,
+          tierApplied:        _userTier,
+          discountPct:        _userTierDiscount,
+          discountSaving:     discountSaving,
+          discountApplied:    discountApplied,
+          freeDeliveryApplied: isPickup && _userTierFreeDelivery,
           shoeNotes, status: "Booked", pickedUp: false,
           deliveryMode: "pending", assignedStaff: "",
           pointsAwarded: 10, pointsGranted: false, grantedPointsAmount: 0,

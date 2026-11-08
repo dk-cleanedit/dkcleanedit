@@ -17,7 +17,7 @@
     sName, sPhone, sEmail, sTier, sPoints, sDisplayName, sDisplayEmail,
     sDisplayTier, sDisplayPoints, sAvatarImg, sAvatarInput, sUploadFeedback,
     btnSaveProfile, profileMsg, curPass, newPass, confirmPass,
-    btnChangePass, passMsg, themeToggle, reduceMotionToggle
+    btnChangePass, passMsg, reduceMotionToggle
 -->
 <head>
   <meta charset="utf-8" />
@@ -31,12 +31,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Manrope:wght@400;500;600;700;800&family=Russo+One&display=swap" rel="stylesheet" />
 
-
-  <script>
-    if (localStorage.getItem("theme") === "dark") {
-      document.documentElement.classList.add("dark-mode");
-    }
-  </script>
 
   <link rel="stylesheet" href="token.css" />
   <link rel="stylesheet" href="global.css" />
@@ -784,16 +778,6 @@
 
         <!-- Appearance tab -->
         <div class="tab-panel" id="panelAppearance" role="tabpanel">
-          <div class="appearance-row">
-            <div>
-              <div class="ar-title">Dark Mode</div>
-              <div class="ar-sub">Switch the app to a dark colour scheme.</div>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="themeToggle" aria-label="Toggle dark mode" />
-              <span class="switch-track" aria-hidden="true"></span>
-            </label>
-          </div>
           <div class="appearance-row">
             <div>
               <div class="ar-title">Reduce Motion</div>

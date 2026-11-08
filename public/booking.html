@@ -36,8 +36,8 @@
 
     Pairs are a basket-style stepper (any whole number ≥ 1), not fixed
     tiers. The DK price list only fixes three points per service —
-      ONE PAIR    Standard (3–5 days) £25 · Express (2–3 days) £30 · Next Day £35
-      THREE PAIRS Standard £60 · Express £70 · Next Day £85
+      ONE PAIR    Standard (3–5 days) £25 · Express (2–3 days) £55 · Next Day £35
+      THREE PAIRS Standard £60 · Express £130 · Next Day £85
       TEN PAIRS   Standard £200 · Express & Next Day quoted separately
     — and priceForQuantity() in the PRICING script below straight-line
     interpolates/extrapolates between those anchor points for any other
@@ -80,12 +80,6 @@
     quoteRequired: true rather than blocking the button.
   -->
 
-
-  <script>
-    if (localStorage.getItem("theme") === "dark") {
-      document.documentElement.classList.add("dark-mode");
-    }
-  </script>
 
   <!-- EmailJS -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
@@ -1252,7 +1246,7 @@
                      aria-label="Express Service, 2 to 3 days" />
               <div class="svc-opt-top">
                 <strong>Express</strong>
-                <span class="badge warning" data-price-badge="express">£30</span>
+                <span class="badge warning" data-price-badge="express">£55</span>
               </div>
               <p class="sub svc-opt-sub">
                 2–3 days. Priority clean, ahead of the standard queue.
@@ -1962,7 +1956,7 @@
       // allows. Keep app.js's PAIR_PRICE_ANCHORS in sync with this.
       var PAIR_PRICE_ANCHORS = {
         standard_clean: [[1, 25], [2, 50], [3, 60], [10, 200]],  // £20/pair flat after 3 pairs
-        express:        [[1, 30], [3, 70]],   // 10+ pairs quoted separately
+        express:        [[1, 55], [3, 130]],  // 10+ pairs quoted separately
         next_day:       [[1, 35], [3, 85]]    // 10+ pairs quoted separately
       };
       var QUOTE_AT = { standard_clean: null, express: 10, next_day: 10 };

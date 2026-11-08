@@ -17,9 +17,9 @@ export function clear2FA(storage = sessionStorage) {
 }
 
 export function getTierDiscount(tier) {
-  if (tier === "Pearl") return { pct: 100, label: "100 Club tier — free clean!" };
-  if (tier === "Stone") return { pct: 10,  label: "The Grind tier — 10% off" };
-  return { pct: 0, label: "" };
+  if (tier === "Pearl") return { pct: 100, label: "100 Club tier — free clean!", freeDelivery: false };
+  if (tier === "Stone") return { pct: 10,  label: "The Grind tier — 10% off",    freeDelivery: true  };
+  return { pct: 0, label: "", freeDelivery: false };
 }
 
 export function getAddonsTotal(addons) {

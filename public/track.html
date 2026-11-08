@@ -74,13 +74,6 @@
   -->
 
 
-  <!-- Flash-prevention: apply saved theme before first paint — no FOUC -->
-  <script>
-    if (localStorage.getItem("theme") === "dark") {
-      document.documentElement.classList.add("dark-mode");
-    }
-  </script>
-
   <!-- EmailJS — used by app.js for notification emails -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script>
@@ -473,6 +466,65 @@
           if (navLogout) navLogout.click();
         });
       }
+
+      /* ── AUTH MIRROR ─────────────────────────────────────────────
+         app.js owns auth and drives the legacy #nav* links in the
+         hidden .nav-links list. We copy that state onto the sidebar,
+         bottom bar and top-bar points pill so all three stay in step
+         without app.js needing to know this shell exists. Same
+         pattern as home.html / booking.html / settings.html /
+         customer.html — this page was missing it, which is why the
+         points badge (and sidebar login/logout state) never updated
+         here.
+         ────────────────────────────────────────────────────────── */
+      function mirrorAuth() {
+        var navLogout = $('navLogout');
+        var navAdmin  = $('navAdmin');
+        var navPoints = $('navPointsBadge');
+
+        /* Signed in when app.js has revealed the logout link */
+        var signedIn = !!(navLogout && !navLogout.hidden);
+
+        var sbLogin  = $('sidebarLogin');
+        var sbReg    = $('sidebarRegister');
+        var sbLogout = $('sidebarLogout');
+        var sbAdmin  = $('sidebarAdmin');
+        var tabLogin = $('bottomNavLogin');
+        var navPts   = $('navPointsMirror');
+
+        if (sbLogin)  sbLogin.hidden  = signedIn;
+        if (sbReg)    sbReg.hidden    = signedIn;
+        if (sbLogout) sbLogout.hidden = !signedIn;
+        if (tabLogin) tabLogin.hidden = signedIn;
+
+        /* Admin tab follows whatever app.js decided for the legacy link */
+        if (sbAdmin) sbAdmin.hidden = !(navAdmin && !navAdmin.hidden);
+
+        /* Points badge in the top bar */
+        if (navPts) {
+          if (navPoints && !navPoints.hidden) {
+            navPts.hidden = false;
+            navPts.textContent = navPoints.textContent.trim();
+            navPts.dataset.tier = navPoints.dataset.tier || '';
+          } else {
+            navPts.hidden = true;
+          }
+        }
+      }
+
+      /* app.js resolves auth asynchronously, so watch for the change
+         rather than reading once on load. */
+      var hookTargets = ['navLogout', 'navAdmin', 'navPointsBadge'];
+      if (window.MutationObserver) {
+        var mo = new MutationObserver(mirrorAuth);
+        for (var j = 0; j < hookTargets.length; j++) {
+          var el = $(hookTargets[j]);
+          if (el) mo.observe(el, { attributes: true, childList: true, characterData: true, subtree: true });
+        }
+      }
+      mirrorAuth();
+      setTimeout(mirrorAuth, 600);
+      setTimeout(mirrorAuth, 2000);
     })();
   </script>
 
