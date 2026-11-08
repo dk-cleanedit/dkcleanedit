@@ -362,6 +362,12 @@ function tierNameForPoints(pts) {
   return "Carbon";
 }
 
+// Internal tier key ("Carbon"/"Stone"/"Pearl" — matches Firestore values
+// and the comparisons in getTierDiscount()) -> customer-facing name.
+// Mirrors customer.js's TIERS[].label. Keep the two in sync.
+const TIER_DISPLAY_NAMES = { Carbon: "First Pair", Stone: "The Grind", Pearl: "600 Club" };
+function tierDisplayName(key) { return TIER_DISPLAY_NAMES[key] || key; }
+
 const PAIR_PRICE_ANCHORS = {
   standard_clean: [[1, 25], [2, 50], [3, 60], [10, 200]],  // £20/pair flat after 3 pairs
   express:        [[1, 30], [3, 70]],   // 10+ pairs quoted separately
@@ -675,8 +681,8 @@ function priceNeedsQuote() {
  *   Carbon tier (0–99 pts)   — no discount.
  */
 function getTierDiscount(tier) {
-  if (tier === "Pearl") return { pct: 100, label: "Pearl tier — free clean!" };
-  if (tier === "Stone") return { pct: 10,  label: "Stone tier — 10% off" };
+  if (tier === "Pearl") return { pct: 100, label: "600 Club tier — free clean!" };
+  if (tier === "Stone") return { pct: 10,  label: "The Grind tier — 10% off" };
   return { pct: 0, label: "" };
 }
 
@@ -1678,7 +1684,7 @@ async function setupNav(user) {
       badge.textContent = String(pts);
       badge.dataset.tier = tierName;
       badge.hidden = false;
-      badge.setAttribute("aria-label", `${tierName} tier — ${pts} loyalty points`);
+      badge.setAttribute("aria-label", `${tierDisplayName(tierName)} tier — ${pts} loyalty points`);
     } catch { badge.hidden = true; }
   } else if (badge) {
     badge.hidden = true;
@@ -2613,7 +2619,7 @@ function initCustomer() {
       badge.textContent = String(points);
       badge.dataset.tier = tierName;
       badge.hidden = false;
-      badge.setAttribute("aria-label", `${tierName} tier — ${points} loyalty points`);
+      badge.setAttribute("aria-label", `${tierDisplayName(tierName)} tier — ${points} loyalty points`);
     }
 
     // avatar upload — Ref [2] MDN FileReader
@@ -3792,7 +3798,7 @@ async function _settingsLoad(user) {
 
     _settingsSetTxt("sDisplayName",   name  || "—");
     _settingsSetTxt("sDisplayEmail",  email || "—");
-    _settingsSetTxt("sDisplayTier",   tier);
+    _settingsSetTxt("sDisplayTier",   tierDisplayName(tier));
     _settingsSetTxt("sDisplayPoints", String(points));
 
     if (photo) { const img = document.getElementById("sAvatarImg"); if (img) img.src = photo; }

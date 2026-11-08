@@ -17,8 +17,8 @@ export function clear2FA(storage = sessionStorage) {
 }
 
 export function getTierDiscount(tier) {
-  if (tier === "Pearl") return { pct: 100, label: "Pearl tier — free clean!" };
-  if (tier === "Stone") return { pct: 10,  label: "Stone tier — 10% off" };
+  if (tier === "Pearl") return { pct: 100, label: "600 Club tier — free clean!" };
+  if (tier === "Stone") return { pct: 10,  label: "The Grind tier — 10% off" };
   return { pct: 0, label: "" };
 }
 

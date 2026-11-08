@@ -5,10 +5,13 @@ import {
   doc, getDoc,
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
+// `name` is the internal tier key (matches Firestore values, DOM ids
+// like "tier-carbon", and getTierDiscount()'s comparisons) and must
+// never change. `label`/`nextLabel` are the customer-facing names.
 const TIERS = [
-  { name: "Carbon", min: 0,   max: 99,  next: "Stone", nextMin: 100 },
-  { name: "Stone",  min: 100, max: 499, next: "Pearl", nextMin: 500 },
-  { name: "Pearl",  min: 500, max: Infinity, next: null, nextMin: null },
+  { name: "Carbon", label: "First Pair", min: 0,   max: 99,  next: "Stone", nextLabel: "The Grind", nextMin: 100 },
+  { name: "Stone",  label: "The Grind",  min: 100, max: 499, next: "Pearl", nextLabel: "600 Club",  nextMin: 500 },
+  { name: "Pearl",  label: "600 Club",   min: 500, max: Infinity, next: null, nextLabel: null, nextMin: null },
 ];
 
 function getTier(pts) {
@@ -45,26 +48,26 @@ function applyTierUI(pts) {
 
   const badge = document.getElementById("custTierBadge");
   const chip  = document.getElementById("loyaltyTierChip");
-  if (badge) badge.textContent = tier.name;
-  if (chip)  chip.textContent  = tier.name;
+  if (badge) badge.textContent = tier.label;
+  if (chip)  chip.textContent  = tier.label;
 
   const currLabel = document.getElementById("tierCurrentLabel");
   const nextLabel = document.getElementById("tierNextLabel");
   const hint      = document.getElementById("tierHint");
   const fill      = document.getElementById("tierBarFill");
 
-  if (currLabel) currLabel.textContent = tier.name;
+  if (currLabel) currLabel.textContent = tier.label;
 
   if (tier.next) {
     const pct       = Math.min(100, Math.round(((pts - tier.min) / (tier.nextMin - tier.min)) * 100));
     const remaining = tier.nextMin - pts;
     if (fill)      fill.style.width  = pct + "%";
-    if (nextLabel) nextLabel.textContent = remaining + " pts to " + tier.next;
-    if (hint)      hint.textContent  = "Earn " + remaining + " more point" + (remaining !== 1 ? "s" : "") + " to unlock " + tier.next + ".";
+    if (nextLabel) nextLabel.textContent = remaining + " pts to " + tier.nextLabel;
+    if (hint)      hint.textContent  = "Earn " + remaining + " more point" + (remaining !== 1 ? "s" : "") + " to unlock " + tier.nextLabel + ".";
   } else {
     if (fill)      fill.style.width  = "100%";
     if (nextLabel) nextLabel.textContent = "Max tier reached";
-    if (hint)      hint.textContent  = "You are at Pearl tier. Enjoy your free monthly clean and maximum rewards.";
+    if (hint)      hint.textContent  = "You are at 600 Club tier. Enjoy your free monthly clean and maximum rewards.";
   }
 }
 
