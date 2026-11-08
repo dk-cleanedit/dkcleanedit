@@ -743,7 +743,14 @@
     /* ── RESULTS CAROUSEL (swipeable stack) ───────────────────── */
     .carousel-viewport {
       position: relative;
-      height: 240px;
+      /* The job clips are shot portrait (9:16) on a phone. Sizing this
+         box to that same ratio (capped so it doesn't get silly-tall on
+         wide screens) means object-fit:cover barely has to crop —
+         a fixed short/wide 240px box was cropping most of every
+         clip's height away, which is what was getting "cut off". */
+      aspect-ratio: 9 / 16;
+      max-height: 480px;
+      min-height: 320px;
       touch-action: pan-y;
       /* home.css (legacy desktop stylesheet, still loaded) defines its
          own .carousel-viewport/.carousel-dots with overflow:hidden and
@@ -754,7 +761,11 @@
       flex: none;
     }
     .result-card {
-      position: absolute; inset: 0;
+      /* 20px short of the viewport on every edge but the top, same gap
+         the old fixed 220-vs-240 pairing left for the stack to peek
+         from behind — now expressed relatively so it tracks whatever
+         height the aspect-ratio above resolves to. */
+      position: absolute; inset: 0 0 20px 0;
       border-radius: 10px; overflow: hidden;
       background: var(--surface-2);
       border: 1px solid rgba(79, 195, 247, 0.22);
@@ -762,12 +773,12 @@
       transition: transform 0.38s cubic-bezier(.22,.8,.3,1), opacity 0.3s ease;
       cursor: pointer;
     }
-    .result-card img, .result-card video { width: 100%; height: 220px; object-fit: cover; display: block; position: relative; z-index: 2; background: #0a1120; }
+    .result-card img, .result-card video { width: 100%; height: 100%; object-fit: cover; display: block; position: relative; z-index: 2; background: #0a1120; }
     /* Before/after split card — two halves in one result-card, same
-       220px slot the single-photo cards use, so it drops into the
-       existing swipeable stack with no layout changes. */
-    .result-card--ba { display: flex; }
-    .result-card--ba .ba-half { position: relative; width: 50%; height: 220px; overflow: hidden; }
+       slot the single-clip cards use, so it drops into the existing
+       swipeable stack with no layout changes. */
+    .result-card--ba { display: flex; height: 100%; }
+    .result-card--ba .ba-half { position: relative; width: 50%; height: 100%; overflow: hidden; }
     .result-card--ba .ba-half img, .result-card--ba .ba-half video { width: 100%; height: 100%; object-fit: cover; display: block; background: #0a1120; }
     .result-card--ba .ba-half:first-child { border-right: 2px solid var(--gold); }
     .ba-tag {
