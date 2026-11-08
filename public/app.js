@@ -105,6 +105,7 @@ import {
   onAuthStateChanged,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInAnonymously,
   signOut,
   updateProfile,
   updatePassword,
@@ -446,8 +447,11 @@ function clear2FA() {
 }
 
 // derive role from the signed-in user
+// Anonymous (guest-booking) sessions are treated as signed-out for role
+// purposes — a guest never gets customer/admin nav, account access or
+// the loyalty points badge.
 function roleFor(user) {
-  if (!user) return null;
+  if (!user || user.isAnonymous) return null;
   if (isAdmin(user.email)) return "admin";
   if (isStaff(user.email)) return "staff";
   return "customer";
@@ -1639,11 +1643,15 @@ async function setupNav(user) {
   //   [Accessed: 27 Apr. 2026]. Used for: showing/hiding nav items per role.)
   const show = (id, visible) => { const el = $(id); if (el) el.hidden = !visible; };
   const role = user ? roleFor(user) : null;
+  // A guest (anonymous auth, used for booking without an account) still
+  // has a Firebase "user" object, but should see Login/Register exactly
+  // like a signed-out visitor.
+  const signedIn = !!(user && !user.isAnonymous);
 
   // Auth links — always show login/register when not signed in
-  show("#navLogin",    !user);
-  show("#navRegister", !user);
-  show("#navLogout",   !!user);
+  show("#navLogin",    !signedIn);
+  show("#navRegister", !signedIn);
+  show("#navLogout",   signedIn);
 
   // Home, Booking, Tracking visible to everyone (logged-in and logged-out customers).
   // Admins see admin-only navigation instead — no booking/tracking/account links.
@@ -2214,7 +2222,18 @@ function initBooking() {
 
   onAuthStateChanged(auth, async (user) => {
     const nameInput = $("#customerName");
-    if (!user) return;
+
+    // Guest booking: no account (or a previous guest session's anonymous
+    // auth) — show the guest contact fields instead of loading a tier/
+    // points profile that doesn't exist for them.
+    const isGuestUser    = !user || user.isAnonymous;
+    const guestRow       = $("#guestContactRow");
+    const guestHint      = $("#guestContactHint");
+    if (guestRow)  guestRow.hidden  = !isGuestUser;
+    if (guestHint) guestHint.hidden = !isGuestUser;
+    const guestEmailInput = $("#guestEmail");
+    if (guestEmailInput) guestEmailInput.required = isGuestUser;
+    if (isGuestUser) return;
 
     try {
       const snap     = await getDoc(doc(db, "users", user.uid));
@@ -2263,18 +2282,20 @@ function initBooking() {
 
   btnBook.addEventListener("click", async (e) => {
     e.preventDefault();
-    const user = auth.currentUser;
-    if (!user) {
-      const ov = $("#signupOverlay"); if (ov) ov.hidden = false;
-      toast("Please log in to book."); return;
-    }
+    // Guest booking: no account at all, or a previous guest session's
+    // anonymous auth — either way, let them book. Tracking, points and
+    // account nav stay off for these (handled elsewhere via isAnonymous).
+    let user      = auth.currentUser;
+    const isGuest = !user || user.isAnonymous;
 
-    const service   = $("#service")?.value;
-    const loc       = $("#location")?.value;
-    const date      = document.getElementById("date")?.value;
-    const timeSlot  = $("#timeSlot")?.value;
-    const shoeNotes = $("#shoeNotes")?.value.trim() || "";
-    const images    = Array.from($("#shoeImages")?.files || []);
+    const service    = $("#service")?.value;
+    const loc        = $("#location")?.value;
+    const date       = document.getElementById("date")?.value;
+    const timeSlot   = $("#timeSlot")?.value;
+    const shoeNotes  = $("#shoeNotes")?.value.trim() || "";
+    const images     = Array.from($("#shoeImages")?.files || []);
+    const guestEmail = $("#guestEmail")?.value.trim() || "";
+    const guestPhone = $("#guestPhone")?.value.trim() || "";
 
     // Collection / payment choices — owned by booking.html's own PRICING
     // and OPENING HOURS scripts; read straight from the DOM here so the
@@ -2306,17 +2327,35 @@ function initBooking() {
     if (!timeSlot) { setMsg("Please pick a time slot.");  return; }
     if (date < todayISO()) { setMsg("Please select a future date."); return; }
     if (isPickup && !pickupAddress) { setMsg("Please enter your pickup address."); return; }
+    if (isGuest && !guestEmail) { setMsg("Please enter your email address so we can confirm your booking."); return; }
+    if (isGuest && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) { setMsg("Please enter a valid email address."); return; }
 
     btnBook.disabled = true;
     btnBook.textContent = needsQuote ? "Sending quote request…" : "Checking availability…";
     setMsg("");
 
     try {
-      const userSnap      = await getDoc(doc(db, "users", user.uid));
-      const userData      = userSnap.exists() ? userSnap.data() : {};
-      const customerName  = $("#customerName")?.value.trim() || userData.name || user.displayName || "Customer";
-      const customerEmail = userData.email || user.email || "";
-      const customerPhone = userData.phone || "";
+      // First-time guest: no Firebase user at all yet — create a real
+      // (if anonymous) auth session so this order has a uid like any
+      // other, without requiring the customer to register.
+      if (!user) {
+        try {
+          const cred = await signInAnonymously(auth);
+          user = cred.user;
+        } catch (anonErr) {
+          console.error("Guest sign-in failed:", anonErr);
+          setMsg("We couldn't start your guest booking just now. Please try again, or create a free account.");
+          toast("Booking failed", "error");
+          btnBook.disabled = false; btnBook.textContent = "Confirm booking";
+          return;
+        }
+      }
+
+      const userSnap      = isGuest ? null : await getDoc(doc(db, "users", user.uid));
+      const userData      = userSnap && userSnap.exists() ? userSnap.data() : {};
+      const customerName  = $("#customerName")?.value.trim() || userData.name || user.displayName || (isGuest ? "Guest" : "Customer");
+      const customerEmail = isGuest ? guestEmail : (userData.email || user.email || "");
+      const customerPhone = isGuest ? guestPhone : (userData.phone || "");
       let newOrderId;
 
       // Atomic double-booking check — Ref [5] (GitHub firebase-js-sdk
@@ -2337,6 +2376,7 @@ function initBooking() {
 
         transaction.set(orderRef, {
           uid: user.uid, customerName, customerEmail, customerPhone,
+          isGuest, // true for a guest (anonymous-auth) booking — no account, no tracking, no loyalty points.
           service, serviceLabel: serviceLabel(service), pairCount: pairs,
           location: loc, date, timeSlot,
           price:     totalPrice,       // Total after tier discount + add-ons, e.g. "£36", or "Enquire".
@@ -2360,7 +2400,7 @@ function initBooking() {
           freeDeliveryApplied: isPickup && _userTierFreeDelivery,
           shoeNotes, status: "Booked", pickedUp: false,
           deliveryMode: "pending", assignedStaff: "",
-          pointsAwarded: 10, pointsGranted: false, grantedPointsAmount: 0,
+          pointsAwarded: isGuest ? 0 : 10, pointsGranted: false, grantedPointsAmount: 0,
           createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
         });
         transaction.set(slotSentinelRef, {
@@ -2444,13 +2484,13 @@ function initBooking() {
         toast("Quote request sent ✅", "success");
         setMsg(`Quote request sent! We'll be in touch about pricing. Order ID: ${newOrderId}`);
         // Nothing to charge yet — the price is confirmed after we quote it.
-        setTimeout(() => { location.href = "track.html"; }, 900);
+        setTimeout(() => { location.href = `track.html?orderId=${encodeURIComponent(newOrderId)}`; }, 900);
       } else if (!(Number(amountDueNow) > 0)) {
         // Nothing to pay (e.g. a free clean from the Pearl tier) — skip
         // Stripe entirely instead of failing on a £0 checkout.
         toast("Booking confirmed ✅", "success");
         setMsg(`Booking confirmed! Order ID: ${newOrderId}. Nothing to pay now.`);
-        setTimeout(() => { location.href = "track.html"; }, 1200);
+        setTimeout(() => { location.href = `track.html?orderId=${encodeURIComponent(newOrderId)}`; }, 1200);
       } else {
         // Pay now: every order (any total — add-ons, pickup fee,
         // discount, full price or deposit) goes through Stripe's own
@@ -2476,7 +2516,7 @@ function initBooking() {
         } else {
           toast("Booking confirmed — payment step failed", "error");
           setMsg(`Booking confirmed! Order ID: ${newOrderId}. We couldn't open the payment page just now (${window._lastCheckoutError || "unknown error"}) — go to the Track page and use Order ID ${newOrderId} to pay, or contact us.`);
-          setTimeout(() => { location.href = "track.html"; }, 1800);
+          setTimeout(() => { location.href = `track.html?orderId=${encodeURIComponent(newOrderId)}`; }, 1800);
         }
       }
 
@@ -2533,6 +2573,25 @@ function initTracking() {
       ordersEl.innerHTML = `<div class="order-card">
         <div class="order-title">Please log in to view your orders</div>
         <a class="btn primary" href="login.html?next=track.html">Go to Login</a>
+      </div>`;
+      return;
+    }
+    // Guest checkout (anonymous auth) deliberately has no order tracking —
+    // guests never created an account, so there's no order history to show.
+    // Give them a clear explanation (plus their order ID, if we have it)
+    // instead of the generic "please log in" message, which would be
+    // confusing since they were never asked to log in to book.
+    if (user.isAnonymous) {
+      const overlay = $("#signupOverlay");
+      if (overlay) overlay.hidden = true;
+      const params  = new URLSearchParams(location.search);
+      const orderId = params.get("orderId");
+      const paid    = params.get("paid") === "1";
+      ordersEl.innerHTML = `<div class="order-card">
+        <div class="order-title">${paid ? "Payment received — thank you! ✓" : "Order tracking isn't available for guest bookings"}</div>
+        ${orderId ? `<p class="sub">Your Order ID: <strong>${orderId}</strong> — keep this for your records.</p>` : ""}
+        <p class="sub">You booked as a guest, so there's no order history to show here. We'll keep you updated by email${orderId ? "" : " and text"}. Create a free account to track orders online next time.</p>
+        <a class="btn primary" href="register.html">Create an account</a>
       </div>`;
       return;
     }

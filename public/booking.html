@@ -1365,6 +1365,37 @@
             </div>
           </div>
 
+          <!-- Guest contact details — shown only when booking without an
+               account, so we have a way to reach you about this order.
+               Hidden/not required when signed in, since we already have
+               your email and phone on file. -->
+          <div class="frow" id="guestContactRow" hidden>
+            <div class="field">
+              <label for="guestEmail">Email address</label>
+              <input
+                id="guestEmail"
+                type="email"
+                autocomplete="email"
+                placeholder="you@example.com"
+                enterkeyhint="next"
+              />
+            </div>
+
+            <div class="field">
+              <label for="guestPhone">Phone number</label>
+              <input
+                id="guestPhone"
+                type="tel"
+                autocomplete="tel"
+                placeholder="07…"
+                enterkeyhint="next"
+              />
+            </div>
+          </div>
+          <p id="guestContactHint" class="sub" style="font-size:11px;color:var(--muted-2);margin:-6px 0 14px;" hidden>
+            Booking as a guest — we'll email your booking confirmation here. Order tracking isn't available for guest bookings; <a href="register.html">create a free account</a> if you'd like to track orders online.
+          </p>
+
           <!-- Collection method -->
           <div class="field">
             <label id="collectionLabel">Collection method</label>
