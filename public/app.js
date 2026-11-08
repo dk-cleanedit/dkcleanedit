@@ -371,7 +371,7 @@ function tierDisplayName(key) { return TIER_DISPLAY_NAMES[key] || key; }
 
 const PAIR_PRICE_ANCHORS = {
   standard_clean: [[1, 25], [2, 50], [3, 60], [10, 200]],  // £20/pair flat after 3 pairs
-  express:        [[1, 55], [2, 55], [3, 130]],  // 2 pairs same as 1 — 10+ pairs quoted separately
+  express:        [[1, 30], [2, 55], [3, 70]],   // 2 pairs only — 1 pair/3+ pairs back to original
   next_day:       [[1, 35], [3, 85]],   // 10+ pairs quoted separately
 };
 const PAIR_QUOTE_AT = { standard_clean: null, express: 10, next_day: 10 };
