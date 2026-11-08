@@ -762,13 +762,13 @@
       transition: transform 0.38s cubic-bezier(.22,.8,.3,1), opacity 0.3s ease;
       cursor: pointer;
     }
-    .result-card img { width: 100%; height: 220px; object-fit: cover; display: block; position: relative; z-index: 2; }
+    .result-card img, .result-card video { width: 100%; height: 220px; object-fit: cover; display: block; position: relative; z-index: 2; background: #0a1120; }
     /* Before/after split card — two halves in one result-card, same
        220px slot the single-photo cards use, so it drops into the
        existing swipeable stack with no layout changes. */
     .result-card--ba { display: flex; }
     .result-card--ba .ba-half { position: relative; width: 50%; height: 220px; overflow: hidden; }
-    .result-card--ba .ba-half img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .result-card--ba .ba-half img, .result-card--ba .ba-half video { width: 100%; height: 100%; object-fit: cover; display: block; background: #0a1120; }
     .result-card--ba .ba-half:first-child { border-right: 2px solid var(--gold); }
     .ba-tag {
       position: absolute; bottom: 8px; left: 8px; z-index: 3;
@@ -1191,28 +1191,28 @@
       <div class="carousel-viewport" id="carouselViewport" aria-live="polite">
         <div class="result-card result-card--ba">
           <div class="ba-half">
-            <img src="videos/work-canvas-before.jpg" alt="Canvas platform sneaker before cleaning" loading="lazy" decoding="async" />
+            <video class="result-media" src="videos/work-canvas-before.mp4" poster="videos/work-canvas-before.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Canvas platform sneaker before cleaning"></video>
             <span class="ba-tag ba-tag--before">Before</span>
           </div>
           <div class="ba-half">
-            <img src="videos/work-canvas-after.jpg" alt="Canvas platform sneaker after cleaning" loading="lazy" decoding="async" />
+            <video class="result-media" src="videos/work-canvas-after.mp4" poster="videos/work-canvas-after.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Canvas platform sneaker after cleaning"></video>
             <span class="ba-tag ba-tag--after">After</span>
           </div>
         </div>
         <div class="result-card result-card--ba">
           <div class="ba-half">
-            <img src="videos/work-dunk-before.jpg" alt="Olive and white sneaker before cleaning" loading="lazy" decoding="async" />
+            <video class="result-media" src="videos/work-dunk-before.mp4" poster="videos/work-dunk-before.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Olive and white sneaker before cleaning"></video>
             <span class="ba-tag ba-tag--before">Before</span>
           </div>
           <div class="ba-half">
-            <img src="videos/work-dunk-after.jpg" alt="Olive and white sneaker after cleaning" loading="lazy" decoding="async" />
+            <video class="result-media" src="videos/work-dunk-after.mp4" poster="videos/work-dunk-after.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Olive and white sneaker after cleaning"></video>
             <span class="ba-tag ba-tag--after">After</span>
           </div>
         </div>
-        <div class="result-card"><img src="videos/work-platform.jpg" alt="Restored platform sneakers — DKcleanEdit example" loading="lazy" decoding="async" /></div>
-        <div class="result-card"><img src="videos/work-nb9060.jpg" alt="Restored grey sneaker — DKcleanEdit example" loading="lazy" decoding="async" /></div>
-        <div class="result-card"><img src="videos/work-nb530.jpg" alt="Restored white sneaker — DKcleanEdit example" loading="lazy" decoding="async" /></div>
-        <div class="result-card"><img src="videos/work-blue.jpg" alt="Restored blue sneaker — DKcleanEdit example" loading="lazy" decoding="async" /></div>
+        <div class="result-card"><video class="result-media" src="videos/work-platform.mp4" poster="videos/work-platform.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Restored platform sneakers — DKcleanEdit example"></video></div>
+        <div class="result-card"><video class="result-media" src="videos/work-nb9060.mp4" poster="videos/work-nb9060.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Restored grey sneaker — DKcleanEdit example"></video></div>
+        <div class="result-card"><video class="result-media" src="videos/work-nb530.mp4" poster="videos/work-nb530.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Restored white sneaker — DKcleanEdit example"></video></div>
+        <div class="result-card"><video class="result-media" src="videos/work-blue.mp4" poster="videos/work-blue.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Restored blue sneaker — DKcleanEdit example"></video></div>
         <button class="carousel-btn prev" id="prevBtn" type="button" aria-label="previous">&#8249;</button>
         <button class="carousel-btn next" id="nextBtn" type="button" aria-label="next">&#8250;</button>
       </div>
