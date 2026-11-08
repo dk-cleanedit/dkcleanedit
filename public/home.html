@@ -373,15 +373,13 @@
     .sec-label {
       font-size: 10px; font-weight: 700; text-transform: uppercase;
       letter-spacing: 1.2px; color: var(--ink); opacity: 0.72; margin-bottom: 6px;
-      text-align: center;
     }
     .sec-title {
       font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
       font-size: 20px; font-weight: 800;
       color: var(--ink); line-height: 1.2; margin-bottom: 8px;
-      text-align: center;
     }
-    .sec-body { font-size: 13px; line-height: 1.65; color: var(--muted); text-align: center; }
+    .sec-body { font-size: 13px; line-height: 1.65; color: var(--muted); }
 
     .gold-rule {
       height: 1px;
@@ -503,17 +501,17 @@
     .popup-actions { display: flex; flex-direction: column; gap: 9px; }
 
     /* ── FOOTER ──────────────────────────────────────────────────── */
-    .m-footer { padding: 28px var(--side) 20px; background: var(--navy); border-top: 1px solid rgba(79, 195, 247, 0.25); }
+    .m-footer { padding: 28px var(--side) 20px; background: var(--navy); border-top: 1px solid rgba(79, 195, 247, 0.25); text-align: center; }
     .footer-logo { height: 26px; width: auto; margin-bottom: 10px; }
     .footer-tagline { font-size: 12px; color: rgba(245, 245, 245, 0.55); margin-bottom: 18px; }
-    .footer-cols { display: flex; gap: 32px; margin-bottom: 20px; }
+    .footer-cols { display: flex; justify-content: center; gap: 32px; margin-bottom: 20px; }
     .footer-col h4 {
       font-size: 10px; font-weight: 700; text-transform: uppercase;
       letter-spacing: 1px; color: var(--gold); margin-bottom: 10px;
     }
     .footer-col ul { display: flex; flex-direction: column; gap: 8px; }
     .footer-col a { font-size: 13px; color: rgba(245, 245, 245, 0.65); }
-    .footer-socials { display: flex; gap: 10px; margin-bottom: 18px; }
+    .footer-socials { display: flex; justify-content: center; gap: 10px; margin-bottom: 18px; }
     .footer-social {
       width: 36px; height: 36px; border-radius: 50%;
       background: radial-gradient(circle at 32% 28%, #8fe0ff 0%, #3fa9f5 38%, #1565c0 72%, #0d3d7a 100%);
@@ -1072,7 +1070,7 @@
     <div class="sec">
       <div class="sec-title">Choose Your Service</div>
       <p class="sec-body">
-        Prices shown are for a single pair. Bundles: 3 pairs from £60, 10 pairs from £200.
+        Prices shown are for a single pair. Bundles: 2 pairs £50, 3 pairs from £60, 10 pairs from £200.
       </p>
     </div>
 
@@ -1093,7 +1091,7 @@
             <li>Upper &amp; midsole clean</li>
             <li>Lace refresh</li>
             <li>Deodorising &amp; finish</li>
-            <li>3 pairs £60 · 10 pairs £200 (£20/pair after 3)</li>
+            <li>2 pairs £50 · 3 pairs £60 · 10 pairs £200 (£20/pair after 3)</li>
           </ul>
         </div>
         <div class="service-slide-cta">
@@ -1235,11 +1233,11 @@
       <div class="story-video-wrap">
         <video class="story-video" src="videos/story.mp4" poster="videos/story-poster.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Daniel explains why he started DKcleanEdit"></video>
       </div>
-      <p class="sec-body story-text">I started DKcleanEdit in August 2024, back in my second year of university — not as a side-hustle idea I picked up online, but because I genuinely couldn't stand seeing a good pair of sneakers go uncared for. I had one pair I loved more than any other, and when it got properly trashed, I taught myself how to bring it back to life rather than let it go. That's where this started.</p>
-      <p class="sec-body story-text">Since then I've cleaned and restored over 400 pairs across Leicester and London, and built the booking, tracking and loyalty system behind this site myself. This was never just about cleaning shoes — it's about taking pride in your footwear.</p>
+      <p class="sec-body story-text">I started DKcleanedit in August 2024, back in my second year of university not as a side-hustle idea I picked up because I genuinely couldn't stand seeing a good pair of sneakers go uncared for. I had one pair I loved more than any other, and when it got properly ruined, I taught myself how to bring it back to life rather than let it go. That's where this started.</p>
+      <p class="sec-body story-text">Since then the team has cleaned and restored over 600 pairs across Leicester and London, and built the booking, tracking and loyalty system behind this site. This was never just about cleaning shoes, it's about taking pride in your footwear.</p>
       <div class="story-byline">
         <img class="story-avatar" src="videos/founder-photo.jpg" alt="Daniel, founder of DKcleanEdit" loading="lazy" decoding="async" />
-        <span>Daniel — Founder, DKcleanEdit</span>
+        <span>DK — Founder</span>
       </div>
     </div>
 
@@ -1250,6 +1248,7 @@
       <div class="dk-section-header">
         <div class="sec-title" id="tiersHeading">Loyalty Tiers</div>
       </div>
+      <p class="sec-body" style="margin-bottom:14px;">Every clean adds up — the same way one pair, cared for properly, turned into 600+. These tiers are my way of growing with you.</p>
       <div class="tier-list">
         <a class="tier-row" href="customer.html" data-requires-auth="true" aria-label="carbon tier">
           <div class="tier-icon">◈</div>
@@ -1263,7 +1262,7 @@
         <a class="tier-row" href="customer.html" data-requires-auth="true" aria-label="stone tier">
           <div class="tier-icon">◆</div>
           <div class="tier-info">
-            <div class="tier-name">Stone <span class="tier-tag">Popular</span></div>
+            <div class="tier-name">Stone</div>
             <div class="tier-range">100 – 499 pts</div>
             <div class="tier-perk">£10 off + priority booking</div>
           </div>
@@ -1294,19 +1293,19 @@
           <div class="review-stars">★★★★★</div>
           <p class="review-quote">"Gave my Dior B30s in looking wrecked. DK got them back looking fresh out the box. Live tracking gave me full clarity throughout."</p>
           <div class="review-author">Ezechiel N.</div>
-          <div class="review-meta">Stone Member · London</div>
+          <div class="review-meta">London</div>
         </div>
         <div class="review-card">
           <div class="review-stars">★★★★★</div>
           <p class="review-quote">"DK handled my Jordan 1 Highs perfectly — every update in real time. Worth every penny, genuinely impressed."</p>
           <div class="review-author">Jordan A.</div>
-          <div class="review-meta">Carbon Member · London</div>
+          <div class="review-meta">London</div>
         </div>
         <div class="review-card">
           <div class="review-stars">★★★★★</div>
           <p class="review-quote">"Easiest booking I've done. Collected them and they came back absolutely immaculate."</p>
           <div class="review-author">Rali N.</div>
-          <div class="review-meta">Carbon Member · London</div>
+          <div class="review-meta">London</div>
         </div>
       </div>
     </div>

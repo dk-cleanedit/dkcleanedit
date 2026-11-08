@@ -363,7 +363,7 @@ function tierNameForPoints(pts) {
 }
 
 const PAIR_PRICE_ANCHORS = {
-  standard_clean: [[1, 25], [3, 60], [10, 200]],  // £20/pair flat after 3 pairs
+  standard_clean: [[1, 25], [2, 50], [3, 60], [10, 200]],  // £20/pair flat after 3 pairs
   express:        [[1, 30], [3, 70]],   // 10+ pairs quoted separately
   next_day:       [[1, 35], [3, 85]],   // 10+ pairs quoted separately
 };
