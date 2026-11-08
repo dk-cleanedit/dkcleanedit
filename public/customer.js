@@ -9,9 +9,9 @@ import {
 // like "tier-carbon", and getTierDiscount()'s comparisons) and must
 // never change. `label`/`nextLabel` are the customer-facing names.
 const TIERS = [
-  { name: "Carbon", label: "First Pair", min: 0,   max: 99,  next: "Stone", nextLabel: "The Grind", nextMin: 100 },
-  { name: "Stone",  label: "The Grind",  min: 100, max: 499, next: "Pearl", nextLabel: "600 Club",  nextMin: 500 },
-  { name: "Pearl",  label: "600 Club",   min: 500, max: Infinity, next: null, nextLabel: null, nextMin: null },
+  { name: "Carbon", label: "First Pair", min: 0,  max: 29,  next: "Stone", nextLabel: "The Grind", nextMin: 30 },
+  { name: "Stone",  label: "The Grind",  min: 30, max: 99,  next: "Pearl", nextLabel: "100 Club",  nextMin: 100 },
+  { name: "Pearl",  label: "100 Club",   min: 100, max: Infinity, next: null, nextLabel: null, nextMin: null },
 ];
 
 function getTier(pts) {
@@ -67,7 +67,7 @@ function applyTierUI(pts) {
   } else {
     if (fill)      fill.style.width  = "100%";
     if (nextLabel) nextLabel.textContent = "Max tier reached";
-    if (hint)      hint.textContent  = "You are at 600 Club tier. Enjoy your free monthly clean and maximum rewards.";
+    if (hint)      hint.textContent  = "You are at 100 Club tier. Enjoy your free monthly clean and maximum rewards.";
   }
 }
 

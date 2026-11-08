@@ -82,10 +82,10 @@
 //  [13] DKcleanedit (2026) Loyalty Tier Specification — internal project
 //       design document. University of Leicester CO3202 Entrepreneurial
 //       Project 2025/26.
-//       Carbon tier (0–99 pts): no discount.
-//       Stone tier (100–499 pts): 10% discount on the base service price,
+//       Carbon tier (0–29 pts): no discount.
+//       Stone tier (30–99 pts): 10% discount on the base service price,
 //         automatically applied at booking submission.
-//       Pearl tier (500+ pts): free standard clean (base price waived),
+//       Pearl tier (100+ pts): free standard clean (base price waived),
 //         automatically applied at booking submission.
 //       Used in: getTierDiscount(), getTotalPriceStr(), initBooking()
 //       (Section 16), renderOrderCard() (Section 7), and renderAdminCard()
@@ -351,21 +351,21 @@ async function getPaymentUrlForOrder(order) {
 
 /**
  * Loyalty tier name for a given points total. Mirrors customer.js's
- * TIERS breakpoints (Carbon 0-99, Stone 100-499, Pearl 500+) so the
+ * TIERS breakpoints (Carbon 0-29, Stone 30-99, Pearl 100+) so the
  * site-wide nav points badge can show the same tier everywhere,
  * not just on the account page.
  */
 function tierNameForPoints(pts) {
   const n = Number(pts) || 0;
-  if (n >= 500) return "Pearl";
-  if (n >= 100) return "Stone";
+  if (n >= 100) return "Pearl";
+  if (n >= 30) return "Stone";
   return "Carbon";
 }
 
 // Internal tier key ("Carbon"/"Stone"/"Pearl" — matches Firestore values
 // and the comparisons in getTierDiscount()) -> customer-facing name.
 // Mirrors customer.js's TIERS[].label. Keep the two in sync.
-const TIER_DISPLAY_NAMES = { Carbon: "First Pair", Stone: "The Grind", Pearl: "600 Club" };
+const TIER_DISPLAY_NAMES = { Carbon: "First Pair", Stone: "The Grind", Pearl: "100 Club" };
 function tierDisplayName(key) { return TIER_DISPLAY_NAMES[key] || key; }
 
 const PAIR_PRICE_ANCHORS = {
@@ -676,12 +676,12 @@ function priceNeedsQuote() {
  * Carbon = no discount.
  *
  * Ref [13] DKcleanedit loyalty tier specification (project design doc):
- *   Stone tier (100–499 pts) — 10% discount applied to base service price.
- *   Pearl tier (500+ pts)    — free standard clean (base price = £0).
- *   Carbon tier (0–99 pts)   — no discount.
+ *   Stone tier (30–99 pts)  — 10% discount applied to base service price.
+ *   Pearl tier (100+ pts)   — free standard clean (base price = £0).
+ *   Carbon tier (0–29 pts)  — no discount.
  */
 function getTierDiscount(tier) {
-  if (tier === "Pearl") return { pct: 100, label: "600 Club tier — free clean!" };
+  if (tier === "Pearl") return { pct: 100, label: "100 Club tier — free clean!" };
   if (tier === "Stone") return { pct: 10,  label: "The Grind tier — 10% off" };
   return { pct: 0, label: "" };
 }
@@ -1390,7 +1390,7 @@ async function saveOrder(orderId) {
       sendTierUpgradeEmail({
         recipientEmail: userEmailForTier,
         recipientName:  userNameForTier,
-        newTier:        tierAfter,
+        newTier:        tierDisplayName(tierAfter),
         totalPoints:    pointsAfter,
       });
     }
@@ -2215,7 +2215,7 @@ function initBooking() {
 
       // Load tier and calculate discount — Ref [13] (DKcleanedit loyalty tier spec).
       const pts      = Number(userData.points || 0);
-      _userTier      = userData.tier || (pts >= 500 ? "Pearl" : pts >= 100 ? "Stone" : "Carbon");
+      _userTier      = userData.tier || (pts >= 100 ? "Pearl" : pts >= 30 ? "Stone" : "Carbon");
       const disc     = getTierDiscount(_userTier);
       _userTierDiscount = disc.pct;
       _userTierLabel    = disc.label;
@@ -3766,8 +3766,8 @@ function initSettings() {
 }
 
 function _settingsTierFor(pts) {
-  if (pts >= 500) return "Pearl";
-  if (pts >= 100) return "Stone";
+  if (pts >= 100) return "Pearl";
+  if (pts >= 30) return "Stone";
   return "Carbon";
 }
 
