@@ -825,6 +825,26 @@
     }
     .carousel-dots button.active { background: var(--gold); width: 16px; border-radius: 3px; }
 
+    /* ── MY STORY ───────────────────────────────────────────── */
+    .story-header { text-align: center; }
+    .story-video-wrap { display: flex; justify-content: center; margin-bottom: 14px; }
+    .story-video {
+      width: 100%; max-width: 300px;
+      aspect-ratio: 9 / 16; max-height: 460px;
+      object-fit: cover; display: block;
+      border-radius: 10px; overflow: hidden;
+      background: #0a1120;
+      border: 1px solid rgba(79, 195, 247, 0.22);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 10px 28px rgba(0,0,0,0.25), 0 0 0 1px rgba(79,195,247,0.06);
+    }
+    .story-text { text-align: center; max-width: 440px; margin: 0 auto 14px; }
+    .story-byline { display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .story-avatar {
+      width: 32px; height: 32px; border-radius: 50%; object-fit: cover;
+      border: 1px solid rgba(79, 195, 247, 0.35); display: block;
+    }
+    .story-byline span { font-size: 12.5px; font-weight: 700; color: var(--ink); }
+
     /* ── LOYALTY TIERS ──────────────────────────────────────── */
     .tier-list { display: flex; flex-direction: column; gap: 10px; }
     .tier-row {
@@ -1222,6 +1242,25 @@
         <div class="result-card"><video class="result-media" src="videos/work-nb530.mp4" poster="videos/work-nb530.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Restored white sneaker — DKcleanEdit example"></video></div>
       </div>
       <div class="carousel-dots" id="carouselDots" role="tablist" style="margin-top:10px;"></div>
+    </div>
+
+    <hr class="gold-rule" />
+
+    <!-- 6. MY STORY — why DKcleanEdit exists -->
+    <div class="dk-section" aria-labelledby="storyHeading">
+      <div class="dk-section-header story-header">
+        <div class="sec-label">The Founder</div>
+        <div class="sec-title" id="storyHeading">My Story</div>
+      </div>
+      <div class="story-video-wrap">
+        <video class="story-video" src="videos/story.mp4" poster="videos/story-poster.jpg" controls playsinline preload="metadata" aria-label="Daniel explains why he started DKcleanEdit"></video>
+      </div>
+      <p class="sec-body story-text">I started DKcleanEdit in August 2024, back in my second year of university — not as a side-hustle idea I picked up online, but because I genuinely couldn't stand seeing a good pair of sneakers go uncared for. I had one pair I loved more than any other, and when it got properly trashed, I taught myself how to bring it back to life rather than let it go. That's where this started.</p>
+      <p class="sec-body story-text">Since then I've cleaned and restored over 400 pairs across Leicester and London, and built the booking, tracking and loyalty system behind this site myself. This was never just about cleaning shoes — it's about taking pride in your footwear.</p>
+      <div class="story-byline">
+        <img class="story-avatar" src="videos/founder-photo.jpg" alt="Daniel, founder of DKcleanEdit" loading="lazy" decoding="async" />
+        <span>Daniel — Founder, DKcleanEdit</span>
+      </div>
     </div>
 
     <hr class="gold-rule" />
