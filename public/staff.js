@@ -22,7 +22,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
 const ADMIN_EMAIL = "dkcleaneditnotts@gmail.com";
-const LOCATIONS   = { leicester: "Leicester", "canada-water": "Canada Water" };
+const LOCATIONS   = { leicester: "Leicester", "canada-water": "Surrey Quays station" };
 const ROLES       = {
   cleaning: "Shoe cleaning", pickup: "Shoe pickup", delivery: "Deliver shoes",
   both: "Pickup + cleaning", manager: "Floor manager",

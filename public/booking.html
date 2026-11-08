@@ -1360,7 +1360,7 @@
             <div class="field">
               <label for="location">Branch location</label>
               <select id="location" required aria-required="true">
-                <option value="canada_water" selected>Canada Water, London</option>
+                <option value="canada_water" selected>Surrey Quays station, London</option>
               </select>
             </div>
           </div>
@@ -1408,7 +1408,7 @@
                   <strong>Drop off at our branch</strong>
                   <span class="badge info">Free</span>
                 </div>
-                <p class="sub svc-opt-sub">Bring your shoes to us at Canada Water, London.</p>
+                <p class="sub svc-opt-sub">Bring your shoes to us at Surrey Quays station, London.</p>
               </label>
 
               <label class="svc-opt" data-collection-card="homepickup">
@@ -1534,8 +1534,8 @@
             <label id="mapLabel">Your selected branch</label>
             <div class="map-card" aria-labelledby="mapLabel">
               <div class="map-info">
-                <strong id="selectedBranchName">Canada Water, London</strong>
-                <div class="sub" id="selectedBranchAddress">Canada Water, London, UK</div>
+                <strong id="selectedBranchName">Surrey Quays station, London</strong>
+                <div class="sub" id="selectedBranchAddress">Surrey Quays station, London, UK</div>
                 <a
                   id="openMapsBtn"
                   class="btn-ghost"
@@ -2194,7 +2194,7 @@
         if (sumPair) sumPair.textContent = pairs === 1 ? '1 pair' : pairs + ' pairs';
 
         if (sumCollect)  sumCollect.textContent  = isPickup ? 'Home pickup' : 'Drop off';
-        if (sumLocation) sumLocation.textContent = isPickup ? 'Home pickup — see address below' : 'Canada Water, London';
+        if (sumLocation) sumLocation.textContent = isPickup ? 'Home pickup — see address below' : 'Surrey Quays station, London';
         if (sumPayment)  sumPayment.textContent  = payment === 'deposit' ? ('£' + DEPOSIT_AMOUNT + ' deposit') : 'Full amount';
         if (fullBadge)   fullBadge.textContent   = total;
 
@@ -2236,7 +2236,7 @@
   </script>
 
   <!-- ── OPENING HOURS + TIME SLOTS ────────────────────────────────────────
-       Canada Water, London is the only branch.
+       Surrey Quays station, London is the only branch.
          Mon–Fri: 17:00–21:00 (5pm–9pm)
          Sat:     09:00–17:00 (9am–5pm)
          Sun:     closed  ← change OPENING_HOURS[0] if that's wrong

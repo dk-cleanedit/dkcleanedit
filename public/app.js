@@ -173,10 +173,10 @@ const LOCATION_DATA = {
     embed:    "https://www.google.com/maps?q=Charles%20Street%20Leicester%20UK&z=15&output=embed",
   },
   canada_water: {
-    name:     "Canada Water, London",
-    address:  "Canada Water, London, UK",
-    mapsLink: "https://www.google.com/maps/search/?api=1&query=Canada+Water+London+UK",
-    embed:    "https://www.google.com/maps?q=Canada%20Water%20London%20UK&z=15&output=embed",
+    name:     "Surrey Quays station, London",
+    address:  "Surrey Quays station, London, UK",
+    mapsLink: "https://www.google.com/maps/search/?api=1&query=Surrey+Quays+Station+London+UK",
+    embed:    "https://www.google.com/maps?q=Surrey%20Quays%20Station%20London%20UK&z=15&output=embed",
   },
 };
 
@@ -200,7 +200,7 @@ const ROLES = {
   manager:  "Floor manager",
 };
 
-const LOCATIONS = { leicester: "Leicester", "canada-water": "Canada Water" };
+const LOCATIONS = { leicester: "Leicester", "canada-water": "Surrey Quays station" };
 
 // The pair-count picker on booking.html is a basket-style stepper (any
 // whole number ≥ 1), not fixed 1/3/10 tiers — but DK's real price list
@@ -1038,7 +1038,7 @@ function renderPickupBanner(order) {
   if (order.status === "Awaiting Pickup")
     return `<div class="pickup-notice" role="alert">
               <strong>Your shoes are ready!</strong>
-              Please collect them from ${esc(order.location || "the branch")}.
+              Please collect them from ${esc(orderLocationLabel(order) || "the branch")}.
             </div>`;
   if (order.pickedUp) return `<div class="pickup-collected">✅ Shoes collected</div>`;
   return "";
@@ -1314,7 +1314,7 @@ async function handlePickupBtn(pickupBtn) {
       recipientEmail: order.customerEmail,
       recipientName:  order.customerName || "Customer",
       orderId,
-      locationName:   order.location || "DKcleanedit",
+      locationName:   orderLocationLabel(order) || "DKcleanedit",
       cleaningSummary: `${serviceLabel(order.service)} — your shoes are clean and ready.`,
       pickupDate: formatDate(pickupDate),
       pickupTime,
@@ -1410,7 +1410,7 @@ async function saveOrder(orderId) {
         await sendCleaningCompleteEmail({
           recipientEmail: prev.customerEmail,
           recipientName:  prev.customerName || "Customer",
-          locationName:   prev.location || "DKcleanedit",
+          locationName:   orderLocationLabel(prev) || "DKcleanedit",
           cleaningSummary: `${serviceLabel(prev.service)} for order ${orderId} is complete.`,
           completedAt: new Date().toLocaleDateString("en-GB"),
         });
@@ -2433,12 +2433,17 @@ function initBooking() {
       const bookingPaymentMethod = needsQuote
         ? "Arranged after quote"
         : (paymentOption === "deposit" ? `£${DEPOSIT_AMOUNT} deposit now (card / Apple Pay / Google Pay), balance on collection` : "Full amount now (card / Apple Pay / Google Pay)");
+      // Same label logic as orderLocationLabel(), computed from the local
+      // booking-form values since the order doc isn't being re-read here.
+      const emailLocationLabel = isPickup
+        ? `Home pickup — ${pickupAddress || "address on order"}`
+        : (LOCATION_DATA[loc]?.name || loc);
 
       sendBookingEmail({
         customerName, customerEmail,
         orderId:     newOrderId,
         service:     serviceLabel(service),
-        location:    loc,
+        location:    emailLocationLabel,
         bookingDate: date,
         bookingTime: timeSlot,
         price:       totalPrice,
@@ -2456,7 +2461,7 @@ function initBooking() {
         orderId:     newOrderId,
         service:     serviceLabel(service),
         pairCount:   pairs,
-        location:    isPickup ? `Home pickup — ${pickupAddress || "address on order"}` : loc,
+        location:    emailLocationLabel,
         bookingDate: date,
         bookingTime: timeSlot,
         paymentMethod: bookingPaymentMethod,
@@ -2933,7 +2938,7 @@ function exportOrdersToCSV(orders) {
       o.customerEmail || "",
       o.customerPhone || "",
       serviceLabel(o.service),
-      o.location      || "",
+      orderLocationLabel(o) || "",
       o.pickupAddress || "",
       o.date          || "",
       o.timeSlot      || "",
@@ -3097,7 +3102,7 @@ function initAdmin() {
     const filtered = visible.filter((o) => {
       const matchesFilter = !filter || o.status === filter;
       const haystack = [
-        o.customerName, o.customerEmail, o.location, o.pickupAddress, o.service,
+        o.customerName, o.customerEmail, orderLocationLabel(o), o.pickupAddress, o.service,
         o.date, o.timeSlot, o.price, o.status, o.id,
       ].join(" ").toLowerCase();
       return matchesFilter && (!search || haystack.includes(search));
@@ -4051,7 +4056,7 @@ async function _loadAnalytics() {
   orders.forEach((o) => {
     const status  = o.status || "Unknown";
     const service = _analyticsServiceName(o.service);
-    const loc     = o.location || "Unknown";
+    const loc     = orderLocationLabel(o) || "Unknown";
     const day     = o.date || "Unknown";
     const slot    = o.timeSlot || "Unknown";
     const price   = _analyticsParsePrice(o.price);
