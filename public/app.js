@@ -3808,7 +3808,10 @@ function initSettings() {
   // theme toggle — Ref [10] (MDN localStorage), Ref [11] (MDN classList)
   const themeToggle = document.getElementById("themeToggle");
   if (themeToggle) {
-    const isDark = localStorage.getItem("theme") === "dark";
+    // Navy is the site's default appearance now, so an unset preference
+    // ("theme" never stored) counts as dark, not light.
+    const storedTheme = localStorage.getItem("theme");
+    const isDark = storedTheme === null ? true : storedTheme === "dark";
     themeToggle.checked = isDark;
     document.documentElement.classList.toggle("dark-mode", isDark);
     themeToggle.addEventListener("change", function () {
