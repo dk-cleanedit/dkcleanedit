@@ -27,7 +27,7 @@
   color: #fff;
   font-size: 0.68rem; font-weight: 700;
   white-space: nowrap; letter-spacing: 0.04em;
-  box-shadow: 0 3px 10px rgba(79, 195, 247, 0.35);
+  box-shadow: 0 3px 10px rgba(92,122,163, 0.35);
 }
 
 .acct-av-edit {
@@ -41,7 +41,7 @@
   color: #fff;
   cursor: pointer;
   transition: transform var(--ease, 0.15s ease), background var(--ease, 0.15s ease), box-shadow var(--ease, 0.15s ease);
-  box-shadow: 0 2px 8px rgba(79, 195, 247, 0.4);
+  box-shadow: 0 2px 8px rgba(92,122,163, 0.4);
 }
 .acct-av-edit:hover  { background: var(--primary-400, var(--primary)); transform: scale(1.08); }
 .acct-av-edit:active { transform: scale(0.94); }
@@ -72,16 +72,16 @@
   font-size: 2.6rem; font-weight: 800;
   color: var(--gold);
   letter-spacing: -0.03em; line-height: 1;
-  text-shadow: 0 2px 14px rgba(79, 195, 247, 0.3);
+  text-shadow: 0 2px 14px rgba(92,122,163, 0.3);
 }
 
 .tier-chip {
   display: inline-flex; align-items: center;
   padding: 5px 14px; border-radius: 999px;
   font-family: 'Russo One', var(--font-ui, sans-serif);
-  background: radial-gradient(circle at 32% 28%, #8fe0ff 0%, #3fa9f5 38%, #1565c0 72%, #0d3d7a 100%);
+  background: radial-gradient(circle at 32% 28%, #b7c4da 0%, #3d5a86 38%, #1f3b63 72%, #0d3d7a 100%);
   border: 1px solid #0a2d5e;
-  color: #eaf7ff;
+  color: #e4e9f2;
   font-size: 0.72rem; font-weight: 400; letter-spacing: 0.3px; text-transform: uppercase;
   white-space: nowrap; flex-shrink: 0;
   box-shadow:
@@ -95,7 +95,7 @@
 
 .tier-bar-track { height: 7px; border-radius: 999px; background: var(--surface-3); overflow: hidden; margin-bottom: 9px; }
 
-.tier-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--gold), var(--gold-bright)); transition: width 0.9s cubic-bezier(0.4,0,0.2,1); box-shadow: 0 0 8px rgba(79, 195, 247, 0.5); }
+.tier-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--gold), var(--gold-bright)); transition: width 0.9s cubic-bezier(0.4,0,0.2,1); box-shadow: 0 0 8px rgba(92,122,163, 0.5); }
 
 .tier-hint { font-size: 0.8rem; color: var(--text-3); margin: 0 0 20px; }
 
@@ -112,9 +112,9 @@
 .tier-item:hover { border-color: var(--line-2); transform: translateY(-2px); box-shadow: var(--shadow-1); }
 
 .tier-item.active-tier {
-  border-color: rgba(79, 195, 247, 0.45);
+  border-color: rgba(92,122,163, 0.45);
   background: var(--gold-bg);
-  box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.18), 0 4px 16px rgba(21, 101, 192, 0.15);
+  box-shadow: 0 0 0 2px rgba(92,122,163, 0.18), 0 4px 16px rgba(21, 101, 192, 0.15);
 }
 
 .ti-icon {
@@ -127,9 +127,9 @@
   transition: background 0.2s, box-shadow 0.2s, color 0.2s, border-color 0.2s;
 }
 .tier-item.active-tier .ti-icon {
-  background: radial-gradient(circle at 32% 28%, #8fe0ff 0%, #3fa9f5 38%, #1565c0 72%, #0d3d7a 100%);
+  background: radial-gradient(circle at 32% 28%, #b7c4da 0%, #3d5a86 38%, #1f3b63 72%, #0d3d7a 100%);
   border-color: #0a2d5e;
-  color: #eaf7ff;
+  color: #e4e9f2;
   box-shadow:
     inset 0 1px 1px rgba(255,255,255,0.5),
     inset 0 -2px 3px rgba(5,25,55,0.4),
@@ -149,9 +149,9 @@
 .stat-lbl { font-size: 0.74rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); margin-bottom: 5px; }
 .stat-val {
   font-family: 'Russo One', var(--font-ui, sans-serif);
-  font-size: 1.4rem; font-weight: 400; color: #8fe0ff;
+  font-size: 1.4rem; font-weight: 400; color: #b7c4da;
   letter-spacing: 0;
-  text-shadow: 0 1px 10px rgba(79, 195, 247, 0.35);
+  text-shadow: 0 1px 10px rgba(92,122,163, 0.35);
 }
 .stat-val.sm {
   font-family: var(--font-ui, sans-serif);

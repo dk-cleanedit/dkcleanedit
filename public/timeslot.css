@@ -23,16 +23,16 @@
 
 /* Hover (available slots only)*/
 .time-slot:not(:disabled):not(.slot-unavailable):hover {
-  border-color: #4fc3f7;
+  border-color: #5c7aa3;
   background:   #fdf6e3;
-  color:        #0288d1;
+  color:        #1f3b63;
 }
 
 /*  Selected / active */
 .time-slot.active,
 .time-slot[aria-pressed="true"] {
-  background:   #4fc3f7;
-  border-color: #4fc3f7;
+  background:   #5c7aa3;
+  border-color: #5c7aa3;
   color:        #000000;
 }
 
