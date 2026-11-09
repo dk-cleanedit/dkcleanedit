@@ -164,8 +164,71 @@
           <option>Cancelled</option>
         </select>
         <div class="admin-toolbar-actions">
+          <button id="btnManualOrder" class="btn primary">+ Log cash / manual order</button>
           <button id="btnExportCSV" class="btn secondary">Export CSV</button>
           <button id="btnAdminRefresh" class="btn">Refresh</button>
+        </div>
+      </div>
+
+      <!-- Manual order modal — for a past or off-platform client (e.g. paid
+           in cash) who should still be trackable like a normal booking. -->
+      <div id="manualOrderOverlay" hidden style="position:fixed;inset:0;z-index:1000;background:rgba(5,10,20,0.6);display:flex;align-items:center;justify-content:center;padding:16px;">
+        <div class="card" style="max-width:480px;width:100%;max-height:90vh;overflow-y:auto;background:var(--surface);border:1px solid var(--line);padding:22px;">
+          <div class="card-title" style="margin-bottom:4px;">Log a cash / manual order</div>
+          <p class="sub" style="margin-bottom:14px;">For a client you cleaned shoes for off-platform (e.g. paid in cash). This creates a trackable order, and links it to their account if their email matches one.</p>
+          <form id="manualOrderForm" style="display:flex;flex-direction:column;gap:12px;">
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:0.88rem;color:var(--text-2);font-weight:600;">Customer name
+              <input id="moName" type="text" required />
+            </label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:0.88rem;color:var(--text-2);font-weight:600;">Email <span style="opacity:.7;font-weight:400;">(optional — links to their account if they have one)</span>
+              <input id="moEmail" type="email" />
+            </label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:0.88rem;color:var(--text-2);font-weight:600;">Phone <span style="opacity:.7;font-weight:400;">(optional)</span>
+              <input id="moPhone" type="tel" />
+            </label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:0.88rem;color:var(--text-2);font-weight:600;">Service
+              <select id="moService">
+                <option value="standard_clean">Standard Cleaning</option>
+                <option value="express">Express Service</option>
+                <option value="next_day">Next Day</option>
+              </select>
+            </label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:0.88rem;color:var(--text-2);font-weight:600;">Pairs of shoes
+              <input id="moPairs" type="number" min="1" value="1" />
+            </label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:0.88rem;color:var(--text-2);font-weight:600;">Date
+              <input id="moDate" type="date" />
+            </label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:0.88rem;color:var(--text-2);font-weight:600;">Status
+              <select id="moStatus">
+                <option>Booked</option>
+                <option>Received</option>
+                <option>Cleaning</option>
+                <option>Drying &amp; Finish</option>
+                <option>Ready</option>
+                <option>Awaiting Pickup</option>
+                <option selected>Completed</option>
+              </select>
+            </label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:0.88rem;color:var(--text-2);font-weight:600;">Amount paid
+              <input id="moPrice" type="text" placeholder="£25" />
+            </label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:0.88rem;color:var(--text-2);font-weight:600;">Payment method
+              <select id="moPaymentMethod">
+                <option value="cash">Cash</option>
+                <option value="bank_transfer">Bank transfer</option>
+                <option value="other">Other / off-platform</option>
+              </select>
+            </label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:0.88rem;color:var(--text-2);font-weight:600;">Notes <span style="opacity:.7;font-weight:400;">(optional)</span>
+              <input id="moNotes" type="text" />
+            </label>
+            <div id="manualOrderMsg" style="color:var(--danger);min-height:1.2em;font-size:0.85rem;"></div>
+            <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px;">
+              <button type="button" id="btnManualOrderCancel" class="btn secondary">Cancel</button>
+              <button type="submit" id="btnManualOrderSave" class="btn primary">Save order</button>
+            </div>
+          </form>
         </div>
       </div>
 

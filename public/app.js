@@ -111,6 +111,7 @@ import {
   updatePassword,
   EmailAuthProvider,
   reauthenticateWithCredential,
+  linkWithCredential,
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
 import {
@@ -1904,7 +1905,45 @@ function initRegister() {
 
     btn.disabled = true; btn.textContent = "Creating account…";
     try {
-      const cred = await createUserWithEmailAndPassword(auth, email, pass);
+      // A guest who booked earlier in this browser is still signed in
+      // anonymously. Upgrade that same account in place (same uid) rather
+      // than creating a brand-new one — their past guest order(s) are
+      // saved against this uid, so linking makes them belong to the new
+      // account automatically, with no separate migration step.
+      const anonUser = auth.currentUser;
+      let cred;
+      if (anonUser && anonUser.isAnonymous) {
+        try {
+          cred = await linkWithCredential(anonUser, EmailAuthProvider.credential(email, pass));
+        } catch (linkErr) {
+          // That email already belongs to a separate real account —
+          // can't merge two accounts here, so fall back to normal signup.
+          if (linkErr?.code === "auth/email-already-in-use" || linkErr?.code === "auth/credential-already-in-use") {
+            cred = await createUserWithEmailAndPassword(auth, email, pass);
+          } else {
+            throw linkErr;
+          }
+        }
+      } else {
+        cred = await createUserWithEmailAndPassword(auth, email, pass);
+      }
+
+      // Just converted from a guest session: flip their past guest
+      // order(s) over to full-member status (best-effort — never blocks
+      // registration if this fails).
+      if (anonUser && anonUser.isAnonymous && cred.user.uid === anonUser.uid) {
+        try {
+          const guestOrders = await getDocs(query(
+            collection(db, "orders"),
+            where("uid", "==", cred.user.uid),
+            where("isGuest", "==", true)
+          ));
+          await Promise.all(guestOrders.docs
+            .filter((d) => !d.data().pointsGranted)
+            .map((d) => updateDoc(d.ref, { isGuest: false, pointsAwarded: 10 })));
+        } catch (convErr) { console.warn("Guest order conversion skipped:", convErr); }
+      }
+
       await Promise.all([
         updateProfile(cred.user, { displayName: name }),
         setDoc(doc(db, "users", cred.user.uid), {
@@ -2586,26 +2625,21 @@ function initTracking() {
       </div>`;
       return;
     }
-    // Guest checkout (anonymous auth) deliberately has no order tracking —
-    // guests never created an account, so there's no order history to show.
-    // Give them a clear explanation (plus their order ID, if we have it)
-    // instead of the generic "please log in" message, which would be
-    // confusing since they were never asked to log in to book.
+    // Guest checkout (anonymous auth) now gets the same live order
+    // tracking as a signed-in customer, scoped to their own uid — every
+    // guest booking is already saved with uid: <their anonymous uid>, so
+    // this is exactly as safe as the real-customer query just below.
+    // A guest checking from a different browser/device than the one they
+    // booked on won't have that uid and will just see "No active orders",
+    // same as a brand-new visitor.
+    const overlay = $("#signupOverlay");
+    if (overlay) overlay.hidden = true;
     if (user.isAnonymous) {
-      const overlay = $("#signupOverlay");
-      if (overlay) overlay.hidden = true;
-      const params  = new URLSearchParams(location.search);
-      const orderId = params.get("orderId");
-      const paid    = params.get("paid") === "1";
-      ordersEl.innerHTML = `<div class="order-card">
-        <div class="order-title">${paid ? "Payment received — thank you! ✓" : "Order tracking isn't available for guest bookings"}</div>
-        ${orderId ? `<p class="sub">Your Order ID: <strong>${orderId}</strong> — keep this for your records.</p>` : ""}
-        <p class="sub">You booked as a guest, so there's no order history to show here. We'll keep you updated by email${orderId ? "" : " and text"}. Create a free account to track orders online next time.</p>
-        <a class="btn primary" href="register.html">Create an account</a>
-      </div>`;
-      return;
+      ordersEl.insertAdjacentHTML("beforebegin",
+        `<div role="status" style="margin:10px 0;padding:12px 14px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);color:var(--text-2);font-size:0.92rem;">
+           You're tracking as a guest. <a href="register.html" style="color:var(--primary);font-weight:600;">Create a free account</a> to keep this order history and start earning loyalty points.
+         </div>`);
     }
-    if ($("#signupOverlay")) $("#signupOverlay").hidden = true;
 
     onSnapshot(
       query(collection(db, "orders"), where("uid", "==", user.uid)),
@@ -3117,6 +3151,90 @@ function initAdmin() {
   $("#adminFilter")?.addEventListener("change", renderAll);
   $("#btnAdminRefresh")?.addEventListener("click", () => { renderAll(); toast("Refreshed ✅"); });
   $("#btnExportCSV")?.addEventListener("click", () => exportOrdersToCSV(allOrders));
+
+  // Manual / cash order logging — for a past or off-platform client so they
+  // still show up as a trackable order, same as a normal booking. Links to
+  // an existing customer account by email when one matches, so it also
+  // appears in that customer's own order history/tracking; otherwise it's
+  // just an admin-visible record with no linked account.
+  wireManualOrderModal();
+  function wireManualOrderModal() {
+    const overlay  = $("#manualOrderOverlay");
+    const form     = $("#manualOrderForm");
+    const msgEl    = $("#manualOrderMsg");
+    const btnOpen  = $("#btnManualOrder");
+    const btnClose = $("#btnManualOrderCancel");
+    if (!overlay || !form || !btnOpen) return;
+
+    const showErr = (m) => { if (msgEl) msgEl.textContent = m; };
+
+    btnOpen.addEventListener("click", () => {
+      form.reset();
+      showErr("");
+      overlay.hidden = false;
+      $("#moName")?.focus();
+    });
+    btnClose?.addEventListener("click", () => { overlay.hidden = true; });
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.hidden = true; });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      showErr("");
+
+      const name    = $("#moName")?.value.trim();
+      const email   = $("#moEmail")?.value.trim().toLowerCase() || "";
+      const phone   = $("#moPhone")?.value.trim() || "";
+      const service = $("#moService")?.value || "standard_clean";
+      const pairs   = Math.max(1, Number($("#moPairs")?.value) || 1);
+      const date    = $("#moDate")?.value || "";
+      const status  = $("#moStatus")?.value || "Completed";
+      const price   = $("#moPrice")?.value.trim() || "";
+      const paymentMethod = $("#moPaymentMethod")?.value || "cash";
+      const notes   = $("#moNotes")?.value.trim() || "";
+
+      if (!name) { showErr("Please enter the customer's name."); return; }
+
+      const saveBtn = $("#btnManualOrderSave");
+      if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = "Saving…"; }
+      try {
+        // If the email matches an existing customer account, link this
+        // order to that uid so it shows up in their own tracking too.
+        let linkedUid = "";
+        if (email) {
+          try {
+            const match = await getDocs(query(collection(db, "users"), where("email", "==", email)));
+            if (!match.empty) linkedUid = match.docs[0].id;
+          } catch (lookupErr) { console.warn("Customer lookup skipped:", lookupErr); }
+        }
+
+        await setDoc(doc(collection(db, "orders")), {
+          uid: linkedUid, customerName: name, customerEmail: email, customerPhone: phone,
+          isGuest: false, isManualEntry: true, paymentMethod, manualNotes: notes,
+          service, serviceLabel: serviceLabel(service), pairCount: pairs,
+          location: "", date, timeSlot: "",
+          price: price || "Paid off-platform", basePrice: null,
+          addons: [], quoteRequired: false,
+          collectionOption: "dropoff", pickupAddress: "", pickupFee: 0, collectionMode: "dropoff",
+          paymentOption: "full", depositAmount: 0, amountDueNow: null,
+          tierApplied: "Carbon", discountPct: 0, discountSaving: 0, discountApplied: false,
+          freeDeliveryApplied: false,
+          shoeNotes: "", status, pickedUp: status === "Completed",
+          deliveryMode: "pending", assignedStaff: "",
+          pointsAwarded: linkedUid ? 10 : 0, pointsGranted: false, grantedPointsAmount: 0,
+          createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+        });
+
+        toast(linkedUid ? `Order logged and linked to ${name}'s account ✅` : "Order logged ✅");
+        overlay.hidden = true;
+        form.reset();
+      } catch (err) {
+        console.error("Manual order save failed:", err);
+        showErr(err?.message || "Couldn't save this order. Please try again.");
+      } finally {
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = "Save order"; }
+      }
+    });
+  }
   document.addEventListener("keydown", (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key === "k") {
       const s = $("#adminSearch"); if (s) { e.preventDefault(); s.focus(); s.select(); }
